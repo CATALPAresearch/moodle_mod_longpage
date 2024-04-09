@@ -141,7 +141,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {ACT, GET, MUTATE} from '@/store/types';
-import {AnnotationType, THREAD_CONTAINER_ID} from '@/config/constants';
+import { AnnotationType, THREAD_CONTAINER_ID, SidebarEvents, SidebarTabKeys  } from '@/config/constants';
 import {mapActions, mapGetters, mapMutations} from 'vuex';
 import {EventBus} from '@/lib/event-bus';
 import FilterForm from '@/components/LongpageSidebar/Posts/FilterForm/';
@@ -186,7 +186,12 @@ export default {
       this.selectedThreads = type === AnnotationType.POST ?
           this.threads.filter(t => selection.findIndex(annotation => annotation.id === t.annotationId) >= 0) : [];
     });
+    EventBus.subscribe("page-ready", () => {
+      EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.POSTS, count: this.threads.map(t => t.posts.filter(p => !p._readByUser).length).reduce((p, a) => p + a, 0), title: "Neue Anmerkungen" });
+    });
+    
   },
+  emits: [SidebarEvents.CHANGE_BADGES],
   methods: {
     ...mapActions([ACT.FILTER_ANNOTATIONS]),
     ...mapMutations([MUTATE.SELECTED_THREAD_SORTING_OPTION]),
