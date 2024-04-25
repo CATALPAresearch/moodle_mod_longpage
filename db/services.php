@@ -240,6 +240,14 @@ $functions = array(
         'capabilities'  => 'mod/longpage:view',
         'ajax'          => true
     ),
+    'mod_longpage_embed_question' => array(
+        'classname'     => 'mod_longpage_external',
+        'methodname'    => 'embed_question',
+        'description'   => 'Embed question for reading comprehension on page',
+        'type'          => 'write',
+        'capabilities'  => 'mod/longpage:view',
+        'ajax'          => true
+    ),
     'mod_longpage_autosave' => array(
         'classname'     => 'mod_longpage_external',
         'methodname'    => 'autosave',

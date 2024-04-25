@@ -157,7 +157,10 @@
 
 .embedQuestion
 {
-  margin-left: 20px;
+  position: absolute;
+  right: -30px;
+  z-index: 100;
+  opacity: 0;
 }
 
 </style>
@@ -326,7 +329,8 @@ export default {
 
       get_reading_comprehension();
 
-      $(".reading-progress").not($(".filter_embedquestion-iframe ").parent().next()).append('<a href="javascript:void(0)" class="embedQuestion" title="Vorhandene Frage einbetten"><i class="fa fa-plus fa-fw" /></a>');
+      $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe ").parent().next())).parent()
+        .append('<a href="javascript:void(0)" class="embedQuestion" title="Vorhandene Frage einbetten"><i class="fa fa-plus fa-fw" /></a>');
 
       //let previousY = 0;
       let directionUp = false;
@@ -587,13 +591,45 @@ export default {
       });
 
       $("#id_embedform").on("change", function () {
-        //alert($("#id_embedformeditable").text());
+        
+        ajax.call([
+        {
+          methodname: "mod_longpage_embed_question",
+          args: {
+            longpageid: _this.context.longpageid,
+            embedcode: $("#id_embedformeditable").text(),
+            position: $("#id_embedformeditable").data("position")
+          },
+          done: function (reads) {
+            try { 
+              $(".mform").attr("data-form-dirty", "false");
+              alert("Die Frage wurde erfolgreich eingebettet. Laden Sie die Seite neu, um die Änderungen anzuzeigen.");
+            } catch (e) {
+              console.log(e);
+            } 
+          },
+          fail: function (e) {
+            console.error("fail", e);
+          },
+        },
+      ]);
       }); 
 
+      // Toggle visibility of embedQuestion on mouseover and mouseout
+      $("#longpage-main").on("mouseover mouseout", ".wrapper", function () {
+        $(this).find(".embedQuestion").css("opacity", event.type === "mouseover" ? "1" : "0");
+      });
+
+      // Toggle visibility of embedQuestion on mouseenter and mouseleave
+      $("#longpage-main").on("mouseenter mouseleave", ".embedQuestion", function () {
+        $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
+      });
+
+
       $(".embedQuestion").on("click", function () {
-        alert($(this).index(".embedQuestion"));
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
+        $("#id_embedformeditable").data("position", $(this).index(".embedQuestion"));
         $(".atto_embedquestion_button").click();
         
         // Fragment.loadFragment('atto_embedquestion', 'questionselector', 16,

@@ -1856,18 +1856,16 @@ class mod_longpage_external extends external_api
                 "response" =>  new external_value(PARAM_RAW)));
     }
 
-    public static function update_reading_comprehension($longpageid, $action, $questionid, $tag, $index)
+    public static function embed_question($longpageid, $embedcode, $position)
     {
         global $DB, $USER;
 
         $params = self::validate_parameters(
-            self::update_reading_comprehension_parameters(),
+            self::embed_question_parameters(),
             array(
                 'longpageid' => $longpageid,
-                'action' => $action,
-                'questionid' => $questionid,
-                'tag' => $tag,
-                'index' => $index
+                'embedcode' => $embedcode,
+                'position' => $position
             )
         );
 
@@ -1878,7 +1876,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        $options = array('noclean' => true);
+        $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
             $page->content,
             $page->contentformat,
@@ -1888,45 +1886,63 @@ class mod_longpage_external extends external_api
             $page->revision,
             $options
         );
+        
+        // Load $page->content as HTML
+        $dom = new DOMDocument();
+        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
-        if($action == 'embedquestion')
-        {
-            if(!in_array($tag, ['div', 'p']))
-            {
-                return array('response' => json_encode("error: tag must be div or p"));
-            }
+        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
+        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
+        if (!$topLevelTag) {
+            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
+        }
+        
+        // Continue with the rest of the code
+        $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
+        $topLevelElementsArray = iterator_to_array($topLevelElements);
+        $topLevelElement = null;
 
-            //load question
-
-            //get embed code for question from embedquestion_filter
-            $embedcode = "";
-
-            //find position of index-th tag
-            preg_match_all('/\/' + $tag + '>/', $page->content, $matches, PREG_OFFSET_CAPTURE);
-            $pos = $matches[0][$index][1];
-            $newcontent = substr_replace($page->content, "<" + $tag + ">" + $embedcode + "</" + $tag + ">", $pos+1, 0);
-
-            //save newcontent to page
-            $DB->update_record('longpage', ['id' => $longpageid, 'content' => $newcontent, 'timemodified' => time()]);
+        // Find $position-th top level tag "p" or "div"
+        if (count($topLevelElementsArray) >= $position) {
+            $topLevelElement = $topLevelElementsArray[$position - 1];
         }
 
+        $newcontent = $page->content;
+
+        if ($topLevelElement) {
+            // Create a new p-tag or div-tag with $embedcode
+            $newElement = $dom->createElement($topLevelElement->nodeName);
+            $newElement->nodeValue = $embedcode;
+
+            // Append the new tag to the DOM
+            $topLevelElement->parentNode->insertBefore($newElement, $topLevelElement->nextSibling);
+
+            // Get the updated content
+            $newcontent = $dom->saveHTML();
+        } else {
+            // Handle the case when $position is out of range
+            $newcontent = $page->content;
+        }
+
+        // Save newcontent to page
+        $DB->update_record('longpage', ['id' => $longpageid, 'content' => $newcontent, 'timemodified' => time()]);
+
+        // Return the updated content
         return array('response' => json_encode("success"));
     }
 
-    public static function update_reading_comprehension_parameters()
+    public static function embed_question_parameters()
     {
         return new external_function_parameters(
             array(
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
-                'action' => new external_value(PARAM_RAW, 'action to perform'),
-                'questionid' => new external_value(PARAM_INT, 'question to perform action on'),
-                'tag' => new external_value(PARAM_RAW, 'tag of html element before embedded question'),
-                'index' => new external_value(PARAM_INT, 'index of html element before embedded question')
+                'embedcode' => new external_value(PARAM_RAW, 'embed code'),
+                'position' => new external_value(PARAM_INT, 'position')
             )
         );
     }
 
-    public static function update_reading_comprehension_returns()
+    public static function embed_question_returns()
     {
         return new external_single_structure(
             array('response' => new external_value(PARAM_RAW, 'Server response to autosave'))
