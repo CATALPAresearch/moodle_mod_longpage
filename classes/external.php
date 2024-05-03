@@ -28,6 +28,8 @@ defined('MOODLE_INTERNAL') || die;
 
 use core_question\statistics\questions\calculator;
 use filter_embedquestion\embed_id;
+use filter_embedquestion;
+use filter_embedquestion\external;
 use filter_embedquestion\utils;
 use mod_longpage\local\constants\annotation_type as annotation_type;
 use mod_longpage\local\constants\selector as selector;
@@ -2073,7 +2075,206 @@ class mod_longpage_external extends external_api
             array('response' => new external_value(PARAM_RAW, 'Server response to remove_question'))
         );
     }
-    
+
+    public static function create_question($longpageid, $position)
+    {
+        global $CFG, $DB, $USER, $PAGE;
+
+        $params = self::validate_parameters(
+            self::create_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'position' => $position
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+        
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+        
+        $options = array('noclean' => true, 'filter' => false);
+        list($page->content, $page->contentformat) = external_format_text(
+            $page->content,
+            $page->contentformat,
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision,
+            $options
+        );
+
+        // Load $page->content as HTML
+        $dom = new DOMDocument();
+        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+
+        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
+        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
+        if (!$topLevelTag) {
+            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
+        }
+
+        // Get all top level tags
+        $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
+
+        // Filter out p-tags that do not contain text with "{Q{"
+        $filteredElements = [];
+        foreach ($topLevelElements as $element) {
+            if (strpos($element->textContent, '{Q{') === false) {
+                $filteredElements[] = $element;
+            }
+        }
+
+        // Find $position-th top level tag "p" or "div"
+        if (count($filteredElements) > $position) {
+            $topLevelElement = $filteredElements[$position];
+        }
+        
+        // get text from top level element
+        $textContent = $topLevelElement->textContent;
+
+        // create new question
+
+        $explanation = "Please write one multiple choice question in German language";
+        $explanation .= " in GIFT format on the following text, ";
+        $explanation .= " GIFT format use equal sign for right answer and tilde sign for wrong answer at the beginning of answers.";
+        $explanation .= " For example: '::Question title { =right answer ~wrong answer ~wrong answer ~wrong answer }' ";
+        //$explanation .= " Please have a blank line between questions. ";
+        $explanation .= " Write the questions in the right format! ";
+        $explanation .= " Do not forget any equal or tilde sign !";
+
+        $key = "sk-ilG6eNFmZYWae2yzjPM6nQ";
+        $url = "http://localhost:4000/v1/chat/completions";
+        $authorization = "Authorization: Bearer " . $key;
+
+        // Remove new lines and carriage returns.
+        $textContent = str_replace("\n", " ", $textContent);
+        $textContent = str_replace("\r", " ", $textContent);
+        $escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c");
+        $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
+        $textContent = str_replace($escapers, $replacements, $textContent);
+
+        $data = '{
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {"role": "system", "content": "' . $explanation . '"},
+                {"role": "user", "content": "' . $textContent. '"}
+                ]}';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
+        $result = json_decode(curl_exec($ch));
+        curl_close($ch);
+        
+
+        $questions = new stdClass(); // The questions object.
+        if (!isset($result->choices[0]->message->content)) {
+            return array('response' => json_encode("error"));
+        } 
+
+        //add new question
+        require_once($CFG->libdir . '/questionlib.php');
+        require_once($CFG->dirroot . '/question/format.php');
+        require_once($CFG->dirroot . '/question/format/gift/format.php');
+
+        $qformat = new \qformat_gift();
+
+        $coursecontext = \context_course::instance($course->id);
+
+        // Use existing questions category for quiz or create the defaults.        
+        if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
+            return array('response' => json_encode("error"));
+        }
+
+        // Split questions based on blank lines.
+        // Then loop through each question and create it.
+        $questions = explode("\n\n", $result->choices[0]->message->content);
+
+        foreach ($questions as $question) {
+            //check format
+            $qa = str_replace("\n", "", $question);
+            preg_match('/::(.*)\{/', $qa, $matches);
+            if (isset($matches[1])) {
+                $qlength = strlen($matches[1]);
+            } else {
+                throw new Exception("Question title not found.");
+            }
+            if ($qlength < 10) {
+                throw new Exception("Question length too short.");
+            }
+            preg_match('/\{(.*)\}/', $qa, $matches);
+            if (isset($matches[1])) {
+                $wrongs = substr_count($matches[1], "~");
+                $right = substr_count($matches[1], "=");
+            } else {
+                throw new Exception("Answers not found.");
+            }
+            // if ($wrongs != 3 || $right != 1) {
+            //     throw new Exception("There is no single right answers or no 3 wrong answers.");
+            // }
+
+            $singlequestion = explode("\n", $question);
+            // Manipulating question text manually for question text field.
+            $questiontext = explode('{', $singlequestion[0]);
+            $questiontext = trim(str_replace('::', '', $questiontext[0]));
+            $qtype = 'multichoice';
+            $q = $qformat->readquestion($singlequestion);
+            // Check if question is valid.
+            if (!$q) {
+                throw new Exception("Question not valid.");
+            }
+            $q->category = $category->id;
+            $q->createdby = $USER->id;
+            $q->modifiedby = $USER->id;
+            $q->timecreated = time();
+            $q->timemodified = time();
+            $q->questiontext = ['text' => "<p>" . $questiontext . "</p>"];
+            $q->questiontextformat = 1;
+            $q->idnumber = "ai-generated-".time()."-".$USER->id;
+            
+            $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
+            if ($created) {
+                // create embedcode with util function
+                $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "");
+                self::embed_question($longpageid, $embedcode, $position);
+                $filter = new filter_embedquestion($context, []);
+                $filter->setup($PAGE, $context);
+                $embedcode = str_replace("{Q{", "", $embedcode);
+                $embedcode = str_replace("}Q}", "", $embedcode);
+                $iframecode = $filter->embed_question($embedcode);
+            }
+        }
+        if ($created) {
+            
+            return array('response' => $iframecode);
+        } else {
+            throw new Exception("Question not created.");
+        }
+    }
+
+    public static function create_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'position' => new external_value(PARAM_INT, 'position')
+            )
+        );
+    }
+
+    public static function create_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to create_question'))
+        );
+    }
 
 
     public static function autosave($data)

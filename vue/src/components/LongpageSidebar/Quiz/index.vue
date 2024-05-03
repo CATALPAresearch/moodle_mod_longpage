@@ -46,6 +46,14 @@
         <span class="sr-only">&lt;-</span>
       </a>
     </div>
+    <div id="embedQuestion">
+      <a href="javascript:void(0)" class="embedNewQuestion">
+        <i class="fa fa-plus fa-fw" title="Neue Frage einbetten" />
+      </a>
+      <a href="javascript:void(0)" class="embedExistingQuestion">
+        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
+      </a>
+    </div>
     </template>
   </sidebar-tab>
 </template>
@@ -154,10 +162,15 @@
   display: none;
 }
 
+#embedQuestion
+{
+  display: none;
+}
+
 .embedQuestion
 {
   position: absolute;
-  right: -30px;
+  right: -50px;
   z-index: 100;
   opacity: 0;
 }
@@ -329,7 +342,7 @@ export default {
       get_reading_comprehension();
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
-        .append('<a href="javascript:void(0)" class="embedQuestion" title="Vorhandene Frage einbetten"><i class="fa fa-plus fa-fw" /></a>');
+        .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
 
       //let previousY = 0;
       let directionUp = false;
@@ -625,44 +638,51 @@ export default {
       });
 
 
-      $(".embedQuestion").on("click", function () {
+      $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
-        $("#id_embedformeditable").data("position", $(this).index(".embedQuestion"));
+        $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
         $(".atto_embedquestion_button").click();
-        
-        // Fragment.loadFragment('atto_embedquestion', 'questionselector', 16,
-        //         {contextId: 16, embedCode: ""}
-        //         ).done(function(html, js) {
-        //           var last = $("#longpage-content .wrapper").filter(function (i, el)
-        //           {
-        //             return isElementBottomInViewport(el);
-        //           }).last().children().first();
+      });
 
-        //           var tag = $(last).prop("tagName").toLowerCase();
+      $(".embedNewQuestion").on("click", function () {
+        var btn = $(this).parent();
+        ajax.call([
+          {
+            methodname: "mod_longpage_create_question",
+            args: {
+              longpageid: _this.context.longpageid,
+              position: $(btn).index(".embedQuestion")
+            },
+            done: function (data) {
+              var iframecode = data.response;
+              if (iframecode == "error")
+              {
+                alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+                return;
+              }
 
-                 
-  
-        //           const blob = new Blob([html], { type: 'text/html' });
-        //           let iframe = document.createElement('iframe');
-        //           $(iframe).on("load", function () {
-        //             var jsLink = $('<script>').attr('type', 'text/javascript').html(js);
-        //             $(this).contents().find("head").append(jsLink);
-        //           });
-        //           iframe.src = window.URL.createObjectURL(blob);
-        //           $(iframe).attr("id", "add/question").addClass('filter_embedquestion-iframe');
-        //           //Templates.replaceNodeContents(iframe, html, js);
-
-                  
-        //           $(iframe).wrap("<div class='carousel-item'/>").prependTo($("#question"));
-                 
-        //           // $(iframe).insertAfter(last.parent(".wrapper"));
-        //           // $(iframe).wrap("<div class='wrapper'/>")
-        //           // $(iframe).wrap("<div/>");
-
-        //           // observer.observe(last.parent(".wrapper")[0]);
-
-        //         }).fail(Notification.exception);
+              if ($(btn).prev(".reading-comprehension").length > 0)
+              {
+                $(btn).parent(".wrapper").next().children().first().append(iframecode);
+              }
+              else
+              {
+                var wrapper = "<div class='wrapper'><p>" + iframecode + "</p></div>";
+                $(btn).parent(".wrapper").after(wrapper);
+                $(wrapper).height("0px")
+                $(wrapper).css("padding", "0px");
+                get_reading_comprehension();
+                observer.observe($(btn).parent(".wrapper")[0]);
+              }
+              
+              alert("Neue Frage wurde erfolgreich eingefügt.");
+            },
+            fail: function (e) {
+              alert(e.message);
+            },
+          },
+        ]);        
       });
 
       $("#removeQuestion").on("click", function () {

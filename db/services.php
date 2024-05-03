@@ -240,6 +240,14 @@ $functions = array(
         'capabilities'  => 'mod/longpage:view',
         'ajax'          => true
     ),
+    'mod_longpage_create_question' => array(
+        'classname'     => 'mod_longpage_external',
+        'methodname'    => 'create_question',
+        'description'   => 'Create question with AI for reading comprehension on page',
+        'type'          => 'write',
+        'capabilities'  => 'mod/longpage:view',
+        'ajax'          => true
+    ),
     'mod_longpage_embed_question' => array(
         'classname'     => 'mod_longpage_external',
         'methodname'    => 'embed_question',
