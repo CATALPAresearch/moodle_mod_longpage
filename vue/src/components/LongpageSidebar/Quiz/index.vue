@@ -46,6 +46,14 @@
         <span class="sr-only">&lt;-</span>
       </a>
     </div>
+    <div id="embedQuestion">
+      <a href="javascript:void(0)" class="embedNewQuestion">
+        <i class="fa fa-plus fa-fw" title="Neue Frage einbetten" />
+      </a>
+      <a href="javascript:void(0)" class="embedExistingQuestion">
+        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
+      </a>
+    </div>
     </template>
   </sidebar-tab>
 </template>
@@ -154,10 +162,15 @@
   display: none;
 }
 
+#embedQuestion
+{
+  display: none;
+}
+
 .embedQuestion
 {
   position: absolute;
-  right: -30px;
+  right: -50px;
   z-index: 100;
   opacity: 0;
 }
@@ -329,7 +342,7 @@ export default {
       get_reading_comprehension();
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
-        .append('<a href="javascript:void(0)" class="embedQuestion" title="Vorhandene Frage einbetten"><i class="fa fa-plus fa-fw" /></a>');
+        .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
 
       //let previousY = 0;
       let directionUp = false;
@@ -415,9 +428,9 @@ export default {
 
                 readfun();
 
-                function waitPending() {
-                  if (M.util.js_pending()) {
-                    setTimeout(waitPending, 500);
+                function waitPending(cnt = 0) {
+                  if (M.util.js_pending() && cnt < 10) {
+                    setTimeout(waitPending, 500, cnt + 1);
                   }
                   else {
                     $("#quiz-spinner").remove();
@@ -482,7 +495,7 @@ export default {
                 $(this).contents().find("body").on('click keyup', autosavefun);
 
                 $(this).contents().find("body").on('dblclick', function () {
-                  var el = $("#" + $("#question iframe" + idFixed).data("paragraph"));
+                  var el = $("#" + $("#question iframe" + idFixed).attr("data-paragraph"));
                   $(el)[0].scrollIntoView({ "behavior": "smooth", "block": "start" });
                 });
               });
@@ -548,12 +561,12 @@ export default {
 
       $("#longpage-main .filter_embedquestion-iframe").each(function (i, el) {
         var paragraph = $(el).parents(".wrapper").prev();
-        $(el).data("paragraph", $(paragraph).children().first().attr("id"));
+        $(el).attr("data-paragraph", $(paragraph).children().first().attr("id"));
         observer.observe($(paragraph)[0]);
       });
 
       $("#question").on("mouseover", "iframe", function () {
-        var el = $("#" + $(this).data("paragraph"));
+        var el = $("#" + $(this).attr("data-paragraph"));
         $(el).css("background-color", "#eee");
         setTimeout(function () {
           $(el).css("background-color", "#fff");
@@ -589,6 +602,41 @@ export default {
         observerStates = {};
       });
 
+      function embedIframeCode(iframecode, btn)
+      {
+        if (iframecode == "error")
+        {
+          alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+          return;
+        }
+
+        iframecode = $(iframecode);
+        $(iframecode).attr("data-paragraph", $(btn).parent(".wrapper").children().first().attr("id")).prop('outerHTML');
+        iframecode = $(iframecode).prop('outerHTML');
+
+        if ($(btn).prev(".reading-comprehension").length > 0)
+        {
+          $(btn).parent(".wrapper").next().children().first().append(iframecode);
+          get_reading_comprehension();
+          observerCall([{
+            target: $(btn).parent(".wrapper")[0],
+            isIntersecting: false,
+          }, {
+            target: $(btn).parent(".wrapper")[0],
+            isIntersecting: true,
+          }]);
+        }
+        else
+        {
+          var wrapper = $("<div class='wrapper'><p>" + iframecode + "</p></div>");
+          $(wrapper).height("0px")
+          $(wrapper).css("padding", "0px"); 
+          $(btn).parent(".wrapper").after(wrapper);
+          get_reading_comprehension(); 
+          observer.observe($(btn).parent(".wrapper")[0]);        
+        }
+      }
+
       $("#id_embedform").on("change", function () {
         
         ajax.call([
@@ -599,13 +647,9 @@ export default {
             embedcode: $("#id_embedformeditable").text(),
             position: $("#id_embedformeditable").data("position")
           },
-          done: function (reads) {
-            try { 
-              $(".mform").attr("data-form-dirty", "false");
-              alert("Die Frage wurde erfolgreich eingebettet. Laden Sie die Seite neu, um die Änderungen anzuzeigen.");
-            } catch (e) {
-              console.log(e);
-            } 
+          done: function (data) {
+            $(".mform").attr("data-form-dirty", "false");
+            embedIframeCode(data.response, $(".embedQuestion").eq($("#id_embedformeditable").data("position")));              
           },
           fail: function (e) {
             console.error("fail", e);
@@ -625,61 +669,69 @@ export default {
       });
 
 
-      $(".embedQuestion").on("click", function () {
+      $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
-        $("#id_embedformeditable").data("position", $(this).index(".embedQuestion"));
+        $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
         $(".atto_embedquestion_button").click();
-        
-        // Fragment.loadFragment('atto_embedquestion', 'questionselector', 16,
-        //         {contextId: 16, embedCode: ""}
-        //         ).done(function(html, js) {
-        //           var last = $("#longpage-content .wrapper").filter(function (i, el)
-        //           {
-        //             return isElementBottomInViewport(el);
-        //           }).last().children().first();
-
-        //           var tag = $(last).prop("tagName").toLowerCase();
-
-                 
-  
-        //           const blob = new Blob([html], { type: 'text/html' });
-        //           let iframe = document.createElement('iframe');
-        //           $(iframe).on("load", function () {
-        //             var jsLink = $('<script>').attr('type', 'text/javascript').html(js);
-        //             $(this).contents().find("head").append(jsLink);
-        //           });
-        //           iframe.src = window.URL.createObjectURL(blob);
-        //           $(iframe).attr("id", "add/question").addClass('filter_embedquestion-iframe');
-        //           //Templates.replaceNodeContents(iframe, html, js);
-
-                  
-        //           $(iframe).wrap("<div class='carousel-item'/>").prependTo($("#question"));
-                 
-        //           // $(iframe).insertAfter(last.parent(".wrapper"));
-        //           // $(iframe).wrap("<div class='wrapper'/>")
-        //           // $(iframe).wrap("<div/>");
-
-        //           // observer.observe(last.parent(".wrapper")[0]);
-
-        //         }).fail(Notification.exception);
       });
 
+      $(".embedNewQuestion").on("click", function () {
+
+        _this.$parent.$parent.pageReady = false;
+        var btn = $(this).parent();   
+        
+        ajax.call([
+          {
+            methodname: "mod_longpage_create_question",
+            args: {
+              longpageid: _this.context.longpageid,
+              position: $(btn).index(".embedQuestion")
+            },
+            done: function (data) {
+              _this.$parent.$parent.pageReady = true; 
+              embedIframeCode(data.response, btn);                          
+            },
+            fail: function (e) {
+              _this.$parent.$parent.pageReady = true;
+              alert(e.message);
+            }
+          } ,
+        ]);        
+      });
+      
       $("#removeQuestion").on("click", function () {
+        var btn = $("#" + $("#question .carousel-item.active iframe").attr("data-paragraph")).next().next(".embedQuestion");
+        var embedid = $("#question .carousel-item.active iframe").attr("id");
         ajax.call([
           {
             methodname: "mod_longpage_remove_question",
             args: {
               longpageid: _this.context.longpageid,
-              embedid: $("#question .carousel-item.active iframe").attr("id"),
-              position: $("#" + $("#question .carousel-item.active iframe").data("paragraph")).next().next(".embedQuestion").index(".embedQuestion"),
+              embedid: embedid,
+              position: $(btn).index(".embedQuestion"),
             },
             done: function (reads) {
-              try {
-                alert("Die Frage wurde erfolgreich entfernt. Laden Sie die Seite neu, um die Änderungen anzuzeigen.");
-              } catch (e) {
-                console.log(e);
+              //remove carousel item
+              $("#question .carousel-item.active").remove();
+
+              //remove embedQuestion
+              var iframecontainer = $(btn).parent(".wrapper").next().children().first();
+              if ($(iframecontainer).children().length > 1)
+              {
+                //remove iframe with embedid
+                var idFixed = embedid.replace("/", "\\/");
+                $(iframecontainer).find("#" + idFixed).remove();
               }
+              else
+              {
+                $(btn).parent(".wrapper").next().remove();
+                $(btn).prev(".reading-comprehension").css("opacity", "").removeClass("reading-comprehension")
+                $(btn).parent(".wrapper").removeAttr("data-reading-comprehension-count");
+              }             
+              get_reading_comprehension();
+              observerCall();
+
             },
             fail: function (e) {
               console.error("fail", e);

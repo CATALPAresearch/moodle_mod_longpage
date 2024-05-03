@@ -126,9 +126,8 @@ export default {
   mounted() {
     EventBus.subscribe("page-ready", () => {
       this.pageReady = true;
-            this.$nextTick(() => {
-        this.$refs.mainRef.scrollTop =
-          this.scrollTop; // * this.$refs.mainRef.scrollHeight;
+      this.$nextTick(() => {
+        this.$refs.mainRef.scrollTop = this.scrollTop; // * this.$refs.mainRef.scrollHeight;
         document.getElementById(LONGPAGE_MAIN_ID).addEventListener(
           "scroll",
           throttle(
