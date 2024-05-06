@@ -357,7 +357,6 @@ export default {
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
         .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
-        .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
 
       //let previousY = 0;
       let directionUp = false;
@@ -633,12 +632,10 @@ export default {
         {
           $(btn).parent(".wrapper").next().children().first().append(iframecode);
           get_reading_comprehension();
+
           observerCall([{
             target: $(btn).parent(".wrapper")[0],
             isIntersecting: false,
-          }, {
-            target: $(btn).parent(".wrapper")[0],
-            isIntersecting: true,
           }]);
         }
         else
@@ -683,8 +680,6 @@ export default {
         $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
       });
 
-
-      $(".embedExistingQuestion").on("click", function () {
       $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
@@ -707,7 +702,7 @@ export default {
             },
             done: function (data) {
               _this.$parent.$parent.pageReady = true; 
-              embedIframeCode(data.response, btn);                          
+              embedIframeCode(data.response, btn);                        
             },
             fail: function (e) {
               _this.$parent.$parent.pageReady = true;
