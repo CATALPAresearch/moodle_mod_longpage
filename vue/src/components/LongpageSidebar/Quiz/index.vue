@@ -54,6 +54,14 @@
         <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
       </a>
     </div>
+    <div id="embedQuestion">
+      <a href="javascript:void(0)" class="embedNewQuestion">
+        <i class="fa fa-plus fa-fw" title="Neue Frage einbetten" />
+      </a>
+      <a href="javascript:void(0)" class="embedExistingQuestion">
+        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
+      </a>
+    </div>
     </template>
   </sidebar-tab>
 </template>
@@ -167,9 +175,15 @@
   display: none;
 }
 
+#embedQuestion
+{
+  display: none;
+}
+
 .embedQuestion
 {
   position: absolute;
+  right: -50px;
   right: -50px;
   z-index: 100;
   opacity: 0;
@@ -342,6 +356,7 @@ export default {
       get_reading_comprehension();
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
+        .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
         .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
 
       //let previousY = 0;
@@ -670,8 +685,10 @@ export default {
 
 
       $(".embedExistingQuestion").on("click", function () {
+      $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
+        $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
         $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
         $(".atto_embedquestion_button").click();
       });
