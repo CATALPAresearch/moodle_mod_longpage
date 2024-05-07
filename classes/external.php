@@ -2141,18 +2141,42 @@ class mod_longpage_external extends external_api
         // get text from top level element
         $textContent = $topLevelElement->textContent;
 
-        // create new question
+        $qtypes = array('multichoice', 'match');
+        $qtype = $qtypes[array_rand($qtypes)];
 
-        $explanation = "Please write one multiple choice question in German language";
-        $explanation .= " in GIFT format on the following text, ";
-        $explanation .= " GIFT format use equal sign for right answer and tilde sign for wrong answer at the beginning of answers.";
-        $explanation .= " For example: '::Question title { =right answer ~wrong answer ~wrong answer ~wrong answer }' ";
-        //$explanation .= " Please have a blank line between questions. ";
-        $explanation .= " Write the questions in the right format! ";
-        $explanation .= " Do not forget any equal or tilde sign !";
+        // create new question
+        switch ($qtype) {
+            case 'multichoice':
+                $explanation = 
+                "Please write one multiple choice question in German language in GIFT format on the following text, GIFT format use equal sign for right answer and tilde sign for wrong answer at the beginning of answers. For example: " .
+                "'::Question title:: Question text { " .
+                "=correct answer1 " . 
+                "~Wrong answer1 " .
+                //"#Feedback to wrong answer1 " .
+                "~Wrong answer2 " .
+                //"#Feedback to wrong answer2 " . 
+                "~Wrong answer3 " . 
+                //"#Feedback to wrong answer3 " .  
+                "}' " .
+                "Do not forget any equal or tilde sign! ";   
+                break;
+            case 'match':
+                $explanation =  
+                "Please write one matching question in German language in GIFT format on the following text, GIFT format use equal sign at the beginning of answers and arrow sign for assigning matching pairs. For example: " .
+                "'::Question title:: Question text { " .
+                "=match1 -> match1 " .
+                "=match2 -> match2 " .
+                "=match3 -> match3 " .
+                "}' " .
+                "Do not forget any equal or arrow sign! ";
+                break;
+        }
+
+        $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
 
         $key = "sk-ilG6eNFmZYWae2yzjPM6nQ";
         $url = "http://localhost:4000/v1/chat/completions";
+        $model = "gpt-3.5-turbo";
         $authorization = "Authorization: Bearer " . $key;
 
         // Remove new lines and carriage returns.
@@ -2163,7 +2187,7 @@ class mod_longpage_external extends external_api
         $textContent = str_replace($escapers, $replacements, $textContent);
 
         $data = '{
-            "model": "gpt-3.5-turbo",
+            "model": ' . $model . ',
             "messages": [
                 {"role": "system", "content": "' . $explanation . '"},
                 {"role": "user", "content": "' . $textContent. '"}
@@ -2177,8 +2201,7 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
         $result = json_decode(curl_exec($ch));
-        curl_close($ch);
-        
+        curl_close($ch);        
 
         $questions = new stdClass(); // The questions object.
         if (!isset($result->choices[0]->message->content)) {
@@ -2204,50 +2227,26 @@ class mod_longpage_external extends external_api
         $questions = explode("\n\n", $result->choices[0]->message->content);
 
         foreach ($questions as $question) {
-            //check format
-            $qa = str_replace("\n", "", $question);
-            preg_match('/::(.*)\{/', $qa, $matches);
-            if (isset($matches[1])) {
-                $qlength = strlen($matches[1]);
-            } else {
-                throw new Exception("Question title not found.");
-            }
-            if ($qlength < 10) {
-                throw new Exception("Question length too short.");
-            }
-            preg_match('/\{(.*)\}/', $qa, $matches);
-            if (isset($matches[1])) {
-                $wrongs = substr_count($matches[1], "~");
-                $right = substr_count($matches[1], "=");
-            } else {
-                throw new Exception("Answers not found.");
-            }
-            // if ($wrongs != 3 || $right != 1) {
-            //     throw new Exception("There is no single right answers or no 3 wrong answers.");
-            // }
-
             $singlequestion = explode("\n", $question);
-            // Manipulating question text manually for question text field.
-            $questiontext = explode('{', $singlequestion[0]);
-            $questiontext = trim(str_replace('::', '', $questiontext[0]));
-            $qtype = 'multichoice';
             $q = $qformat->readquestion($singlequestion);
-            // Check if question is valid.
             if (!$q) {
                 throw new Exception("Question not valid.");
+            }
+
+            if($q->questiontext == null) {
+                throw new Exception("Question text is empty.");
             }
             $q->category = $category->id;
             $q->createdby = $USER->id;
             $q->modifiedby = $USER->id;
             $q->timecreated = time();
             $q->timemodified = time();
-            $q->questiontext = ['text' => "<p>" . $questiontext . "</p>"];
+            $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
             $q->questiontextformat = 1;
             $q->idnumber = "ai-generated-".time()."-".$USER->id;
             
             $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
             if ($created) {
-                // create embedcode with util function
                 $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "");
                 $iframecode  = self::embed_question($longpageid, $embedcode, $position);
                 $iframecode = $iframecode['response'];                

@@ -31,12 +31,13 @@
             "request": "launch",
             "runtimeArgs": [
                 "-dxdebug.mode=debug",
-                "-dxdebug.start_with_request=yes",
+                "-dxdebug.start_with_request=trigger",
+                "-dxdebug.client_port=${port}",
                 "-S",
-                "localhost:0"
+                "localhost:80"
             ],
             "program": "",
-            "cwd": "${workspaceRoot}",
+            "cwd": "C:\\Users\\menze\\Moodle401\\server\\moodle",
             "port": 9003,
             "serverReadyAction": {
                 "pattern": "Development Server \\(http://localhost:([0-9]+)\\) started",
