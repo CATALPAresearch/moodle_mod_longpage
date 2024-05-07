@@ -2174,9 +2174,9 @@ class mod_longpage_external extends external_api
 
         $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
 
-        $key = "sk-ilG6eNFmZYWae2yzjPM6nQ";
-        $url = "http://localhost:4000/v1/chat/completions";
-        $model = "gpt-3.5-turbo";
+        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g"; #"sk-ilG6eNFmZYWae2yzjPM6nQ";
+        $url = "http://132.176.10.80/api/chat"; #"http://localhost:4000/v1/chat/completions";
+        $model = "mixtral"; #"gpt-3.5-turbo";
         $authorization = "Authorization: Bearer " . $key;
 
         // Remove new lines and carriage returns.
@@ -2187,11 +2187,13 @@ class mod_longpage_external extends external_api
         $textContent = str_replace($escapers, $replacements, $textContent);
 
         $data = '{
-            "model": ' . $model . ',
+            "model": "' . $model . '",
             "messages": [
                 {"role": "system", "content": "' . $explanation . '"},
                 {"role": "user", "content": "' . $textContent. '"}
-                ]}';
+            ],
+            "stream": false
+        }';
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
@@ -2200,12 +2202,14 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
-        $result = json_decode(curl_exec($ch));
+        $res = curl_exec($ch);
+        $result = json_decode($res);
         curl_close($ch);        
 
         $questions = new stdClass(); // The questions object.
-        if (!isset($result->choices[0]->message->content)) {
-            return array('response' => "error");
+        //if (!isset($result->choices[0]->message->content)) {
+        if (!isset($result->message->content)) {
+            throw new Exception("Problem with AI model.");
         } 
 
         //add new question
@@ -2219,12 +2223,13 @@ class mod_longpage_external extends external_api
 
         // Use existing questions category for quiz or create the defaults.        
         if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
-            return array('response' => "error");
+            throw new Exception("Category 'aigenerated' not found.");
         }
 
         // Split questions based on blank lines.
         // Then loop through each question and create it.
-        $questions = explode("\n\n", $result->choices[0]->message->content);
+        //$questions = explode("\n\n", $result->choices[0]->message->content);
+        $questions = explode("\n\n", $result->message->content);
 
         foreach ($questions as $question) {
             $singlequestion = explode("\n", $question);
