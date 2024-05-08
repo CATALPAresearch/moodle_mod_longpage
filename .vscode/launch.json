@@ -38,7 +38,7 @@
             ],
             "program": "",
             "cwd": "C:\\Users\\menze\\Moodle401\\server\\moodle",
-            "port": 9003,
+            "port": 0,
             "serverReadyAction": {
                 "pattern": "Development Server \\(http://localhost:([0-9]+)\\) started",
                 "uriFormat": "http://localhost:%s",

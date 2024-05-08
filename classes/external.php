@@ -2085,7 +2085,7 @@ class mod_longpage_external extends external_api
     public static function create_question($longpageid, $position)
     {
         global $CFG, $DB, $USER, $PAGE;
-
+    
         $params = self::validate_parameters(
             self::create_question_parameters(),
             array(
@@ -2100,6 +2100,12 @@ class mod_longpage_external extends external_api
         
         $context = context_module::instance($cm->id);
         self::validate_context($context);
+
+        $coursecontext = \context_course::instance($course->id);
+        // Use existing questions category for quiz or create the defaults.        
+        if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
+            throw new Exception("Category 'aigenerated' not found.");
+        }
         
         $options = array('noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
@@ -2140,45 +2146,6 @@ class mod_longpage_external extends external_api
         
         // get text from top level element
         $textContent = $topLevelElement->textContent;
-
-        $qtypes = array('multichoice', 'match');
-        $qtype = $qtypes[array_rand($qtypes)];
-
-        // create new question
-        switch ($qtype) {
-            case 'multichoice':
-                $explanation = 
-                "Please write one multiple choice question in German language in GIFT format on the following text, GIFT format use equal sign for right answer and tilde sign for wrong answer at the beginning of answers. For example: " .
-                "'::Question title:: Question text { " .
-                "=correct answer1 " . 
-                "~Wrong answer1 " .
-                //"#Feedback to wrong answer1 " .
-                "~Wrong answer2 " .
-                //"#Feedback to wrong answer2 " . 
-                "~Wrong answer3 " . 
-                //"#Feedback to wrong answer3 " .  
-                "}' " .
-                "Do not forget any equal or tilde sign! ";   
-                break;
-            case 'match':
-                $explanation =  
-                "Please write one matching question in German language in GIFT format on the following text, GIFT format use equal sign at the beginning of answers and arrow sign for assigning matching pairs. For example: " .
-                "'::Question title:: Question text { " .
-                "=match1 -> match1 " .
-                "=match2 -> match2 " .
-                "=match3 -> match3 " .
-                "}' " .
-                "Do not forget any equal or arrow sign! ";
-                break;
-        }
-
-        $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
-
-        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g"; #"sk-ilG6eNFmZYWae2yzjPM6nQ";
-        $url = "http://132.176.10.80/api/chat"; #"http://localhost:4000/v1/chat/completions";
-        $model = "mixtral"; #"gpt-3.5-turbo";
-        $authorization = "Authorization: Bearer " . $key;
-
         // Remove new lines and carriage returns.
         $textContent = str_replace("\n", " ", $textContent);
         $textContent = str_replace("\r", " ", $textContent);
@@ -2186,82 +2153,131 @@ class mod_longpage_external extends external_api
         $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
         $textContent = str_replace($escapers, $replacements, $textContent);
 
-        $data = '{
-            "model": "' . $model . '",
-            "messages": [
-                {"role": "system", "content": "' . $explanation . '"},
-                {"role": "user", "content": "' . $textContent. '"}
-            ],
-            "stream": false
-        }';
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
-        $res = curl_exec($ch);
-        $result = json_decode($res);
-        curl_close($ch);        
-
-        $questions = new stdClass(); // The questions object.
-        //if (!isset($result->choices[0]->message->content)) {
-        if (!isset($result->message->content)) {
-            throw new Exception("Problem with AI model.");
-        } 
-
-        //add new question
         require_once($CFG->libdir . '/questionlib.php');
         require_once($CFG->dirroot . '/question/format.php');
         require_once($CFG->dirroot . '/question/format/gift/format.php');
 
         $qformat = new \qformat_gift();
 
-        $coursecontext = \context_course::instance($course->id);
+        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g"; #"sk-ilG6eNFmZYWae2yzjPM6nQ";
+        $url = "http://132.176.10.80/api/chat"; #"http://localhost:4000/v1/chat/completions";
+        $model = "mixtral"; #"gpt-3.5-turbo";
+        $authorization = "Authorization: Bearer " . $key;
 
-        // Use existing questions category for quiz or create the defaults.        
-        if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
-            throw new Exception("Category 'aigenerated' not found.");
-        }
+        $qtypes = array('match', 'multichoice', 'multiresponse');
 
-        // Split questions based on blank lines.
-        // Then loop through each question and create it.
-        //$questions = explode("\n\n", $result->choices[0]->message->content);
-        $questions = explode("\n\n", $result->message->content);
+        for ($i=0; $i < 3; $i++) { 
 
-        foreach ($questions as $question) {
-            $singlequestion = explode("\n", $question);
-            $q = $qformat->readquestion($singlequestion);
-            if (!$q) {
-                throw new Exception("Question not valid.");
-            }
+            try {           
+                
+                $qtype = $qtypes[array_rand($qtypes)];
 
-            if($q->questiontext == null) {
-                throw new Exception("Question text is empty.");
-            }
-            $q->category = $category->id;
-            $q->createdby = $USER->id;
-            $q->modifiedby = $USER->id;
-            $q->timecreated = time();
-            $q->timemodified = time();
-            $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
-            $q->questiontextformat = 1;
-            $q->idnumber = "ai-generated-".time()."-".$USER->id;
+                // create new question
+                switch ($qtype) {
+                    case 'multichoice':
+                        $explanation = 
+                        "Please write one multiple choice question with one correct answer and multiple wrong answers in German language in GIFT format on the following text. GIFT format uses equal sign for right answers and tilde sign for wrong answers at the beginning of answers. For example: " .
+                        "'::Question title:: Question text { " .
+                        "=Correct answer 1 " . 
+                        "~Wrong answer 1 " .
+                        //"#Feedback to wrong answer1 " .
+                        "~Wrong answer 2 " .
+                        //"#Feedback to wrong answer2 " . 
+                        "~Wrong answer 3 " . 
+                        //"#Feedback to wrong answer3 " .  
+                        "}' " .
+                        "Do not forget any equal or tilde sign! ";   
+                        break;
+                    case 'multiresponse':
+                        $explanation = 
+                        "Please write one multiple choice question with multiple correct answers in German language in GIFT format on the following text. GIFT format uses a tilde and percent sign at the beginning of answers, followed by a positive grade in percent for correct answers and a negative grade in negative percent with minus sign for wrong answers. All positive grades must sum up to 100%. For example: " .
+                        "'::Question title:: Question text { " .
+                        "~%-100% Wrong answer 1 " .
+                        "~%50% Correct answer 1 " .
+                        "~%50% Correct answer 2 " .
+                        "~%-100% Wrong answer 2 " .
+                        "}' " .
+                        "Do not forget any tilde or percent sign! ";
+                        break;
+                    case 'match':
+                        $explanation =  
+                        "Please write one matching question in German language in GIFT format on the following text. GIFT format uses an equal sign at the beginning of answers and and arrow sign for assigning matching pairs. For example: " .
+                        "'::Question title:: Question text { " .
+                        "=match 1 -> match 1 " .
+                        "=match 2 -> match 2 " .
+                        "=match 3 -> match 3 " .
+                        "}' " .
+                        "Do not forget any equal or arrow sign! ";
+                        break;
+                }
+
+                $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
+
+                $data = '{
+                    "model": "' . $model . '",
+                    "messages": [
+                        {"role": "system", "content": "' . $explanation . '"},
+                        {"role": "user", "content": "' . $textContent. '"}
+                    ],
+                    "stream": false
+                }';
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
+                $res = curl_exec($ch);
+                $result = json_decode($res);
+                curl_close($ch);        
+
+                //if (!isset($result->choices[0]->message->content)) {
+                if (!isset($result->message->content)) {
+                    throw new Exception("Problem with AI model.");
+                } 
+
+                //add new question
+
+                if($qtype == "multiresponse") {
+                    $qtype = "multichoice";
+                }           
             
-            $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
-            if ($created) {
-                $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "");
-                $iframecode  = self::embed_question($longpageid, $embedcode, $position);
-                $iframecode = $iframecode['response'];                
+                $q = $qformat->readquestion(explode("\n", $result->message->content));
+                
+                if (!$q) {
+                    throw new Exception("Question not valid.");
+                }
+
+                if($q->questiontext == null) {
+                    throw new Exception("Question text is empty.");
+                }
+                $q->category = $category->id;
+                $q->createdby = $USER->id;
+                $q->modifiedby = $USER->id;
+                $q->timecreated = time();
+                $q->timemodified = time();
+                $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
+                $q->questiontextformat = 1;
+                $q->idnumber = "ai-generated-".time()."-".$USER->id;
+                
+                $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
+                if ($created) {
+                    $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "");
+                    $iframecode  = self::embed_question($longpageid, $embedcode, $position);
+                    $iframecode = $iframecode['response'];                
+                }
+                if ($created) {                    
+                    return array('response' => $iframecode);
+                } else {
+                    throw new Exception("Question not created.");
+                }
+            } catch (\Throwable $th) {
+                if ($i == 2) {
+                    throw $th;
+                }
             }
-        }
-        if ($created) {
-            
-            return array('response' => $iframecode);
-        } else {
-            throw new Exception("Question not created.");
         }
     }
 
