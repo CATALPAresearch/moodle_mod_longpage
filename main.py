@@ -26,9 +26,8 @@ async def compare_similarity(text1: str, text2: str):
     for sentence1 in sentences_txt1:
         for sentence2 in doc2.sents:
             similarity = nlp(sentence1).similarity(sentence2)
-            if similarity > 0.6:
-                start = text1.find(sentence1)
-                similarities.append((start, len(sentence1), similarity))
+            start = text1.find(sentence1)
+            similarities.append((start, len(sentence1), similarity))
 
     # get the three most similar sentences
     #similarities = sorted(similarities, key=lambda x: x[2], reverse=True)[:3]

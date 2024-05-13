@@ -194,6 +194,31 @@ mark
   padding: 0;
 }
 
+.highlight-0
+{
+  background-color: rgba(255, 230, 0, 0.0);
+}
+
+.highlight-25
+{
+  background-color: rgba(255, 230, 0, 0.05);
+}
+
+.highlight-50
+{
+  background-color: rgba(255, 230, 0, 0.2);
+}
+
+.highlight-75
+{
+  background-color: rgba(255, 230, 0, 0.6);
+}
+
+.highlight-100
+{
+  background-color: rgba(255, 230, 0, 0.8);
+}
+
 </style>
 <script>
 
@@ -587,10 +612,10 @@ export default {
 
       $("#question").on("mouseover", "iframe", function () {
         var el = $("#" + $(this).attr("data-paragraph"));
-        $(el).css("background-color", "#eee");
-        setTimeout(function () {
-          $(el).css("background-color", "#fff");
-        }, 3000);
+        // $(el).css("background-color", "#eee");
+        // setTimeout(function () {
+        //   $(el).css("background-color", "#fff");
+        // }, 3000);
 
         var questionContent = $(this).contents().find(".qtext").text() + " " + $(this).contents().find(".answer").text();
     
@@ -604,12 +629,12 @@ export default {
               var start = entry[0];
               var len = entry[1];
               var similarity = entry[2];  
-           
+              //discretize similarity from (0, 1) into 4 levels [0, 25, 50, 75, 100]
+              similarity = Math.floor(similarity * 4) * 25;
 
-              $(el).markRanges([{ start: start, length: len, className: "highlight" }]);
-              setTimeout(function () {
-                $(el).unmark();
-              }, 3000);
+              $(el).markRanges([{ start: start, length: len }], {
+                className: "highlight-" + similarity
+              });
 
               });
           },
@@ -617,6 +642,11 @@ export default {
             console.log(error);
           }
         });        
+      });
+
+      $("#question").on("mouseleave", "iframe", function () {
+        var el = $("#" + $(this).attr("data-paragraph"));
+        $(el).unmark();
       });
 
       $("#nextQuestion").click(function () {
