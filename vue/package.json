@@ -20,6 +20,7 @@
     "elasticlunr": "^0.9.5",
     "fuse.js": "6.4.6",
     "lodash": "4.7.0",
+    "mark.js": "^8.11.1",
     "node-sass": "9.0.0",
     "nodemon": "^2.0.13",
     "popper": "^1.0.1",

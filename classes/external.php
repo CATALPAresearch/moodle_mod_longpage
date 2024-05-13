@@ -2159,9 +2159,9 @@ class mod_longpage_external extends external_api
 
         $qformat = new \qformat_gift();
 
-        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g"; #"sk-ilG6eNFmZYWae2yzjPM6nQ";
-        $url = "http://132.176.10.80/api/chat"; #"http://localhost:4000/v1/chat/completions";
-        $model = "mixtral"; #"gpt-3.5-turbo";
+        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g";
+        $url = "http://132.176.10.80/api/chat";
+        $model = "mixtral";
         $authorization = "Authorization: Bearer " . $key;
 
         $qtypes = array('match', 'multichoice', 'multiresponse');
@@ -2233,12 +2233,9 @@ class mod_longpage_external extends external_api
                 $result = json_decode($res);
                 curl_close($ch);        
 
-                //if (!isset($result->choices[0]->message->content)) {
                 if (!isset($result->message->content)) {
                     throw new Exception("Problem with AI model.");
                 } 
-
-                //add new question
 
                 if($qtype == "multiresponse") {
                     $qtype = "multichoice";

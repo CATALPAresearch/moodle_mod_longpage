@@ -189,6 +189,11 @@
   opacity: 0;
 }
 
+mark
+{
+  padding: 0;
+}
+
 </style>
 <script>
 
@@ -199,6 +204,7 @@ import SidebarTab from "@/components/LongpageSidebar/SidebarTab";
 import ajax from "core/ajax";
 import Fragment from "core/fragment";
 import { EventBus } from "@/lib/event-bus"; 
+import "mark.js/dist/jquery.mark.min.js";
 
 export default {
   name: "Quiz",
@@ -584,7 +590,33 @@ export default {
         $(el).css("background-color", "#eee");
         setTimeout(function () {
           $(el).css("background-color", "#fff");
-        }, 1000);
+        }, 3000);
+
+        var questionContent = $(this).contents().find(".qtext").text() + " " + $(this).contents().find(".answer").text();
+    
+        var paragraphContent = $(el).text();
+        $.ajax({
+          url: "http://localhost:8000/compare_similarity?text1=" + encodeURI(paragraphContent) + "&text2=" + encodeURI(questionContent),
+          type: "POST",
+          success: function (data) {
+            //data has form [[start, length, similarity], [start, length, similarity], ...]
+            data.forEach(function (entry) {
+              var start = entry[0];
+              var len = entry[1];
+              var similarity = entry[2];  
+           
+
+              $(el).markRanges([{ start: start, length: len, className: "highlight" }]);
+              setTimeout(function () {
+                $(el).unmark();
+              }, 3000);
+
+              });
+          },
+          error: function (error) {
+            console.log(error);
+          }
+        });        
       });
 
       $("#nextQuestion").click(function () {
