@@ -211,12 +211,12 @@ mark
 
 .highlight-75
 {
-  background-color: rgba(255, 230, 0, 0.6);
+  background-color: rgba(255, 230, 0, 0.4);
 }
 
 .highlight-100
 {
-  background-color: rgba(255, 230, 0, 0.8);
+  background-color: rgba(255, 230, 0, 0.6);
 }
 
 </style>
