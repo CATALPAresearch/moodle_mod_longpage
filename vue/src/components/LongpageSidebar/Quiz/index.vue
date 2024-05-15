@@ -673,7 +673,10 @@ export default {
         $(this).toggleClass("active");
         if (!$(this).hasClass("active")) {
           $("#pinQuestion").removeClass("autopin");
-          observerCall(Object.values(observerStates));
+          if(Object.keys(observerStates).length > 0)
+          {
+            observerCall(Object.values(observerStates)); 
+          }
         }
         observerStates = {};
       });
