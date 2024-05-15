@@ -8,3 +8,4 @@ node_modules
 .idea
 webpack.config.idea.js
 .DS_Store
+__pycache__
