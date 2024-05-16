@@ -12,7 +12,6 @@
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;">
-          <!-- <a class="dropdown-item" id="createQuestion" href="javascript:void(0)"><i class="fa fa-plus-square fa-fw" /> Neue Frage einbetten</a> -->
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage editieren</a>
           <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a>
           <a class="dropdown-item" id="removeQuestion" href="javascript:void(0)"><i class="fa fa-minus-square fa-fw" />Einbettung entfernen</a>
@@ -183,8 +182,7 @@
 .embedQuestion
 {
   position: absolute;
-  right: -50px;
-  right: -50px;
+  right: -80px;
   z-index: 100;
   opacity: 0;
 }
@@ -756,14 +754,32 @@ export default {
       $(".embedNewQuestion").on("click", function () {
 
         _this.$parent.$parent.pageReady = false;
-        var btn = $(this).parent();   
+        var btn = $(this).parent();
+        var text = $(btn).prev(".reading-comprehension").prev().text();
+
+        var selection = window.getSelection();
+        if (!selection.isCollapsed)
+        {
+          var selectedText = selection.getRangeAt(0).toString()
+          var closest = selection.focusNode.parentElement.closest("#longpage-content");
+          if (closest != null && closest.id == "longpage-content") {
+            var start = text.indexOf(selectedText);
+            var len = selectedText.length; 
+          }
+          else {
+            var start = -1;
+            var len = 0;
+          }
+        }
         
         ajax.call([
           {
             methodname: "mod_longpage_create_question",
             args: {
               longpageid: _this.context.longpageid,
-              position: $(btn).index(".embedQuestion")
+              position: $(btn).index(".embedQuestion"),
+              startIndex: start,
+              length: len,
             },
             done: function (data) {
               _this.$parent.$parent.pageReady = true; 

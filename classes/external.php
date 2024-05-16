@@ -2081,8 +2081,7 @@ class mod_longpage_external extends external_api
             array('response' => new external_value(PARAM_RAW, 'Server response to remove_question'))
         );
     }
-
-    public static function create_question($longpageid, $position)
+    public static function create_question($longpageid, $position, $startIndex, $length)
     {
         global $CFG, $DB, $USER, $PAGE;
     
@@ -2090,7 +2089,9 @@ class mod_longpage_external extends external_api
             self::create_question_parameters(),
             array(
                 'longpageid' => $longpageid,
-                'position' => $position
+                'position' => $position,
+                'startIndex' => $startIndex,
+                'length' => $length
             )
         );
 
@@ -2146,9 +2147,16 @@ class mod_longpage_external extends external_api
         
         // get text from top level element
         $textContent = $topLevelElement->textContent;
+    
+        // get text from startIndex to endIndex
+        if ($startIndex >= 0 && $length > 0) {
+            $textContent = mb_substr($textContent, $startIndex, $length, 'UTF-8');
+        }
+
         // Remove new lines and carriage returns.
-        $textContent = str_replace("\n", " ", $textContent);
-        $textContent = str_replace("\r", " ", $textContent);
+        $textContent = str_replace("\n", "", $textContent);
+        $textContent = str_replace("\r", "", $textContent);
+
         $escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c");
         $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
         $textContent = str_replace($escapers, $replacements, $textContent);
@@ -2258,6 +2266,7 @@ class mod_longpage_external extends external_api
                 $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
                 $q->questiontextformat = 1;
                 $q->idnumber = "ai-generated-".time()."-".$USER->id;
+                $q->shownumcorrect = 1;
                 
                 $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
                 if ($created) {
@@ -2283,7 +2292,9 @@ class mod_longpage_external extends external_api
         return new external_function_parameters(
             array(
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
-                'position' => new external_value(PARAM_INT, 'position')
+                'position' => new external_value(PARAM_INT, 'position of embed code in text'),
+                'startIndex' => new external_value(PARAM_INT, 'start index of text to be used for question'),
+                'length' => new external_value(PARAM_INT, 'length of text to be used for question')
             )
         );
     }
