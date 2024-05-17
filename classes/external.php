@@ -1877,6 +1877,8 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
+        require_capability('mod/longpage:addinstance', $context);
+
         $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
             $page->content,
@@ -1995,6 +1997,8 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
+        require_capability('mod/longpage:addinstance', $context);
+
         $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
             $page->content,
@@ -2102,6 +2106,8 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
+        require_capability('mod/longpage:addinstance', $context);
+
         $coursecontext = \context_course::instance($course->id);
         // Use existing questions category for quiz or create the defaults.        
         if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
@@ -2150,7 +2156,8 @@ class mod_longpage_external extends external_api
     
         // get text from startIndex to endIndex
         if ($startIndex >= 0 && $length > 0) {
-            $textContent = mb_substr($textContent, $startIndex, $length, 'UTF-8');
+            $txt = mb_substr($textContent, $startIndex, $length, 'UTF-8');
+            $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $txt . "'";
         }
 
         // Remove new lines and carriage returns.

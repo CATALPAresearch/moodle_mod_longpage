@@ -8,26 +8,28 @@
           {{$t('sidebar.tabs.quiz.heading')}}
         </h3>
       
-        <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-if="this.$store.state.UserModule.userCanMod">
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
-        <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;">
+        <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage editieren</a>
-          <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a>
+          <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
           <a class="dropdown-item" id="removeQuestion" href="javascript:void(0)"><i class="fa fa-minus-square fa-fw" />Einbettung entfernen</a>
+          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen</a>
+          <a class="dropdown-item" :href="'/question/edit.php?courseid=' + this.context.courseId" target="_blank"><i class="fa fa-question fa-fw" />Fragensammlung öffnen</a>
         </div>
       
       <div class="col-auto px-0 offset-md-1">
-        <a href="javascript:void(0)" id="total-reading-comprehension" title="Frage oben halten"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="total-reading-comprehension" title="Frage oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="pinQuestion" title="Frage oben halten"><i class="fa fa-thumb-tack fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="pinQuestion" title="Frage oben halten" data-toggle="tooltip"><i class="fa fa-thumb-tack fa-fw fa-lg" /></a>
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="prevQuestion" title="Vorherige Frage"><i class="fa fa-arrow-up fa-fw fa-lg" /></a> 
+        <a href="javascript:void(0)" id="prevQuestion" title="Vorherige Frage" data-toggle="tooltip"><i class="fa fa-arrow-up fa-fw fa-lg" /></a> 
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="nextQuestion" title="Nächste Frage"><i class="fa fa-arrow-down fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="nextQuestion" title="Nächste Frage" data-toggle="tooltip"><i class="fa fa-arrow-down fa-fw fa-lg" /></a>
       </div>
     </div> 
     <hr class="my-3">    
@@ -46,19 +48,11 @@
       </a>
     </div>
     <div id="embedQuestion">
-      <a href="javascript:void(0)" class="embedNewQuestion">
-        <i class="fa fa-plus fa-fw" title="Neue Frage einbetten" />
+      <a href="javascript:void(0)" class="embedNewQuestion" v-show="this.$store.state.UserModule.userCanMod">
+        <i class="fa fa-plus fa-fw" title="Neue Frage für Abschnitt mit KI generieren und einbetten (Text auswählen, um Thema einzuschränken)" data-toggle="tooltip"/>
       </a>
-      <a href="javascript:void(0)" class="embedExistingQuestion">
-        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
-      </a>
-    </div>
-    <div id="embedQuestion">
-      <a href="javascript:void(0)" class="embedNewQuestion">
-        <i class="fa fa-plus fa-fw" title="Neue Frage einbetten" />
-      </a>
-      <a href="javascript:void(0)" class="embedExistingQuestion">
-        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" />
+      <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
+        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" data-toggle="tooltip"/>
       </a>
     </div>
     </template>
@@ -174,11 +168,6 @@
   display: none;
 }
 
-#embedQuestion
-{
-  display: none;
-}
-
 .embedQuestion
 {
   position: absolute;
@@ -272,7 +261,8 @@ export default {
                 var value = entry["value"];
                 var level = entry["level"];
                 var idFixed = id.replace("/", "\\/");
-                var paragraph = $("#longpage-content #" + idFixed).parents(".wrapper").prev();
+                var iframe = $("#longpage-content #" + idFixed);
+                var paragraph = $(iframe).parents(".wrapper").prev();
                 $(paragraph).each(function(index, p)
                 {
                   if(!$(p).attr("data-reading-comprehension-count"))
@@ -287,8 +277,8 @@ export default {
                   }
                 });
 
-                $(paragraph).find(".reading-progress").attr("data-embedid", idFixed);
-                $(paragraph).find(".reading-progress").attr("data-questionid", entry["id"]);                
+                $(iframe).attr("data-embedid", idFixed);
+                $(iframe).attr("data-questionid", entry["id"]);                
               }
 
               var sum = 0; 
@@ -386,6 +376,7 @@ export default {
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
         .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
+      $(".embedNewQuestion, .embedExistingQuestion").show();
 
       //let previousY = 0;
       let directionUp = false;
@@ -397,7 +388,9 @@ export default {
         if ($("#pinQuestion").hasClass("active")) {
           for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
-            observerStates["#" + $(entry.target).find(".reading-comprehension").attr("data-embedid")] = entry;
+            $(entry.target).next().find("iframe").each(function (idx, target) {
+              observerStates["#" + $(target).first().attr("data-embedid")] = entry;
+            });
           }
           return;
         }
@@ -424,8 +417,7 @@ export default {
               $(iframeCloned).attr("src", "");
               $(iframeCloned).appendTo(div);
 
-              let questionid = $(entry.target).find(".reading-comprehension").attr("data-questionid");
-              $(iframeCloned).attr("data-questionid", questionid);
+              let questionid = $(iframeCloned).attr("data-questionid");
 
               var obs = new IntersectionObserver((entries, o) => {
                 var spinner = `<div id="quiz-spinner" class="row no-gutters vh-50">
@@ -609,6 +601,7 @@ export default {
       });
 
       $("#question").on("mouseover", "iframe", function () {
+        return;
         var el = $("#" + $(this).attr("data-paragraph"));
         // $(el).css("background-color", "#eee");
         // setTimeout(function () {
@@ -747,7 +740,6 @@ export default {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
         $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
-        $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
         $(".atto_embedquestion_button").click();
       });
 
@@ -757,6 +749,8 @@ export default {
         var btn = $(this).parent();
         var text = $(btn).prev(".reading-comprehension").prev().text();
 
+        var start = -1;
+        var len = 0;
         var selection = window.getSelection();
         if (!selection.isCollapsed)
         {
@@ -765,10 +759,6 @@ export default {
           if (closest != null && closest.id == "longpage-content") {
             var start = text.indexOf(selectedText);
             var len = selectedText.length; 
-          }
-          else {
-            var start = -1;
-            var len = 0;
           }
         }
         
@@ -795,6 +785,8 @@ export default {
       
       $("#removeQuestion").on("click", function () {
         var btn = $("#" + $("#question .carousel-item.active iframe").attr("data-paragraph")).next().next(".embedQuestion");
+        if (btn.length == 0)
+          return;
         var embedid = $("#question .carousel-item.active iframe").attr("id");
         ajax.call([
           {
@@ -833,18 +825,23 @@ export default {
         ]);
       });
 
-      $("#changeQuestion").on("click", function () {
-        Fragment.loadFragment('atto_embedquestion', 'questionselector', "contextid",
-                {contextId: "contextid", embedCode: "existingCode"}
-                ).done(function(html, js) {
-                  console.log(html, js);
-                }
-                ).fail(Notification.exception);
-      });
-
       $("#editQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
+        if (questionid == undefined)
+        {
+          return;
+        }
         window.open(window.location.href.replace("mod/longpage/view.php", "question/bank/editquestion/question.php").replace("id", "cmid") + "&id=" + questionid, '_blank');
+      });
+
+      $("#deleteQuestion").on("click", function () {
+        let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
+        if (questionid == undefined)
+        {
+          return;
+        }
+        $("#removeQuestion").click();
+        window.open(window.location.href.replace("mod/longpage/view.php", "question/bank/deletequestion/delete.php").replace("id", "cmid") + "&deleteselected=" + questionid + "&q" + questionid + "=1&returnurl=" + encodeURIComponent(window.location.href), '_blank');
       });
 
       $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
@@ -853,7 +850,7 @@ export default {
       $(document).on("click", ".reading-comprehension", function()
       {
         _this.toggleTab();
-        $("#carousel").carousel($("#carousel").find("#" + $(this).attr("data-embedid")).parent(".carousel-item").index()) 
+        $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index()) 
       });
 
       $("#total-reading-comprehension").on("click", function () {
