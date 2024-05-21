@@ -244,6 +244,9 @@ export default {
     let _this = this;
     const _ = require('lodash');
 
+    let moodleRelease = $("#longpage-app-container").data("moodle-release").split(".");
+    moodleRelease = parseInt(moodleRelease[0]) * 100 + parseInt(moodleRelease[1]);
+
     function get_reading_comprehension()
     {
       ajax.call([
@@ -831,7 +834,8 @@ export default {
         {
           return;
         }
-        window.open(window.location.href.replace("mod/longpage/view.php", "question/bank/editquestion/question.php").replace("id", "cmid") + "&id=" + questionid, '_blank');
+        var editLink = moodleRelease < 400 ? "question/question.php" : "question/bank/editquestion/question.php";
+        window.open(window.location.href.replace("mod/longpage/view.php", editLink).replace("id", "cmid") + "&id=" + questionid, '_blank');
       });
 
       $("#deleteQuestion").on("click", function () {
@@ -841,7 +845,8 @@ export default {
           return;
         }
         $("#removeQuestion").click();
-        window.open(window.location.href.replace("mod/longpage/view.php", "question/bank/deletequestion/delete.php").replace("id", "cmid") + "&deleteselected=" + questionid + "&q" + questionid + "=1&returnurl=" + encodeURIComponent(window.location.href), '_blank');
+        var deleteLink = moodleRelease < 400 ? "question/edit.php" : "question/bank/deletequestion/delete.php";
+        window.open(window.location.href.replace("mod/longpage/view.php", deleteLink).replace("id", "cmid") + "&deleteselected=" + questionid + "&q" + questionid + "=1&returnurl=" + encodeURIComponent(window.location.href), '_blank');
       });
 
       $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");

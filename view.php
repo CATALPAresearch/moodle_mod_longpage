@@ -121,7 +121,7 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     $embedform = new MoodleQuickForm("embedform", 'POST', "", "", array("style" => "width: 0; height: 0; overflow: hidden"));
     $embedform->addElement('editor', 'embedform', "embedform", null, longpage_get_editor_options($context));
     $embedform->display();
-    echo '<div id="longpage-app-container" class="border-top border-bottom">';
+    echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
     echo '<div class="row no-gutters vh-50">';
     echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
     echo '</div></div>';
