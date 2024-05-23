@@ -171,9 +171,16 @@
 .embedQuestion
 {
   position: absolute;
-  right: -80px;
+  right: 15px;
   z-index: 100;
   opacity: 0;
+  padding-left: 90%;
+  margin-top: -20px !important;
+}
+
+.embedNewQuestion, .embedExistingQuestion
+{
+  background-color: white;
 }
 
 mark
@@ -748,7 +755,23 @@ export default {
 
       $(".embedNewQuestion").on("click", function () {
 
-        _this.$parent.$parent.pageReady = false;
+        //_this.$parent.$parent.pageReady = false;
+        var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modal-wait-label">Frage wird generiert</h5>
+            </div>
+            <div class="modal-body text-center">
+              <div class="spinner-border" role="status">                
+                <span class="sr-only">Bitte warten...</span>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+        $(modal).modal({ backdrop: "static", keyboard: false });
+
         var btn = $(this).parent();
         var text = $(btn).prev(".reading-comprehension").prev().text();
 
@@ -775,11 +798,13 @@ export default {
               length: len,
             },
             done: function (data) {
-              _this.$parent.$parent.pageReady = true; 
+              //_this.$parent.$parent.pageReady = true; 
+              $("#modal-wait").modal("hide");
               embedIframeCode(data.response, btn);                        
             },
             fail: function (e) {
-              _this.$parent.$parent.pageReady = true;
+              //_this.$parent.$parent.pageReady = true;
+              $("#modal-wait").modal("hide");
               alert(e.message);
             }
           } ,

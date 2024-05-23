@@ -114,6 +114,11 @@ footer#page-footer {
   max-width: 500px; /* Max Width of the popover (depending on the container!) */
 }
 
+.badge.badge-pill.badge-warning
+{
+  right: 0 !important;
+}
+
 .longpage-citation {
   color: #004C97 !important;
   margin: 0;
