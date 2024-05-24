@@ -9,6 +9,19 @@ body
     overflow-y: auto !important;
 }
 
+body[data-tags="neu"] .que .formulation 
+{
+    background-color: lightyellow;
+}
+
+body[data-tags="neu"] .que .formulation::before
+{
+    content: "NEU:";
+    font-weight: bold;
+    float: left;
+    margin-right: 5px;
+}
+
 .draghome
 {
     box-shadow: 0 0 2px 2px rgb(255, 255, 150);

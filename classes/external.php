@@ -1804,6 +1804,26 @@ class mod_longpage_external extends external_api
             $embed = new embed_id($matches["catid"][$i], $matches["qid"][$i]);
             $category = utils::get_category_by_idnumber($context, $embed->categoryidnumber);
             $question = utils::get_question_by_idnumber(intval($category->id), $embed->questionidnumber);
+            $tagobjectsbyquestion = \core_tag_tag::get_item_tags('core_question', 'question', $question->id);
+            $tagobjects = array();
+            if (!empty($tagobjectsbyquestion)) {
+                $tagobjects = array_map(function($tagobject) {
+                    return strtolower($tagobject->rawname);
+                }, $tagobjectsbyquestion);
+            }
+
+            $questionIsNew = false;
+            foreach ($tagobjects as $tagobject) {
+                if ($tagobject == "neu") {
+                    $questionIsNew = true;
+                    break;
+                }
+            }
+
+            if($questionIsNew && !has_capability('mod/longpage:modannotations', $context))
+            {
+                continue;
+            }
 
             $avgfraction = $DB->get_field_sql("SELECT AVG(fraction) as avgfraction FROM (SELECT qas.fraction FROM ". $CFG->prefix."question_attempts qa 
                                 INNER JOIN ". $CFG->prefix."question_attempt_steps qas 
@@ -1824,8 +1844,7 @@ class mod_longpage_external extends external_api
             // $field_data = $customfieldhandler->get_field_data($field, $question->id);
             // $level = $field_data->get_value();
             $level = 1;
-            $result[strval($embed)] = array("value" => $avgfraction, "level" => $level, "id" => $question->id);
-        
+            $result[strval($embed)] = array("value" => $avgfraction, "level" => $level, "id" => $question->id, "tags" => $tagobjects);        
         }
 
         if($len > 0 && $cntSubmitted == $len)
@@ -2313,6 +2332,53 @@ class mod_longpage_external extends external_api
         );
     }
 
+    public static function lock_question($longpageid, $questionid)
+    {
+        global $DB, $USER;
+
+        $params = self::validate_parameters(
+            self::lock_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'questionid' => $questionid
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:addinstance', $context);
+
+       
+        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
+            \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
+        } else {
+            \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
+        }
+
+        return array('response' => json_encode("success"));
+    }
+
+    public static function lock_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'questionid' => new external_value(PARAM_INT, 'question id')
+            )
+        );
+    }
+
+    public static function lock_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'))
+        );
+    }
 
     public static function autosave($data)
     {

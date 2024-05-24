@@ -256,6 +256,14 @@ $functions = array(
         'capabilities'  => 'mod/longpage:view',
         'ajax'          => true
     ),
+    'mod_longpage_lock_question' => array(
+        'classname'     => 'mod_longpage_external',
+        'methodname'    => 'lock_question',
+        'description'   => 'Lock question for reading comprehension on page',
+        'type'          => 'write',
+        'capabilities'  => 'mod/longpage:view',
+        'ajax'          => true
+    ),	
     'mod_longpage_remove_question' => array(
         'classname'     => 'mod_longpage_external',
         'methodname'    => 'remove_question',
