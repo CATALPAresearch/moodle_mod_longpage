@@ -17,7 +17,7 @@
           <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
           <a class="dropdown-item" id="removeQuestion" href="javascript:void(0)"><i class="fa fa-minus-square fa-fw" />Einbettung entfernen</a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen</a>
-          <a class="dropdown-item" :href="'/question/edit.php?courseid=' + this.context.courseId" target="_blank"><i class="fa fa-question fa-fw" />Fragensammlung öffnen</a>
+          <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen</a>
         </div>
       
       <div class="col-auto px-0 offset-md-1">
@@ -255,7 +255,7 @@ export default {
     let moodleRelease = $("#longpage-app-container").data("moodle-release").split(".");
     moodleRelease = parseInt(moodleRelease[0]) * 100 + parseInt(moodleRelease[1]);
 
-    function get_reading_comprehension()
+    function get_reading_comprehension(successFunction)
     {
       ajax.call([
         {
@@ -332,6 +332,8 @@ export default {
               $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({"placement":"auto", "html":true, "title":""}).attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr("class", "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25));
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
+              if (successFunction)
+                successFunction();
               
             } catch (e) {
               console.log(e);
@@ -719,8 +721,9 @@ export default {
           observer.observe($(btn).parent(".wrapper")[0]);        
         }
 
-        get_reading_comprehension(); 
-        observerCall([{
+        get_reading_comprehension(function ()
+        {
+          observerCall([{
             target: $(btn).parent(".wrapper")[0],
             isIntersecting: false,
           },{
@@ -728,10 +731,12 @@ export default {
             isIntersecting: true,
           }]);
 
-        $("#carousel").carousel($("#question").children().length - 1);       
-        setTimeout(function () {
-          $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);          
-        }, 1000);          
+          $("#carousel").carousel($("#question").children().length - 1);       
+          setTimeout(function () {
+            $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);          
+          }, 1000);  
+        }); 
+                
       }
 
       $("#id_embedform").on("change", function () {
@@ -806,11 +811,10 @@ export default {
         var selection = window.getSelection();
         if (!selection.isCollapsed)
         {
-          var selectedText = selection.getRangeAt(0).toString()
+          var selectedText = "";
           var closest = selection.focusNode.parentElement.closest("#longpage-content");
           if (closest != null && closest.id == "longpage-content") {
-            var start = text.indexOf(selectedText);
-            var len = selectedText.length; 
+            selectedText = selection.getRangeAt(0).toString();
           }
         }
         
@@ -820,18 +824,19 @@ export default {
             args: {
               longpageid: _this.context.longpageid,
               position: $(btn).index(".embedQuestion"),
-              startIndex: start,
-              length: len,
+              selectedText: selectedText,
             },
             done: function (data) {
               //_this.$parent.$parent.pageReady = true; 
+              let result = JSON.parse(data.response);
               removePin();
-              $("#modal-wait").modal("hide");
-              embedIframeCode(data.response, btn);                        
+              $("#modal-wait").modal("hide").remove();
+              embedIframeCode(result["iframecode"], btn);  
+              console.log(result["log"]);                      
             },
             fail: function (e) {
               //_this.$parent.$parent.pageReady = true;
-              $("#modal-wait").modal("hide");
+              $("#modal-wait").modal("hide").remove();
               alert(e.message);
             }
           } ,
@@ -946,6 +951,18 @@ export default {
       });
 
       $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
+
+      $("#openQuestionBank").on("click", function () {
+        var link = $("#question .carousel-item.active iframe").contents().find(".filter_embedquestion-viewquestionbank a").attr("href");
+        if (link != undefined)
+        {
+          window.open(link, '_blank');
+        }
+        else
+        {
+          window.open(window.location.href.replace("mod/longpage/view.php", "question/edit.php").replace("id", "cmid"), '_blank');
+        }        
+      });
 
 
       $(document).on("click", ".reading-comprehension", function()

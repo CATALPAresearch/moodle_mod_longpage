@@ -2104,7 +2104,7 @@ class mod_longpage_external extends external_api
             array('response' => new external_value(PARAM_RAW, 'Server response to remove_question'))
         );
     }
-    public static function create_question($longpageid, $position, $startIndex, $length)
+    public static function create_question($longpageid, $position, $selectedText="")
     {
         global $CFG, $DB, $USER, $PAGE;
     
@@ -2113,8 +2113,7 @@ class mod_longpage_external extends external_api
             array(
                 'longpageid' => $longpageid,
                 'position' => $position,
-                'startIndex' => $startIndex,
-                'length' => $length
+                'selectedText' => $selectedText
             )
         );
 
@@ -2174,9 +2173,8 @@ class mod_longpage_external extends external_api
         $textContent = $topLevelElement->textContent;
     
         // get text from startIndex to endIndex
-        if ($startIndex >= 0 && $length > 0) {
-            $txt = mb_substr($textContent, $startIndex, $length, 'UTF-8');
-            $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $txt . "'";
+        if ($selectedText != "") {
+            $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
         }
 
         // Remove new lines and carriage returns.
@@ -2198,7 +2196,7 @@ class mod_longpage_external extends external_api
         $model = "mixtral";
         $authorization = "Authorization: Bearer " . $key;
 
-        $qtypes = array('match', 'multichoice', 'multiresponse');
+        $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');
 
         for ($i=0; $i < 3; $i++) { 
 
@@ -2241,6 +2239,7 @@ class mod_longpage_external extends external_api
                         "=match 2 -> match 2 " .
                         "=match 3 -> match 3 " .
                         "}' " .
+                        "The matches should be concepts of only a few words. ".
                         "Do not forget any equal or arrow sign! ";
                         break;
                 }
@@ -2284,6 +2283,7 @@ class mod_longpage_external extends external_api
                 if($q->questiontext == null) {
                     throw new Exception("Question text is empty.");
                 }
+
                 $q->category = $category->id;
                 $q->createdby = $USER->id;
                 $q->modifiedby = $USER->id;
@@ -2296,16 +2296,18 @@ class mod_longpage_external extends external_api
                 
                 $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
                 if ($created) {
-                    $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "");
+                    $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "", "");
                     $iframecode  = self::embed_question($longpageid, $embedcode, $position);
-                    $iframecode = $iframecode['response'];                
+                    $iframecode = $iframecode['response'];    
+                    \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");            
                 }
                 if ($created) {                    
-                    return array('response' => $iframecode);
+                    return array('response' => json_encode(array("iframecode" => $iframecode, "log" => "Selected text: ". $selectedText), JSON_UNESCAPED_UNICODE));
                 } else {
                     throw new Exception("Question not created.");
                 }
             } catch (\Throwable $th) {
+                error_log("Create Question Error: " . $th->getMessage());
                 if ($i == 2) {
                     throw $th;
                 }
@@ -2319,8 +2321,7 @@ class mod_longpage_external extends external_api
             array(
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
                 'position' => new external_value(PARAM_INT, 'position of embed code in text'),
-                'startIndex' => new external_value(PARAM_INT, 'start index of text to be used for question'),
-                'length' => new external_value(PARAM_INT, 'length of text to be used for question')
+                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_OPTIONAL)
             )
         );
     }
