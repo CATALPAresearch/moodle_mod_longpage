@@ -2104,6 +2104,56 @@ class mod_longpage_external extends external_api
             array('response' => new external_value(PARAM_RAW, 'Server response to remove_question'))
         );
     }
+
+    protected static function chat($systemContent, $userContent)
+    {
+        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g";
+        $url = "http://132.176.10.80/api/chat";
+        $model = "mixtral";
+        $authorization = "Authorization: Bearer " . $key;
+
+        // Remove new lines and carriage returns.
+        $systemContent = str_replace("\n", "", $systemContent);
+        $systemContent = str_replace("\r", "", $systemContent);
+
+        $escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c");
+        $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
+        $systemContent = str_replace($escapers, $replacements, $systemContent);
+        $userContent = str_replace($escapers, $replacements, $userContent);
+        //replace single quotes with double quotes
+        $systemContent = str_replace("'", "\\\"", $systemContent);
+        $userContent = str_replace("'", "\\\"", $userContent);
+
+        $data = '{
+            "model": "' . $model . '",
+            "messages": [
+                {"role": "system", "content": "' . $systemContent . '"},
+                {"role": "user", "content": "' . $userContent. '"}
+            ],
+            "stream": false
+        }';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
+        $res = curl_exec($ch);
+        $result = json_decode($res);
+        curl_close($ch);        
+
+        if (!isset($result->message->content)) {
+            throw new Exception("Problem with AI model.");
+        } 
+
+        $result->message->content = str_replace("'", "", $result->message->content);
+        $result->message->content = str_replace('"', "", $result->message->content);      
+
+        return $result;
+    }
+
     public static function create_question($longpageid, $position, $selectedText="")
     {
         global $CFG, $DB, $USER, $PAGE;
@@ -2177,24 +2227,11 @@ class mod_longpage_external extends external_api
             $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
         }
 
-        // Remove new lines and carriage returns.
-        $textContent = str_replace("\n", "", $textContent);
-        $textContent = str_replace("\r", "", $textContent);
-
-        $escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c");
-        $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
-        $textContent = str_replace($escapers, $replacements, $textContent);
-
         require_once($CFG->libdir . '/questionlib.php');
         require_once($CFG->dirroot . '/question/format.php');
         require_once($CFG->dirroot . '/question/format/gift/format.php');
 
-        $qformat = new \qformat_gift();
-
-        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g";
-        $url = "http://132.176.10.80/api/chat";
-        $model = "mixtral";
-        $authorization = "Authorization: Bearer " . $key;
+        $qformat = new \qformat_gift();        
 
         $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');
 
@@ -2246,29 +2283,7 @@ class mod_longpage_external extends external_api
 
                 $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
 
-                $data = '{
-                    "model": "' . $model . '",
-                    "messages": [
-                        {"role": "system", "content": "' . $explanation . '"},
-                        {"role": "user", "content": "' . $textContent. '"}
-                    ],
-                    "stream": false
-                }';
-
-                $ch = curl_init($url);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
-                $res = curl_exec($ch);
-                $result = json_decode($res);
-                curl_close($ch);        
-
-                if (!isset($result->message->content)) {
-                    throw new Exception("Problem with AI model.");
-                } 
+                $result = self::chat($textContent, $explanation);
 
                 if($qtype == "multiresponse") {
                     $qtype = "multichoice";
@@ -2381,7 +2396,7 @@ class mod_longpage_external extends external_api
         );
     }
 
-    public static function edit_question($longpageid, $questionid, $action, $text, $qubaid, $optionNumber=-1)
+    public static function edit_question($longpageid, $questionid, $action, $qubaid, $text="", $optionNumber=-1)
     {
         global $DB, $USER;
 
@@ -2410,7 +2425,7 @@ class mod_longpage_external extends external_api
         $question->qtype = $question->qtype->name();
         $question->generalfeedback = ['text' => $question->generalfeedback, 'format' => $question->generalfeedbackformat];
         get_question_options($question);
-        $question->questiontext = ['text' => $optionNumber != -1 ? $question->questiontext : $text, 'format' => $question->questiontextformat];
+        $question->questiontext = ['text' => $optionNumber != -1 || $action != "edit" ? $question->questiontext : $text, 'format' => $question->questiontextformat];
         $question->fraction = [];
         $question->feedback = [];
         $question->answer = $question->answers;
@@ -2419,15 +2434,49 @@ class mod_longpage_external extends external_api
         $quba = question_engine::load_questions_usage_by_activity($qubaid);
         $qa = $quba->get_question_attempt(count($quba->get_slots()));
         $order = $question->get_order($qa);
+        $positive = false;
+        $cntPositives = 0;
 
         foreach ($question->answer as $key => $answer) {
+            if($action == "remove" && $key == $order[$optionNumber])
+            {
+                if($answer->fraction > 0) {
+                    if($question->single)
+                    {
+                        throw new Exception("Korrekte Antwort kann nicht entfernt werden.");
+                    }
+                    $positive = true;
+                }   
+                unset($question->answer[$key]);
+                continue;
+            }
+            if($answer->fraction > 0) {
+                $cntPositives++;
+            }
             $question->fraction[$key] = $answer->fraction;
             $question->feedback[$key] = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
-            $aw = ['text' => $optionNumber != -1 && $key == $order[$optionNumber] ? $text : $answer->answer, 'format' => $answer->answerformat];
+            $aw = ['text' => $action == "edit" && $optionNumber != -1 && $key == $order[$optionNumber] ? $text : $answer->answer, 'format' => $answer->answerformat];
             $aw->feedback = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
             $question->answer[$key] = $aw;
+    
+
+            if($positive) {
+                foreach ($question->fraction as $key => $fraction) {
+                    $question->fraction[$key] = $fraction / $cntPositives;
+                }
+            }
         }
 
+        if($action == "add") {
+            $key = count($question->answer);
+            $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
+            $result = self::chat($question->questiontext['text'], "Please write a new distractor in German language for the given question. The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
+            $text = $result->message->content;      
+            $question->answer[$key] = ['text' => $text, 'format' => 1];
+            $question->fraction[$key] = 0;
+            $question->feedback[$key] = ['text' => "", 'format' => 1];
+        }
+    
         $created = question_bank::get_qtype($question->qtype)->save_question($question, clone $question);
         
         if ($created) {
@@ -2444,8 +2493,8 @@ class mod_longpage_external extends external_api
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
                 'questionid' => new external_value(PARAM_INT, 'question id'),
                 'action' => new external_value(PARAM_TEXT, 'action'),
-                'text' => new external_value(PARAM_RAW, 'question text'),
                 'qubaid' => new external_value(PARAM_INT, 'qubaid'),
+                'text' => new external_value(PARAM_RAW, 'question text', VALUE_OPTIONAL),
                 'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
             )
         );

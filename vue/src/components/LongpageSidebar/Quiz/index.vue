@@ -425,8 +425,7 @@ export default {
               $("#longpage-main .filter_embedquestion-iframe").removeClass("last-visible");
               var idFixed = "#" + target.id.replace("/", "\\/");
 
-              if ($(target).attr("data-tags") && $(target).attr("data-tags").includes("neu") && !_this.$store.state.UserModule.userCanMod)
-              {
+              if ($(target).attr("data-tags") && $(target).attr("data-tags").includes("neu") && !_this.$store.state.UserModule.userCanMod) {
                 return;
               }
 
@@ -634,7 +633,7 @@ export default {
         // }, 3000);
 
         var questionContent = $(this).contents().find(".qtext").text() + " " + $(this).contents().find(".answer").text();
-    
+
         var paragraphContent = $(el).text();
         $.ajax({
           url: "http://localhost:8000/compare_similarity?text1=" + encodeURI(paragraphContent) + "&text2=" + encodeURI(questionContent),
@@ -644,7 +643,7 @@ export default {
             data.forEach(function (entry) {
               var start = entry[0];
               var len = entry[1];
-              var similarity = entry[2];  
+              var similarity = entry[2];
               //discretize similarity from (0, 1) into 4 levels [0, 25, 50, 75, 100]
               similarity = Math.floor(similarity * 4) * 25;
 
@@ -652,12 +651,12 @@ export default {
                 className: "highlight-" + similarity
               });
 
-              });
+            });
           },
           error: function (error) {
             console.log(error);
           }
-        });        
+        });
       });
 
       $("#question").on("mouseleave", "iframe", function () {
@@ -689,18 +688,15 @@ export default {
         $(this).toggleClass("active");
         if (!$(this).hasClass("active")) {
           $("#pinQuestion").removeClass("autopin");
-          if(Object.keys(observerStates).length > 0)
-          {
-            observerCall(Object.values(observerStates)); 
+          if (Object.keys(observerStates).length > 0) {
+            observerCall(Object.values(observerStates));
           }
         }
         observerStates = {};
       });
 
-      function embedIframeCode(iframecode, btn)
-      {
-        if (iframecode == "error")
-        {
+      function embedIframeCode(iframecode, btn) {
+        if (iframecode == "error") {
           alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
           return;
         }
@@ -709,58 +705,55 @@ export default {
         $(iframecode).attr("data-paragraph", $(btn).parent(".wrapper").children().first().attr("id")).prop('outerHTML');
         iframecode = $(iframecode).prop('outerHTML');
 
-        if ($(btn).prev(".reading-comprehension").length > 0)
-        {
+        if ($(btn).prev(".reading-comprehension").length > 0) {
           $(btn).parent(".wrapper").next().children().first().append(iframecode);
         }
-        else
-        {
+        else {
           var wrapper = $("<div class='wrapper'><p>" + iframecode + "</p></div>");
           $(wrapper).height("0px")
-          $(wrapper).css("padding", "0px"); 
+          $(wrapper).css("padding", "0px");
           $(btn).parent(".wrapper").after(wrapper);
-          observer.observe($(btn).parent(".wrapper")[0]);        
+          observer.observe($(btn).parent(".wrapper")[0]);
         }
 
-        get_reading_comprehension(function ()
-        {
+        get_reading_comprehension(function () {
           observerCall([{
             target: $(btn).parent(".wrapper")[0],
             isIntersecting: false,
-          },{
+          }, {
             target: $(btn).parent(".wrapper")[0],
             isIntersecting: true,
           }]);
 
-          $("#carousel").carousel($("#question").children().length - 1);       
+          $("#carousel").carousel($("#question").children().length - 1);
           setTimeout(function () {
-            $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);          
-          }, 1000);  
-        }); 
-                
+            $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
+          }, 1000);
+        });
+
       }
 
       $("#id_embedform").on("change", function () {
-        
+
         ajax.call([
-        {
-          methodname: "mod_longpage_embed_question",
-          args: {
-            longpageid: _this.context.longpageid,
-            embedcode: $("#id_embedformeditable").text(),
-            position: $("#id_embedformeditable").data("position")
+          {
+            methodname: "mod_longpage_embed_question",
+            args: {
+              longpageid: _this.context.longpageid,
+              embedcode: $("#id_embedformeditable").text(),
+              position: $("#id_embedformeditable").data("position")
+            },
+            done: function (data) {
+              $(".mform").attr("data-form-dirty", "false");
+              removePin();
+              embedIframeCode(data.response, $(".embedQuestion").eq($("#id_embedformeditable").data("position")));
+            },
+            fail: function (e) {
+              console.error("fail", e);
+            },
           },
-          done: function (data) {
-            $(".mform").attr("data-form-dirty", "false");
-            removePin();
-            embedIframeCode(data.response, $(".embedQuestion").eq($("#id_embedformeditable").data("position")));              
-          },
-          fail: function (e) {
-            console.error("fail", e);
-          },
-        },
-      ]);
-      }); 
+        ]);
+      });
 
       // Toggle visibility of embedQuestion on mouseover and mouseout
       $("#longpage-main").on("mouseover mouseout", ".wrapper", function () {
@@ -774,7 +767,7 @@ export default {
 
       var removePin = function () {
         if ($("#pinQuestion").hasClass("active")) {
-              $("#pinQuestion").click();
+          $("#pinQuestion").click();
         }
       }
 
@@ -810,15 +803,14 @@ export default {
         var start = -1;
         var len = 0;
         var selection = window.getSelection();
-        if (!selection.isCollapsed)
-        {
+        if (!selection.isCollapsed) {
           var selectedText = "";
           var closest = selection.focusNode.parentElement.closest("#longpage-content");
           if (closest != null && closest.id == "longpage-content") {
             selectedText = selection.getRangeAt(0).toString();
           }
         }
-        
+
         ajax.call([
           {
             methodname: "mod_longpage_create_question",
@@ -832,18 +824,18 @@ export default {
               let result = JSON.parse(data.response);
               removePin();
               $("#modal-wait").modal("hide").remove();
-              embedIframeCode(result["iframecode"], btn);  
-              console.log(result["log"]);                      
+              embedIframeCode(result["iframecode"], btn);
+              console.log(result["log"]);
             },
             fail: function (e) {
               //_this.$parent.$parent.pageReady = true;
               $("#modal-wait").modal("hide").remove();
               alert(e.message);
             }
-          } ,
-        ]);        
+          },
+        ]);
       });
-      
+
       $("#removeQuestion").on("click", function () {
         var btn = $("#" + $("#question .carousel-item.active iframe").attr("data-paragraph")).next().next(".embedQuestion");
         if (btn.length == 0)
@@ -864,18 +856,16 @@ export default {
 
               //remove embedQuestion
               var iframecontainer = $(btn).parent(".wrapper").next().children().first();
-              if ($(iframecontainer).children().length > 1)
-              {
+              if ($(iframecontainer).children().length > 1) {
                 //remove iframe with embedid
                 var idFixed = embedid.replace("/", "\\/");
                 $(iframecontainer).find("#" + idFixed).remove();
               }
-              else
-              {
+              else {
                 $(btn).parent(".wrapper").next().remove();
                 $(btn).prev(".reading-comprehension").css("opacity", "").removeClass("reading-comprehension")
                 $(btn).parent(".wrapper").removeAttr("data-reading-comprehension-count");
-              }             
+              }
               get_reading_comprehension();
               observerCall();
 
@@ -900,14 +890,12 @@ export default {
             },
             done: function (reads) {
               removePin();
-              
+
               var iframe = $("#longpage-content #" + embedid);
-              if (!$(iframe).attr("data-tags").includes("neu"))
-              {
+              if (!$(iframe).attr("data-tags").includes("neu")) {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags") + ($(iframe).attr("data-tags") != "" ? "," : "") + "neu");
               }
-              else
-              {
+              else {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags").replace("neu", "").replace(/,$/, ""));
               }
 
@@ -930,11 +918,20 @@ export default {
         ]);
       });
 
+      function handleQuickEditQuestionResult(data)
+      {
+        var result = JSON.parse(data.response);
+        var questionid = result["questionid"];
+        $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
+        $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);
+      }
+
       $("#quickEditQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
         if (questionid == undefined) {
           return;
         }
+        var qubaid = new URLSearchParams($("#question .carousel-item.active iframe").contents().find("form").attr("action")).get("qubaid");
         var editable = $("#question .carousel-item.active iframe").contents().find(".que .answer .flex-fill, .que .qtext p");
         $(editable).attr("contenteditable", true);
 
@@ -956,31 +953,92 @@ export default {
             return;
           }
 
-          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parents(".answer").index() : -1;
-                
+          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parents(".answer").index() : -1;          
+
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
               args: {
                 longpageid: _this.context.longpageid,
                 questionid: questionid,
+                action: "edit",
+                qubaid: qubaid,
                 text: text,
-                qubaid: new URLSearchParams($(this).parents("form").attr("action")).get("qubaid"),
                 optionNumber: optionNumber,
               },
               done: function (data) {
-                var result = JSON.parse(data.response);
-                var questionid = result["questionid"];
-                $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
-                $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);     
+                handleQuickEditQuestionResult(data);     
                 alert("Änderungen wurden gespeichert.");          
               },
               fail: function (e) {
-                console.error("fail", e);
+                alert(e.message);
               },
             },
           ]);
         });
+
+        var options = $("#question .carousel-item.active iframe").contents().find(".que .answer .flex-fill");
+        //add minus buttton in front of each option, with click event to remove option
+        $(options).each(function (idx, option) {
+          var minus = $("<i class='fa fa-minus-circle fa-fw' style='cursor:pointer;' title='Option löschen'></i>");
+          $(minus).on("click", function () {
+              ajax.call([
+            {
+              methodname: "mod_longpage_edit_question",
+              args: {
+                longpageid: _this.context.longpageid,
+                questionid: questionid,
+                action: "remove",
+                qubaid: qubaid,
+                text: "",
+                optionNumber: idx,
+              },
+              done: function (data) {
+                handleQuickEditQuestionResult(data);  
+                $("#question .carousel-item.active iframe").contents().find("form").removeAttr("data-form-dirty");
+                var src = $("#question .carousel-item.active iframe").attr("src");
+                $("#question .carousel-item.active iframe").attr("src", "");
+                $("#question .carousel-item.active iframe").attr("src", src);   
+                alert("Änderungen wurden gespeichert.");          
+              },
+              fail: function (e) {
+                alert(e.message);
+              },
+            },
+          ]);
+          });
+          $(minus).insertBefore($(option));
+        });
+
+        //add plus button at the end of options, with click event to add option
+        var plus = $("<i class='fa fa-plus-circle fa-fw' style='cursor:pointer;' title='Option hinzufügen'></i>");
+        $(plus).on("click", function () {
+          ajax.call([
+            {
+              methodname: "mod_longpage_edit_question",
+              args: {
+                longpageid: _this.context.longpageid,
+                questionid: questionid,
+                action: "add",
+                qubaid: qubaid,
+                text: "",
+                optionNumber: -1,
+              },
+              done: function (data) {
+                handleQuickEditQuestionResult(data);  
+                $("#question .carousel-item.active iframe").contents().find("form").removeAttr("data-form-dirty");
+                var src = $("#question .carousel-item.active iframe").attr("src");
+                $("#question .carousel-item.active iframe").attr("src", "");
+                $("#question .carousel-item.active iframe").attr("src", src);   
+                alert("Änderungen wurden gespeichert.");          
+              },
+              fail: function (e) {
+                alert(e.message);
+              },
+            },
+          ]);
+        });
+        $(plus).insertAfter($(options).last().parent().parent());
       });
 
       $("#editQuestion").on("click", function () {
