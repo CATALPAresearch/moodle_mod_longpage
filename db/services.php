@@ -264,6 +264,14 @@ $functions = array(
         'capabilities'  => 'mod/longpage:view',
         'ajax'          => true
     ),	
+    'mod_longpage_edit_question' => array(
+        'classname'     => 'mod_longpage_external',
+        'methodname'    => 'edit_question',
+        'description'   => 'Edit question for reading comprehension on page',
+        'type'          => 'write',
+        'capabilities'  => 'mod/longpage:view',
+        'ajax'          => true
+    ),
     'mod_longpage_remove_question' => array(
         'classname'     => 'mod_longpage_external',
         'methodname'    => 'remove_question',

@@ -12,12 +12,13 @@
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-          <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage editieren</a>
+          <a class="dropdown-item" id="quickEditQuestion" href="javascript:void(0)"><i class="fa fa-edit fa-fw" /> Frage direkt bearbeiten</a>
           <a class="dropdown-item" id="lockQuestion" href="javascript:void(0)"><i class="fa fa-unlock fa-fw" /> Frage freigeben / sperren</a>
           <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
           <a class="dropdown-item" id="removeQuestion" href="javascript:void(0)"><i class="fa fa-minus-square fa-fw" />Einbettung entfernen</a>
-          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen</a>
-          <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen</a>
+          <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
+          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen <i class="fa fa-external-link fa-fw small" /> </a>
+          <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
         </div>
       
       <div class="col-auto px-0 offset-md-1">
@@ -927,6 +928,59 @@ export default {
             },
           },
         ]);
+      });
+
+      $("#quickEditQuestion").on("click", function () {
+        let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
+        if (questionid == undefined) {
+          return;
+        }
+        var editable = $("#question .carousel-item.active iframe").contents().find(".que .answer .flex-fill, .que .qtext p");
+        $(editable).attr("contenteditable", true);
+
+        for (var i = 0; i < editable.length; i++) {
+          var text = $(editable[i]).text();
+          $(editable[i]).attr("data-text", text);
+        }
+
+        //blur on escape
+        $(editable).on("keydown", function (e) {
+          if (e.key === "Escape") {
+            $(this).text($(this).attr("data-text"));
+            $(this).blur();
+          }
+        });
+        $(editable).on("blur", function () {
+          var text = $(this).text();
+          if (text == $(this).attr("data-text")) {
+            return;
+          }
+
+          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parents(".answer").index() : -1;
+                
+          ajax.call([
+            {
+              methodname: "mod_longpage_edit_question",
+              args: {
+                longpageid: _this.context.longpageid,
+                questionid: questionid,
+                text: text,
+                qubaid: new URLSearchParams($(this).parents("form").attr("action")).get("qubaid"),
+                optionNumber: optionNumber,
+              },
+              done: function (data) {
+                var result = JSON.parse(data.response);
+                var questionid = result["questionid"];
+                $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
+                $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);     
+                alert("Änderungen wurden gespeichert.");          
+              },
+              fail: function (e) {
+                console.error("fail", e);
+              },
+            },
+          ]);
+        });
       });
 
       $("#editQuestion").on("click", function () {

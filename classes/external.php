@@ -2381,6 +2381,83 @@ class mod_longpage_external extends external_api
         );
     }
 
+    public static function edit_question($longpageid, $questionid, $action, $text, $qubaid, $optionNumber=-1)
+    {
+        global $DB, $USER;
+
+        $params = self::validate_parameters(
+            self::edit_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'questionid' => $questionid,
+                'action' => $action,
+                'text' => $text,
+                'qubaid' => $qubaid,
+                'optionNumber' => $optionNumber
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:addinstance', $context);
+
+        $question = question_bank::load_question($questionid);
+        $question->qtype = $question->qtype->name();
+        $question->generalfeedback = ['text' => $question->generalfeedback, 'format' => $question->generalfeedbackformat];
+        get_question_options($question);
+        $question->questiontext = ['text' => $optionNumber != -1 ? $question->questiontext : $text, 'format' => $question->questiontextformat];
+        $question->fraction = [];
+        $question->feedback = [];
+        $question->answer = $question->answers;
+        $question->single = $question->options->single;
+
+        $quba = question_engine::load_questions_usage_by_activity($qubaid);
+        $qa = $quba->get_question_attempt(count($quba->get_slots()));
+        $order = $question->get_order($qa);
+
+        foreach ($question->answer as $key => $answer) {
+            $question->fraction[$key] = $answer->fraction;
+            $question->feedback[$key] = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
+            $aw = ['text' => $optionNumber != -1 && $key == $order[$optionNumber] ? $text : $answer->answer, 'format' => $answer->answerformat];
+            $aw->feedback = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
+            $question->answer[$key] = $aw;
+        }
+
+        $created = question_bank::get_qtype($question->qtype)->save_question($question, clone $question);
+        
+        if ($created) {
+            return array('response' => json_encode(array("questionid" => $created->id)));
+        } else {
+            throw new Exception("Question not edited.");
+        }
+    }
+
+    public static function edit_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'questionid' => new external_value(PARAM_INT, 'question id'),
+                'action' => new external_value(PARAM_TEXT, 'action'),
+                'text' => new external_value(PARAM_RAW, 'question text'),
+                'qubaid' => new external_value(PARAM_INT, 'qubaid'),
+                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
+            )
+        );
+    }
+
+    public static function edit_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to edit_question'))
+        );
+    }
+
     public static function autosave($data)
     {
         global $CFG, $DB, $USER, $PAGE;
