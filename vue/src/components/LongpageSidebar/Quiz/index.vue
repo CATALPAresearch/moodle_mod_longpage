@@ -398,10 +398,33 @@ export default {
       let directionUp = false;
       //let currentY = 0;
 
+      var autosavefun = _.debounce(function () {
+        if ($(this).attr("data-autosave") == "false")
+          return;
+
+        ajax.call([
+          {
+            methodname: "mod_longpage_autosave",
+            args: {
+              data: {
+                qubaid: new URLSearchParams($(this).find("form").attr("action")).get("qubaid"),
+                form: JSON.stringify(Object.fromEntries(new FormData($(this).find("form")[0])))
+              },
+            },
+            done: function (reads) {
+            },
+            fail: function (e) {
+              console.error("fail", e);
+              alert(e);
+            },
+          },
+        ]);
+        }, 2000);
+
       var observerStates = {};
 
       function observerCall(entries = []) {
-        if ($("#pinQuestion").hasClass("active")) {
+        if (hasPin()) {
           for (var i = 0; i < entries.length; i++) {
             var entry = entries[i];
             $(entry.target).next().find("iframe").each(function (idx, target) {
@@ -468,9 +491,7 @@ export default {
               }
 
               $("#question iframe" + idFixed).on("load", function () {
-                if ($("#pinQuestion").hasClass("autopin")) {
-                  $("#pinQuestion").click();
-                }
+                removePin(true);
 
                 $("#question iframe" + idFixed).contents().find("body").attr("data-tags", $(this).attr("data-tags"));
 
@@ -500,10 +521,7 @@ export default {
                 waitPending();
 
                 $(this).contents().find("body").on('click', function (ev) {
-                  if (!$("#pinQuestion").hasClass("active")) {
-                    $("#pinQuestion").addClass("autopin");
-                    $("#pinQuestion").click();
-                  }
+                  addPin();
                   var logentry = {
                     longpageid: _this.context.longpageid,
                     pageX: ev.pageX,
@@ -531,27 +549,7 @@ export default {
                   ]);
                 });
 
-                var autosavefun = _.debounce(function () {
-                  ajax.call([
-                    {
-                      methodname: "mod_longpage_autosave",
-                      args: {
-                        data: {
-                          qubaid: new URLSearchParams($(this).contents().find("form").attr("action")).get("qubaid"),
-                          form: JSON.stringify(Object.fromEntries(new FormData($(this).contents().find("form")[0])))
-                        },
-                      },
-                      done: function (reads) {
-                      },
-                      fail: function (e) {
-                        console.error("fail", e);
-                        alert(e);
-                      },
-                    },
-                  ]);
-                }, 2000);
-
-                $(this).contents().find("body").on('click keyup', autosavefun);
+                $(this).contents().find("body").attr("data-autosave", "true").on('click keyup', autosavefun);
 
                 $(this).contents().find("body").on('dblclick', function () {
                   var el = $("#" + $("#question iframe" + idFixed).attr("data-paragraph"));
@@ -765,11 +763,25 @@ export default {
         $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
       });
 
-      var removePin = function () {
-        if ($("#pinQuestion").hasClass("active")) {
+
+      var hasPin = function (onlyIfAutoPin = false) {
+        return $("#pinQuestion").hasClass("active") && (!onlyIfAutoPin || $("#pinQuestion").hasClass("autopin"));
+      }
+
+      var addPin = function () {
+        if (!hasPin()) {
           $("#pinQuestion").click();
+          $("#pinQuestion").addClass("autopin");
         }
       }
+
+      var removePin = function (onlyIfAutoPin = false) {
+        if (hasPin(onlyIfAutoPin)) {
+            $("#pinQuestion").click();
+        }
+      }
+
+      
 
       $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
@@ -778,14 +790,12 @@ export default {
         $(".atto_embedquestion_button").click();
       });
 
-      $(".embedNewQuestion").on("click", function () {
-
-        //_this.$parent.$parent.pageReady = false;
+      function addModalWait(message) {
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="modal-wait-label">Frage wird generiert</h5>
+              <h5 class="modal-title" id="modal-wait-label">${message}</h5>
             </div>
             <div class="modal-body text-center">
               <div class="spinner-border" role="status">                
@@ -796,12 +806,30 @@ export default {
         </div>`;
 
         $(modal).modal({ backdrop: "static", keyboard: false });
+      }
 
+      function removeModalWait() {
+        $("#modal-wait").modal("hide").remove();
+      }
+
+      function addToast(message) {
+        var toast =
+        `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="position: absolute; top: 20px; right: 20px">
+          <div class="toast-header">
+            <strong class="mr-auto">Hinweis</strong>
+            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="toast-body">
+            ${message}
+          </div>
+        </div>`;
+        $(toast).appendTo("#sidebar-tab-quiz").toast("show");
+      }
+
+      $(".embedNewQuestion").on("click", function () {   
         var btn = $(this).parent();
-        var text = $(btn).prev(".reading-comprehension").prev().text();
-
-        var start = -1;
-        var len = 0;
         var selection = window.getSelection();
         if (!selection.isCollapsed) {
           var selectedText = "";
@@ -810,7 +838,7 @@ export default {
             selectedText = selection.getRangeAt(0).toString();
           }
         }
-
+        addModalWait("Frage wird generiert...");
         ajax.call([
           {
             methodname: "mod_longpage_create_question",
@@ -820,16 +848,15 @@ export default {
               selectedText: selectedText,
             },
             done: function (data) {
-              //_this.$parent.$parent.pageReady = true; 
               let result = JSON.parse(data.response);
               removePin();
-              $("#modal-wait").modal("hide").remove();
+              removeModalWait();
               embedIframeCode(result["iframecode"], btn);
               console.log(result["log"]);
+              addToast("Frage wurde erstellt.");
             },
             fail: function (e) {
-              //_this.$parent.$parent.pageReady = true;
-              $("#modal-wait").modal("hide").remove();
+              removeModalWait();
               alert(e.message);
             }
           },
@@ -841,6 +868,7 @@ export default {
         if (btn.length == 0)
           return;
         var embedid = $("#question .carousel-item.active iframe").attr("id");
+        addModalWait("Frage wird entfernt...");
         ajax.call([
           {
             methodname: "mod_longpage_remove_question",
@@ -868,19 +896,31 @@ export default {
               }
               get_reading_comprehension();
               observerCall();
-
+              removeModalWait();
+              addToast("Frage wurde entfernt.");
             },
             fail: function (e) {
               console.error("fail", e);
+              removeModalWait();
             },
           },
         ]);
       });
 
+      function reloadAllIframesInQuiz() {
+        $("#question .carousel-item.active iframe").contents().find("form").removeAttr("data-form-dirty");
+        $("#question iframe").each(function (idx, iframe) {
+          var src = $(iframe).attr("src");
+          $(iframe).attr("src", "");
+          $(iframe).attr("src", src);
+        });
+      }
+
       $("#lockQuestion").on("click", function () {
         var active = $("#question .carousel-item.active iframe");
         var questionid = $(active).attr("data-questionid");
         var embedid = $(active).attr("id").replace("/", "\\/");
+        addModalWait("Frage wird geändert...");
         ajax.call([
           {
             methodname: "mod_longpage_lock_question",
@@ -894,25 +934,23 @@ export default {
               var iframe = $("#longpage-content #" + embedid);
               if (!$(iframe).attr("data-tags").includes("neu")) {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags") + ($(iframe).attr("data-tags") != "" ? "," : "") + "neu");
+                addToast("Frage wurde gesperrt.");
               }
               else {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags").replace("neu", "").replace(/,$/, ""));
+                addToast("Frage wurde freigegeben.");
               }
 
               $("#longpage-content iframe#" + embedid + ", #question iframe#" + embedid).each(function (idx, ifr) {
                 $(ifr).attr("data-tags", $(iframe).attr("data-tags"));
               });
 
-
-              //reload all iframes in quiz
-              $("#question iframe").each(function (idx, iframe) {
-                var src = $(iframe).attr("src");
-                $(iframe).attr("src", "");
-                $(iframe).attr("src", src);
-              });
+              reloadAllIframesInQuiz();
+              removeModalWait();
             },
             fail: function (e) {
               console.error("fail", e);
+              removeModalWait();
             },
           },
         ]);
@@ -924,16 +962,35 @@ export default {
         var questionid = result["questionid"];
         $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
         $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);
+        reloadAllIframesInQuiz(); 
+        addToast("Änderungen wurden gespeichert."); 
       }
 
       $("#quickEditQuestion").on("click", function () {
-        let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
+        var activeIframe = $("#question .carousel-item.active iframe");
+        let questionid = $(activeIframe).attr("data-questionid");
         if (questionid == undefined) {
           return;
         }
-        var qubaid = new URLSearchParams($("#question .carousel-item.active iframe").contents().find("form").attr("action")).get("qubaid");
-        var editable = $("#question .carousel-item.active iframe").contents().find(".que .answer .flex-fill, .que .qtext p");
+
+        addPin();
+       
+        var editable = $(activeIframe).contents().find(".que .answer .flex-fill, .que .qtext p");
+        if($(editable).attr("contenteditable") == "true")
+        {
+          reloadAllIframesInQuiz();
+          $(activeIframe).contents().find("body").attr("data-autosave", "true");
+          return;
+        }
+        else
+        {
+          autosavefun.cancel();
+          $(activeIframe).contents().find("body").attr("data-autosave", "false");
+        }
+
         $(editable).attr("contenteditable", true);
+
+        var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
         for (var i = 0; i < editable.length; i++) {
           var text = $(editable[i]).text();
@@ -945,16 +1002,27 @@ export default {
           if (e.key === "Escape") {
             $(this).text($(this).attr("data-text"));
             $(this).blur();
+            return false;
           }
         });
+        //reload iframe on escape on iframe
+        $(activeIframe).contents().find("body").on("keydown", function (e) {
+          if (e.key === "Escape") {
+            reloadAllIframesInQuiz();
+            addToast("Bearbeitung wurde abgebrochen.");
+          }
+        });
+
         $(editable).on("blur", function () {
           var text = $(this).text();
           if (text == $(this).attr("data-text")) {
             return;
-          }
+          }         
 
-          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parents(".answer").index() : -1;          
+          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parent().prev().val() : -1;    
+          questionid = $(activeIframe).attr("data-questionid");
 
+          addModalWait("Frage wird aktualisiert...");
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -967,22 +1035,25 @@ export default {
                 optionNumber: optionNumber,
               },
               done: function (data) {
-                handleQuickEditQuestionResult(data);     
-                alert("Änderungen wurden gespeichert.");          
+                handleQuickEditQuestionResult(data);  
+                removeModalWait();   
+                removePin(true);  
               },
               fail: function (e) {
                 alert(e.message);
+                removeModalWait();
+                removePin(true);  
               },
             },
           ]);
         });
 
-        var options = $("#question .carousel-item.active iframe").contents().find(".que .answer .flex-fill");
-        //add minus buttton in front of each option, with click event to remove option
+        var options = $(activeIframe).contents().find(".que .answer .flex-fill");
         $(options).each(function (idx, option) {
-          var minus = $("<i class='fa fa-minus-circle fa-fw' style='cursor:pointer;' title='Option löschen'></i>");
+          var minus = $("<button class='btn btn-outline-danger' title='Option löschen'><i class='fa fa-minus-circle fa-fw' style='cursor:pointer;'></i></button>");
           $(minus).on("click", function () {
-              ajax.call([
+            addModalWait("Option wird gelöscht...");
+            ajax.call([
             {
               methodname: "mod_longpage_edit_question",
               args: {
@@ -994,25 +1065,23 @@ export default {
                 optionNumber: idx,
               },
               done: function (data) {
-                handleQuickEditQuestionResult(data);  
-                $("#question .carousel-item.active iframe").contents().find("form").removeAttr("data-form-dirty");
-                var src = $("#question .carousel-item.active iframe").attr("src");
-                $("#question .carousel-item.active iframe").attr("src", "");
-                $("#question .carousel-item.active iframe").attr("src", src);   
-                alert("Änderungen wurden gespeichert.");          
+                handleQuickEditQuestionResult(data);
+                removeModalWait();           
               },
               fail: function (e) {
                 alert(e.message);
+                removeModalWait();
               },
             },
           ]);
           });
-          $(minus).insertBefore($(option));
+          $(minus).prependTo($(option).parent().parent());
         });
 
-        //add plus button at the end of options, with click event to add option
-        var plus = $("<i class='fa fa-plus-circle fa-fw' style='cursor:pointer;' title='Option hinzufügen'></i>");
+        //add button with plus icon at the end of options, with click event to add option
+        var plus = $("<button class='btn btn-outline-success w-100' title='Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i></button>");
         $(plus).on("click", function () {
+          addModalWait("Distraktor wird hinzugefügt...");
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1025,15 +1094,13 @@ export default {
                 optionNumber: -1,
               },
               done: function (data) {
-                handleQuickEditQuestionResult(data);  
-                $("#question .carousel-item.active iframe").contents().find("form").removeAttr("data-form-dirty");
-                var src = $("#question .carousel-item.active iframe").attr("src");
-                $("#question .carousel-item.active iframe").attr("src", "");
-                $("#question .carousel-item.active iframe").attr("src", src);   
-                alert("Änderungen wurden gespeichert.");          
+                handleQuickEditQuestionResult(data);
+                removeModalWait();  
+                addToast("Distraktor wurde hinzugefügt.");       
               },
               fail: function (e) {
                 alert(e.message);
+                removeModalWait();
               },
             },
           ]);

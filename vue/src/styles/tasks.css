@@ -66,3 +66,9 @@ body[data-tags="neu"] .que .formulation::before
 {
     background-color:  transparent !important;
 }
+
+.que .answer .flex-fill[contenteditable="true"] {
+    background-color: white;
+    cursor: text;
+    padding: 5px;
+  }
