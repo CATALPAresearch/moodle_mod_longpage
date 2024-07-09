@@ -50,11 +50,14 @@
       </a>
     </div>
     <div id="embedQuestion">
-      <a href="javascript:void(0)" class="embedNewQuestion" v-show="this.$store.state.UserModule.userCanMod">
-        <i class="fa fa-plus fa-fw" title="Neue Frage für Abschnitt mit KI generieren und einbetten (Text auswählen, um Thema einzuschränken)" data-toggle="tooltip"/>
+      <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.$store.state.UserModule.userCanMod">
+        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Textauswahl wird berücksichtigt)" data-toggle="tooltip"/>
+      </a>
+      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.$store.state.UserModule.userCanMod">
+        <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Frage einbetten" data-toggle="tooltip"/>
       </a>
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
-        <i class="fa fa-plus-square fa-fw" title="Vorhandene Frage einbetten" data-toggle="tooltip"/>
+        <i class="fa fa-plus-circle fa-fw" title="Vorhandene Frage einbetten" data-toggle="tooltip"/>
       </a>
     </div>
     </template>
@@ -176,11 +179,10 @@
   right: 15px;
   z-index: 100;
   opacity: 0;
-  padding-left: 90%;
   margin-top: -20px !important;
 }
 
-.embedNewQuestion, .embedExistingQuestion
+.embedNewAIQuestion, .embedNewEmptyQuestion, .embedExistingQuestion
 {
   background-color: white;
 }
@@ -392,7 +394,7 @@ export default {
 
       $(".reading-progress").not($("h1, h2, h3, h4, h5, h6").next().add($(".filter_embedquestion-iframe").parent().next())).parent()
         .append($("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion"));
-      $(".embedNewQuestion, .embedExistingQuestion").show();
+      $(".embedNewAIQuestion, .embedNewEmptyQuestion, .embedExistingQuestion").show();
 
       //let previousY = 0;
       let directionUp = false;
@@ -828,7 +830,7 @@ export default {
         $(toast).appendTo("#sidebar-tab-quiz").toast("show");
       }
 
-      $(".embedNewQuestion").on("click", function () {   
+      $(".embedNewAIQuestion, .embedNewEmptyQuestion").on("click", function () {   
         var btn = $(this).parent();
         var selection = window.getSelection();
         if (!selection.isCollapsed) {
@@ -846,6 +848,8 @@ export default {
               longpageid: _this.context.longpageid,
               position: $(btn).index(".embedQuestion"),
               selectedText: selectedText,
+              useAI: $(this).hasClass("embedNewAIQuestion") ? true : false,
+              existingQuestions: $(btn).parent().next().find(".filter_embedquestion-iframe").contents().find(".qtext").map(function () { return $(this).text(); }).get().join(", ")
             },
             done: function (data) {
               let result = JSON.parse(data.response);
@@ -962,8 +966,10 @@ export default {
         var questionid = result["questionid"];
         $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
         $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);
-        reloadAllIframesInQuiz(); 
+        var qubaid = result["qubaid"];
+        $("#question .carousel-item.active iframe").contents().find("form").attr("action", $("#question .carousel-item.active iframe").contents().find("form").attr("action").replace(/qubaid=\d+/, "qubaid=" + qubaid));
         addToast("Änderungen wurden gespeichert."); 
+        return result;
       }
 
       $("#quickEditQuestion").on("click", function () {
@@ -975,7 +981,7 @@ export default {
 
         addPin();
        
-        var editable = $(activeIframe).contents().find(".que .answer .flex-fill, .que .qtext p");
+        var editable = $(activeIframe).contents().find(".que .answer .flex-fill, .que .qtext");
         if($(editable).attr("contenteditable") == "true")
         {
           reloadAllIframesInQuiz();
@@ -990,14 +996,11 @@ export default {
 
         $(editable).attr("contenteditable", true);
 
-        var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
-
         for (var i = 0; i < editable.length; i++) {
           var text = $(editable[i]).text();
           $(editable[i]).attr("data-text", text);
         }
 
-        //blur on escape
         $(editable).on("keydown", function (e) {
           if (e.key === "Escape") {
             $(this).text($(this).attr("data-text"));
@@ -1005,7 +1008,7 @@ export default {
             return false;
           }
         });
-        //reload iframe on escape on iframe
+
         $(activeIframe).contents().find("body").on("keydown", function (e) {
           if (e.key === "Escape") {
             reloadAllIframesInQuiz();
@@ -1021,6 +1024,7 @@ export default {
 
           var optionNumber = $(this).hasClass("flex-fill") ? $(this).parent().prev().val() : -1;    
           questionid = $(activeIframe).attr("data-questionid");
+          var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
           addModalWait("Frage wird aktualisiert...");
           ajax.call([
@@ -1031,6 +1035,7 @@ export default {
                 questionid: questionid,
                 action: "edit",
                 qubaid: qubaid,
+                useAI: false,
                 text: text,
                 optionNumber: optionNumber,
               },
@@ -1053,6 +1058,8 @@ export default {
           var minus = $("<button class='btn btn-outline-danger' title='Option löschen'><i class='fa fa-minus-circle fa-fw' style='cursor:pointer;'></i></button>");
           $(minus).on("click", function () {
             addModalWait("Option wird gelöscht...");
+            var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
+            questionid = $(activeIframe).attr("data-questionid");
             ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1061,27 +1068,31 @@ export default {
                 questionid: questionid,
                 action: "remove",
                 qubaid: qubaid,
+                useAI: false,
                 text: "",
                 optionNumber: idx,
               },
               done: function (data) {
                 handleQuickEditQuestionResult(data);
+                $(option).parent().parent().remove();
                 removeModalWait();           
               },
               fail: function (e) {
                 alert(e.message);
                 removeModalWait();
               },
-            },
-          ]);
+              }]);
+            return false;
           });
           $(minus).prependTo($(option).parent().parent());
         });
 
-        //add button with plus icon at the end of options, with click event to add option
-        var plus = $("<button class='btn btn-outline-success w-100' title='Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i></button>");
-        $(plus).on("click", function () {
+        var plusBlank = $("<button class='btn btn-outline-success w-50 addBlankDistractor' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i></button>");
+        var plusAI = $("<button class='btn btn-outline-success w-50 addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i></button>");
+        $(plusBlank).add(plusAI).on("click", function () {
           addModalWait("Distraktor wird hinzugefügt...");
+          var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
+          questionid = $(activeIframe).attr("data-questionid");
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1090,22 +1101,27 @@ export default {
                 questionid: questionid,
                 action: "add",
                 qubaid: qubaid,
+                useAI: $(this).hasClass("addAIDistractor"),
                 text: "",
                 optionNumber: -1,
               },
               done: function (data) {
                 handleQuickEditQuestionResult(data);
-                removeModalWait();  
-                addToast("Distraktor wurde hinzugefügt.");       
+                $(activeIframe).one("load", function () {
+                  $("#quickEditQuestion").click();
+                  removeModalWait();  
+                  addToast("Distraktor wurde hinzugefügt.");       
+                });
+                reloadAllIframesInQuiz();       
               },
               fail: function (e) {
                 alert(e.message);
                 removeModalWait();
               },
-            },
-          ]);
+            }]);
+          return false;
         });
-        $(plus).insertAfter($(options).last().parent().parent());
+        $(plusAI).add(plusBlank).insertAfter($(options).last().parent().parent());
       });
 
       $("#editQuestion").on("click", function () {

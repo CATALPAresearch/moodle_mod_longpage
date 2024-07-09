@@ -29,6 +29,8 @@ defined('MOODLE_INTERNAL') || die;
 use core_question\statistics\questions\calculator;
 use filter_embedquestion\embed_id;
 use filter_embedquestion\external;
+use filter_embedquestion\embed_location;
+use filter_embedquestion\attempt;
 use filter_embedquestion\utils;
 use mod_longpage\local\constants\annotation_type as annotation_type;
 use mod_longpage\local\constants\selector as selector;
@@ -2154,7 +2156,7 @@ class mod_longpage_external extends external_api
         return $result;
     }
 
-    public static function create_question($longpageid, $position, $selectedText="")
+    public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="")
     {
         global $CFG, $DB, $USER, $PAGE;
     
@@ -2177,9 +2179,18 @@ class mod_longpage_external extends external_api
         require_capability('mod/longpage:addinstance', $context);
 
         $coursecontext = \context_course::instance($course->id);
-        // Use existing questions category for quiz or create the defaults.        
-        if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
-            throw new Exception("Category 'aigenerated' not found.");
+        // Use existing questions category for quiz or create the defaults.
+        if($useAI)
+        {
+            if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
+                throw new Exception("Category with idnumber 'aigenerated' not found.");
+            }
+        }        
+        else
+        {
+            if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'manuallygenerated'])) {
+                throw new Exception("Category with idnumber 'manuallygenerated' not found.");
+            }
         }
         
         $options = array('noclean' => true, 'filter' => false);
@@ -2193,120 +2204,152 @@ class mod_longpage_external extends external_api
             $options
         );
 
-        // Load $page->content as HTML
-        $dom = new DOMDocument();
-        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
-
-        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
-        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
-        if (!$topLevelTag) {
-            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
-        }
-
-        // Get all top level tags
-        $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
-
-        // Filter out p-tags that do not contain text with "{Q{"
-        $filteredElements = [];
-        foreach ($topLevelElements as $element) {
-            if (strpos($element->textContent, '{Q{') === false) {
-                $filteredElements[] = $element;
-            }
-        }
-
-        // Find $position-th top level tag "p" or "div"
-        if (count($filteredElements) > $position) {
-            $topLevelElement = $filteredElements[$position];
-        }
-        
-        // get text from top level element
-        $textContent = $topLevelElement->textContent;
-    
-        // get text from startIndex to endIndex
-        if ($selectedText != "") {
-            $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
-        }
-
         require_once($CFG->libdir . '/questionlib.php');
         require_once($CFG->dirroot . '/question/format.php');
         require_once($CFG->dirroot . '/question/format/gift/format.php');
 
-        $qformat = new \qformat_gift();        
+        $qformat = new \qformat_gift(); 
+        
+        for ($i=0; $i < 5; $i++) { 
+            try {      
+                if($useAI)
+                {            
+                    // Load $page->content as HTML
+                    $dom = new DOMDocument();
+                    $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
-        $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');
+                    // Get the top level tag (div or p), i.e. that has no other div or p as a parent
+                    $topLevelTag = $dom->getElementsByTagName('div')->item(0);
+                    if (!$topLevelTag) {
+                        $topLevelTag = $dom->getElementsByTagName('p')->item(0);
+                    }
 
-        for ($i=0; $i < 3; $i++) { 
+                    // Get all top level tags
+                    $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
 
-            try {           
+                    // Filter out p-tags that do not contain text with "{Q{"
+                    $filteredElements = [];
+                    foreach ($topLevelElements as $element) {
+                        if (strpos($element->textContent, '{Q{') === false) {
+                            $filteredElements[] = $element;
+                        }
+                    }
+
+                    // Find $position-th top level tag "p" or "div"
+                    if (count($filteredElements) > $position) {
+                        $topLevelElement = $filteredElements[$position];
+                    }
+                    
+                    // get text from top level element
+                    $textContent = $topLevelElement->textContent;
                 
-                $qtype = $qtypes[array_rand($qtypes)];
+                    // get text from startIndex to endIndex
+                    if ($selectedText != "") {
+                        $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
+                    }                          
 
-                // create new question
-                switch ($qtype) {
-                    case 'multichoice':
-                        $explanation = 
-                        "Please write one multiple choice question with one correct answer and multiple wrong answers in German language in GIFT format on the following text. GIFT format uses equal sign for right answers and tilde sign for wrong answers at the beginning of answers. For example: " .
-                        "'::Question title:: Question text { " .
-                        "=Correct answer 1 " . 
-                        "~Wrong answer 1 " .
-                        //"#Feedback to wrong answer1 " .
-                        "~Wrong answer 2 " .
-                        //"#Feedback to wrong answer2 " . 
-                        "~Wrong answer 3 " . 
-                        //"#Feedback to wrong answer3 " .  
-                        "}' " .
-                        "Do not forget any equal or tilde sign! ";   
-                        break;
-                    case 'multiresponse':
-                        $explanation = 
-                        "Please write one multiple choice question with multiple correct answers in German language in GIFT format on the following text. GIFT format uses a tilde and percent sign at the beginning of answers, followed by a positive grade in percent for correct answers and a negative grade in negative percent with minus sign for wrong answers. All positive grades must sum up to 100%. For example: " .
-                        "'::Question title:: Question text { " .
-                        "~%-100% Wrong answer 1 " .
-                        "~%50% Correct answer 1 " .
-                        "~%50% Correct answer 2 " .
-                        "~%-100% Wrong answer 2 " .
-                        "}' " .
-                        "Do not forget any tilde or percent sign! ";
-                        break;
-                    case 'match':
-                        $explanation =  
-                        "Please write one matching question in German language in GIFT format on the following text. GIFT format uses an equal sign at the beginning of answers and and arrow sign for assigning matching pairs. For example: " .
-                        "'::Question title:: Question text { " .
-                        "=match 1 -> match 1 " .
-                        "=match 2 -> match 2 " .
-                        "=match 3 -> match 3 " .
-                        "}' " .
-                        "The matches should be concepts of only a few words. ".
-                        "Do not forget any equal or arrow sign! ";
-                        break;
-                }
+                    $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');          
+                    $qtype = $qtypes[array_rand($qtypes)];
 
-                $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
+                    // create new question
+                    switch ($qtype) {
+                        case 'multichoice':
+                            $explanation = 
+                            "Please write one multiple choice question with one correct answer and multiple wrong answers in German language in GIFT format on the following text. GIFT format uses equal sign for right answers and tilde sign for wrong answers at the beginning of answers. For example: " .
+                            "'::Question title:: Question text { " .
+                            "=Correct answer 1 " . 
+                            "~Wrong answer 1 " .
+                            //"#Feedback to wrong answer1 " .
+                            "~Wrong answer 2 " .
+                            //"#Feedback to wrong answer2 " . 
+                            "~Wrong answer 3 " . 
+                            //"#Feedback to wrong answer3 " .  
+                            "}' " .
+                            "Do not forget any equal or tilde sign! ";   
+                            break;
+                        case 'multiresponse':
+                            $explanation = 
+                            "Please write one multiple choice question with multiple correct answers in German language in GIFT format on the following text. GIFT format uses a tilde and percent sign at the beginning of answers, followed by a positive grade in percent for correct answers and a negative grade in negative percent with minus sign for wrong answers. All positive grades must sum up to 100%. For example: " .
+                            "'::Question title:: Question text { " .
+                            "~%-100% Wrong answer 1 " .
+                            "~%50% Correct answer 1 " .
+                            "~%50% Correct answer 2 " .
+                            "~%-100% Wrong answer 2 " .
+                            "}' " .
+                            "Do not forget any tilde or percent sign! ";
+                            break;
+                        case 'match':
+                            $explanation =  
+                            "Please write one matching question in German language in GIFT format on the following text. GIFT format uses an equal sign at the beginning of answers and and arrow sign for assigning matching pairs. For example: " .
+                            "'::Question title:: Question text { " .
+                            "=match 1 -> match 1 " .
+                            "=match 2 -> match 2 " .
+                            "=match 3 -> match 3 " .
+                            "}' " .
+                            "The matches should be concepts of only a few words. ".
+                            "Do not forget any equal or arrow sign! ";
+                            break;
+                    }
 
-                $result = self::chat($textContent, $explanation);
+                    if($existingQuestions != "")
+                    {
+                        $explanation .= "The following questions are already created and should not be created again: '" . $existingQuestions . "' ";
+                    }
 
-                if($qtype == "multiresponse") {
-                    $qtype = "multichoice";
-                }           
-            
-                $q = $qformat->readquestion(explode("\n", $result->message->content));
+                    $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
+
+                    $result = self::chat($textContent, $explanation);
+
+                    if($qtype == "multiresponse") {
+                        $qtype = "multichoice";
+                    }           
                 
-                if (!$q) {
-                    throw new Exception("Question not valid.");
+                    $q = $qformat->readquestion(explode("\n", $result->message->content));
+                    
+                    if (!$q) {
+                        throw new Exception("Question not valid.");
+                    }
+
+                    if($q->questiontext == null) {
+                        throw new Exception("Question text is empty.");
+                    }
+
+                    $correctAnswers = 0;
+                    $sum = 0;
+                    foreach ($q->fraction as $fraction) {
+                        if ($fraction == 1) {
+                            $correctAnswers++;
+                            $sum += $fraction;
+                            if ($correctAnswers > 1) {
+                                throw new Exception("More than one correct answer.");
+                            }
+                        }
+                    }
+                    
+                    if($sum != 1) {
+                        throw new Exception("There has to be one answer with 100%.");
+                    }
+                                    
+                    $q->idnumber = "ai-generated-".time()."-".$USER->id;
+                }
+                else
+                {
+                    $qtype = 'multichoice';
+                    $content = "::Fragenname:: Fragentext { " .
+                            "=Korrekte Antwort " . 
+                            "~Falsche Antwort " .
+                            "}";           
+                    $q = $qformat->readquestion(explode("\n", $content));   
+                    $q->idnumber = "manually-generated-".time()."-".$USER->id;
                 }
 
-                if($q->questiontext == null) {
-                    throw new Exception("Question text is empty.");
-                }
-
+                $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
                 $q->category = $category->id;
                 $q->createdby = $USER->id;
                 $q->modifiedby = $USER->id;
                 $q->timecreated = time();
-                $q->timemodified = time();
-                $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
-                $q->questiontextformat = 1;
-                $q->idnumber = "ai-generated-".time()."-".$USER->id;
+                $q->timemodified = time();                
+                $q->questiontextformat = 1;                
                 $q->shownumcorrect = 1;
                 
                 $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
@@ -2336,7 +2379,9 @@ class mod_longpage_external extends external_api
             array(
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
                 'position' => new external_value(PARAM_INT, 'position of embed code in text'),
-                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_OPTIONAL)
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
+                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_OPTIONAL),
+                'existingQuestions' => new external_value(PARAM_RAW, 'existing questions', VALUE_OPTIONAL)
             )
         );
     }
@@ -2396,7 +2441,7 @@ class mod_longpage_external extends external_api
         );
     }
 
-    public static function edit_question($longpageid, $questionid, $action, $qubaid, $text="", $optionNumber=-1)
+    public static function edit_question($longpageid, $questionid, $action, $qubaid, $useAI=true, $text="", $optionNumber=-1)
     {
         global $DB, $USER;
 
@@ -2470,17 +2515,36 @@ class mod_longpage_external extends external_api
         if($action == "add") {
             $key = count($question->answer);
             $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
-            $result = self::chat($question->questiontext['text'], "Please write a new distractor in German language for the given question. The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
-            $text = $result->message->content;      
+            if($useAI)
+            {
+                $result = self::chat($question->questiontext['text'], "Please write a new distractor in German language for the given question. The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
+                $text = $result->message->content;      
+            }
+            else
+            {
+                $text = "Falsche Antwort";
+            } 
             $question->answer[$key] = ['text' => $text, 'format' => 1];
             $question->fraction[$key] = 0;
             $question->feedback[$key] = ['text' => "", 'format' => 1];
         }
     
+        $question->shuffleanswers = false;
         $created = question_bank::get_qtype($question->qtype)->save_question($question, clone $question);
-        
+
         if ($created) {
-            return array('response' => json_encode(array("questionid" => $created->id)));
+            $category = $DB->get_record('question_categories', ['id' => $question->category]);
+            $embedid = new embed_id($category->idnumber, $question->idnumber);
+            $embedlocation = embed_location::make_for_test($context, $context->get_url(), 'Embed location');
+            $options = new filter_embedquestion\question_options();
+            $options->set_from_request();
+            $qa = new attempt($embedid, $embedlocation, $USER, $options);
+            $qa->find_or_create_attempt();
+            $qa->discard_broken_attempt();
+            $qa->find_or_create_attempt();
+            $qubaid = $qa->get_question_usage()->get_id();
+
+            return array('response' => json_encode(array("questionid" => $created->id, "qubaid" => $qubaid, "text" => $text), JSON_UNESCAPED_UNICODE));
         } else {
             throw new Exception("Question not edited.");
         }
@@ -2494,6 +2558,7 @@ class mod_longpage_external extends external_api
                 'questionid' => new external_value(PARAM_INT, 'question id'),
                 'action' => new external_value(PARAM_TEXT, 'action'),
                 'qubaid' => new external_value(PARAM_INT, 'qubaid'),
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
                 'text' => new external_value(PARAM_RAW, 'question text', VALUE_OPTIONAL),
                 'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
             )
