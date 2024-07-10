@@ -625,13 +625,11 @@ export default {
       });
 
       $("#question").on("mouseover", "iframe", function () {
-        return;
+        
         var el = $("#" + $(this).attr("data-paragraph"));
-        // $(el).css("background-color", "#eee");
-        // setTimeout(function () {
-        //   $(el).css("background-color", "#fff");
-        // }, 3000);
+        $(el).css("background-color", "#eeeeee70");
 
+        return;
         var questionContent = $(this).contents().find(".qtext").text() + " " + $(this).contents().find(".answer").text();
 
         var paragraphContent = $(el).text();
@@ -660,6 +658,11 @@ export default {
       });
 
       $("#question").on("mouseleave", "iframe", function () {
+        $("#question iframe").each(function (idx, iframe) {
+          var el = $("#" + $(iframe).attr("data-paragraph"));
+          $(el).css("background-color", "");
+        });
+        
         var el = $("#" + $(this).attr("data-paragraph"));
         $(el).unmark();
       });

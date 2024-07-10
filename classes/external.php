@@ -2224,8 +2224,11 @@ class mod_longpage_external extends external_api
                         $topLevelTag = $dom->getElementsByTagName('p')->item(0);
                     }
 
-                    // Get all top level tags
-                    $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
+                    // Get all elements that are direct children of topLevelTag with the same tag name                  
+                    //filter elements that are not the same tag name as topLevelTag
+                    $topLevelElements = array_filter(iterator_to_array($topLevelTag->parentNode->childNodes), function($element) use ($topLevelTag) {
+                        return $element->nodeName == $topLevelTag->nodeName;
+                    });                    
 
                     // Filter out p-tags that do not contain text with "{Q{"
                     $filteredElements = [];
