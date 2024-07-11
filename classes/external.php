@@ -2145,7 +2145,7 @@ class mod_longpage_external extends external_api
         return $topLevelElement;
     }
 
-    public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="")
+    public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="", $selectedParagraphs="")
     {
         global $CFG, $DB, $USER, $PAGE;
     
@@ -2154,7 +2154,10 @@ class mod_longpage_external extends external_api
             array(
                 'longpageid' => $longpageid,
                 'position' => $position,
-                'selectedText' => $selectedText
+                'useAI' => $useAI,
+                'existingQuestions' => $existingQuestions,
+                'selectedText' => $selectedText,
+                'selectedParagraphs' => $selectedParagraphs
             )
         );
 
@@ -2207,6 +2210,20 @@ class mod_longpage_external extends external_api
                     $dom = new DOMDocument();
                     $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
+                    //Get the text content of the selected paragraphs
+                    if($selectedParagraphs != "")
+                    {
+                        $selectedParagraphs = explode(",", $selectedParagraphs);
+                        $textFromSelectedParagraphs = "";
+                        foreach ($selectedParagraphs as $selectedParagraph) {
+                            if($selectedParagraph != $position)
+                            {
+                                $paragraph = self::getTopLevelElement($dom, $selectedParagraph);
+                                $textFromSelectedParagraphs .= $paragraph->textContent;
+                            }
+                        }
+                    }
+
                     $topLevelElement = self::getTopLevelElement($dom, $position);
                     
                     // get text from top level element
@@ -2215,7 +2232,12 @@ class mod_longpage_external extends external_api
                     // get text from startIndex to endIndex
                     if ($selectedText != "") {
                         $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
-                    }                          
+                    }   
+                    
+                    if($selectedParagraphs != "")
+                    {
+                        $textContent .= " The following text is from the context and should be considered for the question and answer options: '" . $textFromSelectedParagraphs . "'";
+                    }
 
                     $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');          
                     $qtype = $qtypes[array_rand($qtypes)];
@@ -2348,9 +2370,10 @@ class mod_longpage_external extends external_api
             array(
                 'longpageid' => new external_value(PARAM_INT, 'page instance id'),
                 'position' => new external_value(PARAM_INT, 'position of embed code in text'),
-                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
-                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_OPTIONAL),
-                'existingQuestions' => new external_value(PARAM_RAW, 'existing questions', VALUE_OPTIONAL)
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_DEFAULT),
+                'existingQuestions' => new external_value(PARAM_RAW, 'existing questions', VALUE_DEFAULT),
+                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_DEFAULT),
+                'selectedParagraphs' => new external_value(PARAM_RAW, 'selected paragraphs', VALUE_DEFAULT),
             )
         );
     }

@@ -51,7 +51,7 @@
     </div>
     <div id="embedQuestion">
       <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.$store.state.UserModule.userCanMod">
-        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Textauswahl wird berücksichtigt)" data-toggle="tooltip"/>
+        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Mit Markierung Frage eingrenzen, mit Strg Kontext erweitern)" data-toggle="tooltip"/>
       </a>
       <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Frage einbetten" data-toggle="tooltip"/>
@@ -185,6 +185,11 @@
 .embedNewAIQuestion, .embedNewEmptyQuestion, .embedExistingQuestion
 {
   background-color: white;
+}
+
+.selected-paragraph
+{
+  background-color: rgba(255, 230, 0, 0.1);
 }
 
 mark
@@ -768,7 +773,6 @@ export default {
         $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
       });
 
-
       var hasPin = function (onlyIfAutoPin = false) {
         return $("#pinQuestion").hasClass("active") && (!onlyIfAutoPin || $("#pinQuestion").hasClass("autopin"));
       }
@@ -784,9 +788,7 @@ export default {
         if (hasPin(onlyIfAutoPin)) {
             $("#pinQuestion").click();
         }
-      }
-
-      
+      }    
 
       $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
@@ -830,11 +832,46 @@ export default {
         $(toast).appendTo("#sidebar-tab-quiz").toast("show");
       }
 
+      //when hovering over a paragraph and holding the control key, the cursor changes to a hand
+      $("#longpage-main").on("mousemove", ".wrapper", function (e) {
+        if (!_this.$store.state.UserModule.userCanMod)
+          return;
+
+        if (e.ctrlKey) {
+          $(this).css("cursor", "pointer");
+        }
+        else {
+          $(this).css("cursor", "");
+        }
+      });
+
+      //when clicking on a paragraph while holding the control key, the text of the paragraph is highlighted via a css class
+      $("#longpage-main").on("click", ".wrapper", function (e) {
+        if (!_this.$store.state.UserModule.userCanMod)
+          return;
+      
+        if (e.ctrlKey) {
+          $(this).toggleClass("selected-paragraph");
+        }
+      });
+
+      //remove all selected paragraphs when double clicking on the page while holding the control key
+      $("#longpage-main").on("dblclick", function (e) {
+        if (!_this.$store.state.UserModule.userCanMod)
+          return;
+      
+        if (e.ctrlKey) {
+          e.preventDefault();
+          $(".selected-paragraph").removeClass("selected-paragraph");
+          return false;
+        }
+      });
+
       $(".embedNewAIQuestion, .embedNewEmptyQuestion").on("click", function () {   
         var btn = $(this).parent();
         var selection = window.getSelection();
+        var selectedText = "";
         if (!selection.isCollapsed) {
-          var selectedText = "";
           var closest = selection.focusNode.parentElement.closest("#longpage-content");
           if (closest != null && closest.id == "longpage-content") {
             selectedText = selection.getRangeAt(0).toString();
@@ -847,9 +884,10 @@ export default {
             args: {
               longpageid: _this.context.longpageid,
               position: $(btn).index(".embedQuestion"),
-              selectedText: selectedText,
               useAI: $(this).hasClass("embedNewAIQuestion") ? true : false,
-              existingQuestions: $(btn).parent().next().find(".filter_embedquestion-iframe").contents().find(".qtext").map(function () { return $(this).text(); }).get().join(", ")
+              existingQuestions: $(btn).parent().next().find(".filter_embedquestion-iframe").contents().find(".qtext").map(function () { return $(this).text(); }).get().join(", "),
+              selectedText: selectedText,
+              selectedParagraphs: $(".selected-paragraph .embedQuestion").map(function () { return $(this).index(".embedQuestion"); }).get().join(", "),
             },
             done: function (data) {
               let result = JSON.parse(data.response);
@@ -1145,8 +1183,6 @@ export default {
         window.open(window.location.href.replace("mod/longpage/view.php", deleteLink).replace("id", "cmid") + "&deleteselected=" + questionid + "&q" + questionid + "=1&returnurl=" + encodeURIComponent(window.location.href), '_blank');
       });
 
-      $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
-
       $("#openQuestionBank").on("click", function () {
         var link = $("#question .carousel-item.active iframe").contents().find(".filter_embedquestion-viewquestionbank a").attr("href");
         if (link != undefined)
@@ -1159,6 +1195,7 @@ export default {
         }        
       });
 
+      $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
 
       $(document).on("click", ".reading-comprehension", function()
       {
