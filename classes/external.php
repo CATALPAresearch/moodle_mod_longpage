@@ -1915,27 +1915,7 @@ class mod_longpage_external extends external_api
         $dom = new DOMDocument();
         $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
-        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
-        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
-        if (!$topLevelTag) {
-            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
-        }
-        
-        // Get all top level tags
-        $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
-
-        // Filter out p-tags that do not contain text with "{Q{"
-        $filteredElements = [];
-        foreach ($topLevelElements as $element) {
-            if (strpos($element->textContent, '{Q{') === false) {
-                $filteredElements[] = $element;
-            }
-        }
-
-        // Find $position-th top level tag "p" or "div"
-        if (count($filteredElements) > $position) {
-            $topLevelElement = $filteredElements[$position];
-        }
+        $topLevelElement = self::getTopLevelElement($dom, $position);
 
         $newcontent = $page->content;
 
@@ -2035,28 +2015,7 @@ class mod_longpage_external extends external_api
         $dom = new DOMDocument();
         $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
-        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
-        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
-        if (!$topLevelTag) {
-            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
-        }
-        
-        // Get all top level tags
-        $topLevelElements = $dom->getElementsByTagName($topLevelTag->nodeName);
-
-        // Filter out p-tags that do not contain text with "{Q{"
-        $filteredElements = [];
-        foreach ($topLevelElements as $element) {
-            $textContent = $element->textContent;
-            if (strpos($textContent, '{Q{') === false) {
-                $filteredElements[] = $element;
-            }
-        }
-
-        // Find $position-th top level tag "p" or "div"
-        if (count($filteredElements) > $position) {
-            $topLevelElement = $filteredElements[$position];
-        }
+        $topLevelElement = self::getTopLevelElement($dom, $position);
 
         $newcontent = $page->content;
 
@@ -2156,6 +2115,36 @@ class mod_longpage_external extends external_api
         return $result;
     }
 
+    protected static function getTopLevelElement($dom, $position)
+    {
+        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
+        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
+        if (!$topLevelTag) {
+            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
+        }
+
+        // Get all elements that are direct children of topLevelTag with the same tag name                  
+        //filter elements that are not the same tag name as topLevelTag
+        $topLevelElements = array_filter(iterator_to_array($topLevelTag->parentNode->childNodes), function($element) use ($topLevelTag) {
+            return $element->nodeName == $topLevelTag->nodeName;
+        });                    
+
+        // Filter out p-tags that do not contain text with "{Q{"
+        $filteredElements = [];
+        foreach ($topLevelElements as $element) {
+            if (strpos($element->textContent, '{Q{') === false) {
+                $filteredElements[] = $element;
+            }
+        }
+
+        // Find $position-th top level tag "p" or "div"
+        if (count($filteredElements) > $position) {
+            $topLevelElement = $filteredElements[$position];
+        }
+
+        return $topLevelElement;
+    }
+
     public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="")
     {
         global $CFG, $DB, $USER, $PAGE;
@@ -2218,30 +2207,7 @@ class mod_longpage_external extends external_api
                     $dom = new DOMDocument();
                     $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
 
-                    // Get the top level tag (div or p), i.e. that has no other div or p as a parent
-                    $topLevelTag = $dom->getElementsByTagName('div')->item(0);
-                    if (!$topLevelTag) {
-                        $topLevelTag = $dom->getElementsByTagName('p')->item(0);
-                    }
-
-                    // Get all elements that are direct children of topLevelTag with the same tag name                  
-                    //filter elements that are not the same tag name as topLevelTag
-                    $topLevelElements = array_filter(iterator_to_array($topLevelTag->parentNode->childNodes), function($element) use ($topLevelTag) {
-                        return $element->nodeName == $topLevelTag->nodeName;
-                    });                    
-
-                    // Filter out p-tags that do not contain text with "{Q{"
-                    $filteredElements = [];
-                    foreach ($topLevelElements as $element) {
-                        if (strpos($element->textContent, '{Q{') === false) {
-                            $filteredElements[] = $element;
-                        }
-                    }
-
-                    // Find $position-th top level tag "p" or "div"
-                    if (count($filteredElements) > $position) {
-                        $topLevelElement = $filteredElements[$position];
-                    }
+                    $topLevelElement = self::getTopLevelElement($dom, $position);
                     
                     // get text from top level element
                     $textContent = $topLevelElement->textContent;
