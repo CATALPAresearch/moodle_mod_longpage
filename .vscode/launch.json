@@ -34,7 +34,7 @@
                 "-dxdebug.start_with_request=trigger",
                 "-dxdebug.client_port=${port}",
                 "-S",
-                "localhost:80"
+                "0.0.0.0:80"
             ],
             "program": "",
             "cwd": "C:\\Users\\menze\\Moodle401\\server\\moodle",
