@@ -22,11 +22,11 @@ import $ from 'jquery';
  
  $(() => {
  
-     $('.longpage-footnote button').popover({
-         html: true,
-         trigger: 'focus',
-         sanitize: false
-     });
+    //  $('.longpage-footnote button').popover({
+    //      html: true,
+    //      trigger: 'focus',
+    //      sanitize: false
+    //  });
  
      const popovers = document.querySelectorAll('.longpage-footnote button[data-toggle="popover"]');
      for (let popover of popovers)

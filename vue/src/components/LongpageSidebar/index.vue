@@ -264,7 +264,10 @@ export default {
       var tab = localStorage.getItem("sidebar-tab");
       if(tab === "undefined" || tab == null)
       {
-        tab = undefined;
+        if(this.tabs.length == 1)
+        {
+          tab = this.tabs[0].key;
+        }
       } 
     }
     this.toggleTab(tab);

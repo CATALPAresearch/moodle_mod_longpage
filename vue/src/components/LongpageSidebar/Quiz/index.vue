@@ -233,6 +233,7 @@ import ajax from "core/ajax";
 import Fragment from "core/fragment";
 import { EventBus } from "@/lib/event-bus"; 
 import "mark.js/dist/jquery.mark.min.js";
+import "bootstrap/js/dist/tooltip";
 
 export default {
   name: "Quiz",
