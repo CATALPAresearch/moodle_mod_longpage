@@ -331,7 +331,7 @@ export default {
                       " mal gelesen."
                     )
                     .addClass(
-                      "reading-progress progress-" +
+                      "progress-" +
                       Math.ceil((data[i].count / max) * 5)
                     );
                   

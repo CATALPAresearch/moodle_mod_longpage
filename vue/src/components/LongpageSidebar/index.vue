@@ -302,7 +302,7 @@ export default {
         }
         if(!width)
         {
-          if(this.tabs.length == 1 && $store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
+          if(this.tabs.length == 1 && this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
           {
             width = '50%';
           }

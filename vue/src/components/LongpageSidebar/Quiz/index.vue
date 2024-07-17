@@ -255,16 +255,14 @@ export default {
       EventBus.publish(SidebarEvents.TOGGLE_TABS, SidebarTabKeys.QUIZ);
     }
   },
-  mounted() 
-  {
+  mounted() {
     let _this = this;
     const _ = require('lodash');
 
     let moodleRelease = $("#longpage-app-container").data("moodle-release").split(".");
     moodleRelease = parseInt(moodleRelease[0]) * 100 + parseInt(moodleRelease[1]);
 
-    function get_reading_comprehension(successFunction)
-    {
+    function get_reading_comprehension(successFunction) {
       ajax.call([
         {
           methodname: "mod_longpage_get_reading_comprehension",
@@ -274,35 +272,31 @@ export default {
           done: function (reads) {
             try {
               let data = JSON.parse(reads.response);
-            
-              for (const [id, entry] of Object.entries(data)) 
-              {
+
+              for (const [id, entry] of Object.entries(data)) {
                 var value = entry["value"];
                 var level = entry["level"];
                 var tags = Object.values(entry["tags"]).join(", ");
                 var idFixed = id.replace("/", "\\/");
                 var iframe = $("#longpage-content #" + idFixed);
                 var paragraph = $(iframe).parents(".wrapper").prev();
-                $(paragraph).each(function(index, p)
-                {
-                  if(!$(p).attr("data-reading-comprehension-count"))
-                  {
+                $(paragraph).each(function (index, p) {
+                  if (!$(p).attr("data-reading-comprehension-count")) {
                     $(p).attr("data-reading-comprehension-count", level);
-                    $(p).attr("data-reading-comprehension-sum", level*value);
+                    $(p).attr("data-reading-comprehension-sum", level * value);
                   }
-                  else
-                  {
-                    $(p).attr("data-reading-comprehension-count", parseInt($(p).attr("data-reading-comprehension-count"))+level);
-                    $(p).attr("data-reading-comprehension-sum", parseFloat($(p).attr("data-reading-comprehension-sum"))+(level*value));
+                  else {
+                    $(p).attr("data-reading-comprehension-count", parseInt($(p).attr("data-reading-comprehension-count")) + level);
+                    $(p).attr("data-reading-comprehension-sum", parseFloat($(p).attr("data-reading-comprehension-sum")) + (level * value));
                   }
                 });
 
                 $(iframe).attr("data-embedid", idFixed);
-                $(iframe).attr("data-questionid", entry["id"]);  
-                $(iframe).attr("data-tags", tags);              
+                $(iframe).attr("data-questionid", entry["id"]);
+                $(iframe).attr("data-tags", tags);
               }
 
-              var sum = 0; 
+              var sum = 0;
               var len = 0;
               var repeat = 0;
 
@@ -318,31 +312,29 @@ export default {
                     "title",
                     (_this.context.showreadingprogress ? ($(progress).attr("title").substr(0, $(progress).attr("title").indexOf("gelesen.") + 8) + "<br>") : "") +
                     "Ihr geschätztes Leseverständnis beträgt " +
-                      (100*value).toFixed(2) +
-                      "%."
+                    (100 * value).toFixed(2) +
+                    "%."
                   ).css("opacity", Math.max(0.1, value)).addClass("reading-comprehension");
-                  $(paragraph).attr("data-reading-comprehension-count", "");
+                $(paragraph).attr("data-reading-comprehension-count", "");
               });
 
               $(".reading-progress").tooltip("dispose").tooltip({ "placement": "auto", "html": true });
-              
+
               var rc = 0;
-              if (len > 0)
-              {
+              if (len > 0) {
                 rc = (100 * sum / len).toFixed(0);
               }
 
-              if(rc <= 50)
-              {
+              if (rc <= 50) {
                 EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.QUIZ, count: repeat, title: "Ihr geschätztes Leseverständnis für die ganze Seite \nund " + repeat + " Fragen beträgt weniger als 50%." });
-              }             
+              }
 
-              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({"placement":"auto", "html":true, "title":""}).attr("title", "");
+              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({ "placement": "auto", "html": true, "title": "" }).attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr("class", "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25));
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
               if (successFunction)
                 successFunction();
-              
+
             } catch (e) {
               console.log(e);
             }
@@ -354,41 +346,39 @@ export default {
       ]);
     }
 
-    function isElementInViewport(element, index, array)
-    {
+    function isElementInViewport(element, index, array) {
       // Special bonus for those using jQuery
       if (typeof jQuery === "function" && element instanceof jQuery) {
-          element = element[0];
+        element = element[0];
       }
 
       var rectEl = element.getBoundingClientRect();
       var rectApp = document.querySelector('#longpage-app').getBoundingClientRect();
- 
+
       return (
-          rectEl.top >= rectApp.top &&
-          rectEl.left >= rectApp.left &&
-          rectEl.bottom <= rectApp.bottom &&
-          rectEl.right <= rectApp.right
+        rectEl.top >= rectApp.top &&
+        rectEl.left >= rectApp.left &&
+        rectEl.bottom <= rectApp.bottom &&
+        rectEl.right <= rectApp.right
       );
-    } 
+    }
 
-    function isElementBottomInViewport(element)
-    {
+    function isElementBottomInViewport(element) {
       // Special bonus for those using jQuery
       if (typeof jQuery === "function" && element instanceof jQuery) {
-          element = element[0];
+        element = element[0];
       }
 
       var rectEl = element.getBoundingClientRect();
       var rectApp = document.querySelector('#longpage-app').getBoundingClientRect();
- 
+
       return (
         rectEl.bottom >= rectApp.top &&
-          rectEl.left >= rectApp.left &&
-          rectEl.bottom <= rectApp.bottom &&
-          rectEl.right <= rectApp.right
+        rectEl.left >= rectApp.left &&
+        rectEl.bottom <= rectApp.bottom &&
+        rectEl.right <= rectApp.right
       );
-    } 
+    }
 
     $(document).ready(function () {
       var readfun = _.debounce(function () {
@@ -426,7 +416,7 @@ export default {
             },
           },
         ]);
-        }, 2000);
+      }, 2000);
 
       var observerStates = {};
 
@@ -472,10 +462,10 @@ export default {
 
               var obs = new IntersectionObserver((entries, o) => {
                 var spinner = `<div id="quiz-spinner" class="row no-gutters vh-50">
-                <div class="spinner-border m-auto" role="status">
-                  <span class="sr-only" />
-                </div>
-                </div>`;
+              <div class="spinner-border m-auto" role="status">
+                <span class="sr-only" />
+              </div>
+              </div>`;
 
                 entries.forEach((entry) => {
                   if (entry.isIntersecting) {
@@ -630,7 +620,7 @@ export default {
       });
 
       $("#question").on("mouseover", "iframe", function () {
-        
+
         var el = $("#" + $(this).attr("data-paragraph"));
         $(el).css("background-color", "#eeeeee70");
 
@@ -667,7 +657,7 @@ export default {
           var el = $("#" + $(iframe).attr("data-paragraph"));
           $(el).css("background-color", "");
         });
-        
+
         var el = $("#" + $(this).attr("data-paragraph"));
         $(el).unmark();
       });
@@ -786,9 +776,9 @@ export default {
 
       var removePin = function (onlyIfAutoPin = false) {
         if (hasPin(onlyIfAutoPin)) {
-            $("#pinQuestion").click();
+          $("#pinQuestion").click();
         }
-      }    
+      }
 
       $(".embedExistingQuestion").on("click", function () {
         $("#id_embedform").val("");
@@ -799,18 +789,18 @@ export default {
 
       function addModalWait(message) {
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="modal-wait-label">${message}</h5>
-            </div>
-            <div class="modal-body text-center">
-              <div class="spinner-border" role="status">                
-                <span class="sr-only">Bitte warten...</span>
-              </div>
+      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-wait-label">${message}</h5>
+          </div>
+          <div class="modal-body text-center">
+            <div class="spinner-border" role="status">                
+              <span class="sr-only">Bitte warten...</span>
             </div>
           </div>
-        </div>`;
+        </div>
+      </div>`;
 
         $(modal).modal({ backdrop: "static", keyboard: false });
       }
@@ -821,14 +811,14 @@ export default {
 
       function addToast(message) {
         var toast =
-        `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="position: absolute; top: 50px; right: 20px">
-          <div class="toast-body">
-            ${message}
-            <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-        </div>`;
+          `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="position: absolute; top: 50px; right: 20px">
+        <div class="toast-body">
+          ${message}
+          <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>`;
         $(toast).appendTo("#sidebar-tab-quiz").toast("show");
       }
 
@@ -849,7 +839,7 @@ export default {
       $("#longpage-main").on("click", ".wrapper", function (e) {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
-      
+
         if (e.ctrlKey) {
           $(this).toggleClass("selected-paragraph");
         }
@@ -859,7 +849,7 @@ export default {
       $("#longpage-main").on("dblclick", function (e) {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
-      
+
         if (e.ctrlKey) {
           e.preventDefault();
           $(".selected-paragraph").removeClass("selected-paragraph");
@@ -867,7 +857,7 @@ export default {
         }
       });
 
-      $(".embedNewAIQuestion, .embedNewEmptyQuestion").on("click", function () {   
+      $(".embedNewAIQuestion, .embedNewEmptyQuestion").on("click", function () {
         var btn = $(this).parent();
         var selection = window.getSelection();
         var selectedText = "";
@@ -998,15 +988,14 @@ export default {
         ]);
       });
 
-      function handleQuickEditQuestionResult(data)
-      {
+      function handleQuickEditQuestionResult(data) {
         var result = JSON.parse(data.response);
         var questionid = result["questionid"];
         $("#question .carousel-item.active iframe").attr("data-questionid", questionid);
         $("#longpage-content iframe#" + $("#question .carousel-item.active iframe").attr("id").replace("/", "\\/")).attr("data-questionid", questionid);
         var qubaid = result["qubaid"];
         $("#question .carousel-item.active iframe").contents().find("form").attr("action", $("#question .carousel-item.active iframe").contents().find("form").attr("action").replace(/qubaid=\d+/, "qubaid=" + qubaid));
-        addToast("Änderungen wurden gespeichert."); 
+        addToast("Änderungen wurden gespeichert.");
         return result;
       }
 
@@ -1018,16 +1007,14 @@ export default {
         }
 
         addPin();
-       
+
         var editable = $(activeIframe).contents().find(".que .answer .flex-fill, .que .qtext");
-        if($(editable).attr("contenteditable") == "true")
-        {
+        if ($(editable).attr("contenteditable") == "true") {
           reloadAllIframesInQuiz();
           $(activeIframe).contents().find("body").attr("data-autosave", "true");
           return;
         }
-        else
-        {
+        else {
           autosavefun.cancel();
           $(activeIframe).contents().find("body").attr("data-autosave", "false");
         }
@@ -1058,9 +1045,9 @@ export default {
           var text = $(this).text();
           if (text == $(this).attr("data-text")) {
             return;
-          }         
+          }
 
-          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parent().prev().val() : -1;    
+          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parent().prev().val() : -1;
           questionid = $(activeIframe).attr("data-questionid");
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
@@ -1078,14 +1065,14 @@ export default {
                 optionNumber: optionNumber,
               },
               done: function (data) {
-                handleQuickEditQuestionResult(data);  
-                removeModalWait();   
-                removePin(true);  
+                handleQuickEditQuestionResult(data);
+                removeModalWait();
+                removePin(true);
               },
               fail: function (e) {
                 alert(e.message);
                 removeModalWait();
-                removePin(true);  
+                removePin(true);
               },
             },
           ]);
@@ -1099,26 +1086,26 @@ export default {
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
             ajax.call([
-            {
-              methodname: "mod_longpage_edit_question",
-              args: {
-                longpageid: _this.context.longpageid,
-                questionid: questionid,
-                action: "remove",
-                qubaid: qubaid,
-                useAI: false,
-                text: "",
-                optionNumber: idx,
-              },
-              done: function (data) {
-                handleQuickEditQuestionResult(data);
-                $(option).parent().parent().remove();
-                removeModalWait();           
-              },
-              fail: function (e) {
-                alert(e.message);
-                removeModalWait();
-              },
+              {
+                methodname: "mod_longpage_edit_question",
+                args: {
+                  longpageid: _this.context.longpageid,
+                  questionid: questionid,
+                  action: "remove",
+                  qubaid: qubaid,
+                  useAI: false,
+                  text: "",
+                  optionNumber: idx,
+                },
+                done: function (data) {
+                  handleQuickEditQuestionResult(data);
+                  $(option).parent().parent().remove();
+                  removeModalWait();
+                },
+                fail: function (e) {
+                  alert(e.message);
+                  removeModalWait();
+                },
               }]);
             return false;
           });
@@ -1147,10 +1134,10 @@ export default {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
                   $("#quickEditQuestion").click();
-                  removeModalWait();  
-                  addToast("Distraktor wurde hinzugefügt.");       
+                  removeModalWait();
+                  addToast("Distraktor wurde hinzugefügt.");
                 });
-                reloadAllIframesInQuiz();       
+                reloadAllIframesInQuiz();
               },
               fail: function (e) {
                 alert(e.message);
@@ -1164,8 +1151,7 @@ export default {
 
       $("#editQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
-        if (questionid == undefined)
-        {
+        if (questionid == undefined) {
           return;
         }
         var editLink = moodleRelease < 400 ? "question/question.php" : "question/bank/editquestion/question.php";
@@ -1174,8 +1160,7 @@ export default {
 
       $("#deleteQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr("data-questionid");
-        if (questionid == undefined)
-        {
+        if (questionid == undefined) {
           return;
         }
         $("#removeQuestion").click();
@@ -1185,22 +1170,19 @@ export default {
 
       $("#openQuestionBank").on("click", function () {
         var link = $("#question .carousel-item.active iframe").contents().find(".filter_embedquestion-viewquestionbank a").attr("href");
-        if (link != undefined)
-        {
+        if (link != undefined) {
           window.open(link, '_blank');
         }
-        else
-        {
+        else {
           window.open(window.location.href.replace("mod/longpage/view.php", "question/edit.php").replace("id", "cmid"), '_blank');
-        }        
+        }
       });
 
       $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
 
-      $(document).on("click", ".reading-comprehension", function()
-      {
+      $(document).on("click", ".reading-comprehension", function () {
         _this.toggleTab();
-        $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index()) 
+        $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index())
       });
 
       $("#total-reading-comprehension").on("click", function () {
