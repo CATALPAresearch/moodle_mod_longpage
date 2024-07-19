@@ -307,7 +307,7 @@ export default {
                 repeat += (value < 0.5 ? 1 : 0);
                 sum += value;
                 len += 1;
-                $(progress).attr("title", $(progress).attr("data-original-title"));
+                $(progress).attr("title", $(progress).attr("data-bs-original-title"));
                 $(progress)
                   .attr(
                     "title",

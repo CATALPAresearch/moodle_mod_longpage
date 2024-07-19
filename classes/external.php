@@ -2332,7 +2332,7 @@ class mod_longpage_external extends external_api
                 }
                 catch (\Throwable $th) {
                     error_log("Create Question Error: " . $th->getMessage());
-                    if ($i == $maxTries) {
+                    if ($i >= $maxTries-1) {
                         throw $th;
                     }
                 }
