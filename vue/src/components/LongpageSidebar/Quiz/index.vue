@@ -381,6 +381,32 @@ export default {
       );
     }
 
+    function getCssSelector(element) {
+      var css = element.tagName.toLowerCase();
+      if (element.id && !element.id.startsWith("yui_")) {
+        css += "#" + element.id;
+      }
+      if (element.className) {
+        css += "." + element.className.split(" ").join(".");
+      }
+      css = css.replaceAll("..", ".");
+      return css;
+    }
+
+    function getCssSelectorsOfAllParents(element) {
+      var selectors = "";
+      while (element) {
+        var css = getCssSelector(element);
+        if (css != element.tagName.toLowerCase()) {
+          selectors = css + " " + selectors;
+        } 
+        
+        element = element.parentElement;
+      }
+      selectors = selectors.slice(0, -1);
+      return selectors;
+    }
+
     $(document).ready(function () {
       var readfun = _.debounce(function () {
         get_reading_comprehension();
@@ -395,6 +421,42 @@ export default {
       //let previousY = 0;
       let directionUp = false;
       //let currentY = 0;
+
+      function logClick(ev) {
+        console.log(ev);
+        var iframe = $("#question .carousel-item.active iframe");
+        var logentry = {
+          longpageid: _this.context.longpageid,
+          pageX: ev.pageX ? ev.pageX : 0,
+          pageY: ev.pageY ? ev.pageY : 0,
+          embedid: $(iframe).attr("id"),
+          questionid: $(iframe).attr("data-questionid"),
+          target: getCssSelectorsOfAllParents(ev.target),
+          textContent: ev.target.textContent,
+        };
+        ajax.call([
+          {
+            methodname: "mod_longpage_log",
+            args: {
+              data: {
+                entry: JSON.stringify(logentry),
+                action: "clicked",
+                utc: Math.ceil(new Date().getTime() / 1000),
+                courseid: _this.context.courseId
+              },
+            },
+            done: function (reads) {
+            },
+            fail: function (e) {
+              console.error("fail", e);
+            },
+          },
+        ]);
+      }
+
+      $(document).on('click', "#sidebar-tab-quiz", function (ev) {
+        logClick(ev);
+      });
 
       var autosavefun = _.debounce(function () {
         if ($(this).attr("data-autosave") == "false")
@@ -507,7 +569,7 @@ export default {
                 readfun();
 
                 function waitPending(cnt = 0) {
-                  if (M.util.js_pending() && cnt < 10) {
+                  if (!$("#question iframe" + idFixed).contents().find(".que").hasClass("multichoice") && M.util.js_pending() && cnt < 10) {
                     setTimeout(waitPending, 500, cnt + 1);
                   }
                   else {
@@ -520,31 +582,7 @@ export default {
 
                 $(this).contents().find("body").on('click', function (ev) {
                   addPin();
-                  var logentry = {
-                    longpageid: _this.context.longpageid,
-                    pageX: ev.pageX,
-                    pageY: ev.pageY,
-                    embedid: target.id,
-                    questionid: questionid
-                  };
-                  ajax.call([
-                    {
-                      methodname: "mod_longpage_log",
-                      args: {
-                        data: {
-                          entry: JSON.stringify(logentry),
-                          action: "clicked",
-                          utc: Math.ceil(new Date().getTime() / 1000),
-                          courseid: _this.context.courseId
-                        },
-                      },
-                      done: function (reads) {
-                      },
-                      fail: function (e) {
-                        console.error("fail", e);
-                      },
-                    },
-                  ]);
+                  logClick(ev);
                 });
 
                 $(this).contents().find("body").attr("data-autosave", "true").on('click keyup', autosavefun);
@@ -613,10 +651,11 @@ export default {
 
       var observer = new IntersectionObserver(observerCall, { rootMargin: "-100px 0px -100px 0px", threshold: 0, root: document.querySelector('#longpage-main') });
 
-
       $("#longpage-main .filter_embedquestion-iframe").each(function (i, el) {
         var paragraph = $(el).parents(".wrapper").prev();
         $(el).attr("data-paragraph", $(paragraph).children().first().attr("id"));
+        $(el).attr("data-embedid", el.id);
+        $(el).attr("data-questionid", $(el).attr("data-questionid"));
         observer.observe($(paragraph)[0]);
       });
 
@@ -756,11 +795,15 @@ export default {
 
       // Toggle visibility of embedQuestion on mouseover and mouseout
       $("#longpage-main").on("mouseover mouseout", ".wrapper", function () {
+        if (!_this.$store.state.UserModule.userCanMod)
+          return;
         $(this).find(".embedQuestion").css("opacity", event.type === "mouseover" ? "1" : "0");
       });
 
       // Toggle visibility of embedQuestion on mouseenter and mouseleave
       $("#longpage-main").on("mouseenter mouseleave", ".embedQuestion", function () {
+        if (!_this.$store.state.UserModule.userCanMod)
+          return;
         $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
       });
 

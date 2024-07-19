@@ -1898,7 +1898,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        require_capability('mod/longpage:addinstance', $context);
+        require_capability('mod/longpage:modannotations', $context);
 
         $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
@@ -1998,7 +1998,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        require_capability('mod/longpage:addinstance', $context);
+        require_capability('mod/longpage:modannotations', $context);
 
         $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
         list($page->content, $page->contentformat) = external_format_text(
@@ -2118,9 +2118,9 @@ class mod_longpage_external extends external_api
     protected static function getTopLevelElement($dom, $position)
     {
         // Get the top level tag (div or p), i.e. that has no other div or p as a parent
-        $topLevelTag = $dom->getElementsByTagName('div')->item(0);
-        if (!$topLevelTag) {
-            $topLevelTag = $dom->getElementsByTagName('p')->item(0);
+        $topLevelTag = $dom->getElementsByTagName("body")->item(0)->childNodes->item(0);
+        while ($topLevelTag->nodeName != "div" && $topLevelTag->nodeName != "p" && $topLevelTag->nextSibling) {
+            $topLevelTag = $topLevelTag->nextSibling;
         }
 
         // Get all elements that are direct children of topLevelTag with the same tag name                  
@@ -2168,7 +2168,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        require_capability('mod/longpage:addinstance', $context);
+        require_capability('mod/longpage:modannotations', $context);
 
         $coursecontext = \context_course::instance($course->id);
         // Use existing questions category for quiz or create the defaults.
@@ -2420,7 +2420,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        require_capability('mod/longpage:addinstance', $context);
+        require_capability('mod/longpage:modannotations', $context);
 
        
         if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
@@ -2472,7 +2472,7 @@ class mod_longpage_external extends external_api
         $context = context_module::instance($cm->id);
         self::validate_context($context);
 
-        require_capability('mod/longpage:addinstance', $context);
+        require_capability('mod/longpage:modannotations', $context);
 
         $question = question_bank::load_question($questionid);
         $question->qtype = $question->qtype->name();
