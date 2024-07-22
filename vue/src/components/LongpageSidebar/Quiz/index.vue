@@ -330,7 +330,7 @@ export default {
                 EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.QUIZ, count: repeat, title: "Ihr geschätztes Leseverständnis für die ganze Seite \nund " + repeat + " Fragen beträgt weniger als 50%." });
               }
 
-              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({ "placement": "auto", "html": true, "title": "" }).attr("title", "");
+              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({ "placement": "top", "html": true, "title": "" }).attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr("class", "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25));
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
               if (successFunction)
@@ -422,25 +422,16 @@ export default {
       let directionUp = false;
       //let currentY = 0;
 
-      function logClick(ev) {
-        console.log(ev);
-        var iframe = $("#question .carousel-item.active iframe");
-        var logentry = {
-          longpageid: _this.context.longpageid,
-          pageX: ev.pageX ? ev.pageX : 0,
-          pageY: ev.pageY ? ev.pageY : 0,
-          embedid: $(iframe).attr("id"),
-          questionid: $(iframe).attr("data-questionid"),
-          target: getCssSelectorsOfAllParents(ev.target),
-          textContent: ev.target.textContent,
-        };
+      function log(action, logentry)
+      {
+        logentry["longpageid"] = _this.context.longpageid;
         ajax.call([
           {
             methodname: "mod_longpage_log",
             args: {
               data: {
                 entry: JSON.stringify(logentry),
-                action: "clicked",
+                action: action,
                 utc: Math.ceil(new Date().getTime() / 1000),
                 courseid: _this.context.courseId
               },
@@ -452,6 +443,20 @@ export default {
             },
           },
         ]);
+      }
+
+      function logClick(ev) {
+        console.log(ev);
+        var iframe = $("#question .carousel-item.active iframe");
+        var logentry = {
+          pageX: ev.pageX ? ev.pageX : 0,
+          pageY: ev.pageY ? ev.pageY : 0,
+          embedid: $(iframe).attr("id"),
+          questionid: $(iframe).attr("data-questionid"),
+          target: getCssSelectorsOfAllParents(ev.target),
+          textContent: ev.target.textContent,
+        };
+        log("clicked", logentry);
       }
 
       $(document).on('click', "#sidebar-tab-quiz", function (ev) {

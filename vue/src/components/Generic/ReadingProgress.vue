@@ -125,7 +125,8 @@ export default {
                   },
                   screenWidth: window.screen.width,
                   screenHeight: window.screen.height,
-                  devicePixelRatio: window.devicePixelRatio
+                  devicePixelRatio: window.devicePixelRatio,
+                  intersectionRatio: entry.intersectionRatio,
                 };
 
               ajax.call([
@@ -156,9 +157,9 @@ export default {
         var options = {
           root: null,
           rootMargin: "0px",
-          threshold: [1.0],
+          threshold: [0.0],
           trackVisibility: true,
-          delay: 100,
+          delay: 500,
         };
 
         var observer = new IntersectionObserver(handleScrolling, options);

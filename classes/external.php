@@ -2148,6 +2148,8 @@ class mod_longpage_external extends external_api
     public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="", $selectedParagraphs="")
     {
         global $CFG, $DB, $USER, $PAGE;
+
+        $now = new DateTime();
     
         $params = self::validate_parameters(
             self::create_question_parameters(),
@@ -2358,7 +2360,9 @@ class mod_longpage_external extends external_api
             $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "", "");
             $iframecode  = self::embed_question($longpageid, $embedcode, $position);
             $iframecode = $iframecode['response'];    
-            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");            
+            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
+            self::log(array("courseid" => $course->id, "utc" => time(), "action" => "question_created", "entry" => json_encode(array("questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
+            "existingQuestions" => $existingQuestions, "position" => $position, "elapsedTime" => $now->diff(new DateTime())->format('%H:%i:%s:%f'),"embedid" => $category->idnumber . "/" . $q->idnumber)))); 
         }
 
         return array('response' => json_encode(array("iframecode" => $iframecode, "log" => "Selected text: ". $selectedText), JSON_UNESCAPED_UNICODE));
@@ -2452,6 +2456,8 @@ class mod_longpage_external extends external_api
     public static function edit_question($longpageid, $questionid, $action, $qubaid, $useAI=true, $text="", $optionNumber=-1)
     {
         global $DB, $USER;
+
+        $now = new DateTime();
 
         $params = self::validate_parameters(
             self::edit_question_parameters(),
@@ -2551,6 +2557,8 @@ class mod_longpage_external extends external_api
             $qa->discard_broken_attempt();
             $qa->find_or_create_attempt();
             $qubaid = $qa->get_question_usage()->get_id();
+
+            self::log(array("courseid" => $course->id, "utc" => time(), "action" => "question_edited", "entry" => json_encode(array("questionid" => $created->id, "qtype" => $question->qtype, "useAI" => $useAI == true ? "true" : "false", "action" => $action, "optionNumber" => $optionNumber, "embedid" => $category->idnumber . "/" . $question->idnumber, "elapsedTime" => $now->diff(new DateTime())->format('%H:%i:%s:%f')))));
 
             return array('response' => json_encode(array("questionid" => $created->id, "qubaid" => $qubaid, "text" => $text), JSON_UNESCAPED_UNICODE));
         } else {
