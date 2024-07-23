@@ -159,7 +159,7 @@ export default {
           rootMargin: "0px",
           threshold: [0.0],
           trackVisibility: true,
-          delay: 500,
+          delay: 100,
         };
 
         var observer = new IntersectionObserver(handleScrolling, options);

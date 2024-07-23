@@ -1237,6 +1237,18 @@ export default {
       $("#total-reading-comprehension").on("click", function () {
         window.open(window.location.href.replace("mod/longpage/view.php", "report/embedquestion/activity.php").replace("id", "cmid"), '_blank');
       });
+
+      $("#longpage-main, #longpage-sidebar").on("mouseenter mouseleave", function (ev) {
+        console.log(ev);
+        var logentry = {
+          pageX: ev.pageX ? ev.pageX : 0,
+          pageY: ev.pageY ? ev.pageY : 0,
+          element: ev.delegateTarget.id,
+          utc: new Date().getTime(),
+          type: ev.type, 
+        };
+        log("moved", logentry);
+      });
     });
   }
 };

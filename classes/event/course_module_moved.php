@@ -27,19 +27,18 @@ namespace mod_longpage\event;
  * @copyright 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class course_module_question_edited extends \core\event\base {
+class course_module_moved extends \core\event\base {
 
     protected function init() {
         $this->data['objecttable'] = 'longpage';
-        $this->data['crud'] = 'c';
+        $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
     public function get_description() {
         extract($this->data["other"]);
         
-        return "The user with id '{$this->userid}' edited a question with id '{$questionid}' on the 'longpage activity' with course module id " .
-            "'{$this->contextinstanceid}' in course '{$this->courseid}' (qtype: {$qtype}, useAI: {$useAI}, action: {$action}, optionNumber: {$optionNumber}, embedid: {$embedid}, elapsedTime: {$elapsedTime}).";
+        return "The user with id {$this->userid} moved the mouse ({$type}) at the element with id {$element} at position ({$pageX}, {$pageY}) on the 'longpage activity' with course module id " . "'$this->contextinstanceid' in course '$this->courseid'.";
     }
 
     public static function get_objectid_mapping() {

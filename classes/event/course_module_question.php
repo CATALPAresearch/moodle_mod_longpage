@@ -27,7 +27,7 @@ namespace mod_longpage\event;
  * @copyright 
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class course_module_question_created extends \core\event\base {
+class course_module_question extends \core\event\base {
 
     protected function init() {
         $this->data['objecttable'] = 'longpage';
@@ -38,8 +38,8 @@ class course_module_question_created extends \core\event\base {
     public function get_description() {
         extract($this->data["other"]);
 
-        return "The user with id '$this->userid' created a question with id '$questionid' on the 'longpage activity' with course module id " .
-            "'$this->contextinstanceid' in course '$this->courseid' (qtype: $qtype, selectedText: $selectedText, selectedParagraphs: $selectedParagraphs, useAI: $useAI, existingQuestions: $existingQuestions, position: $position, embedid: $embedid, elapsedTime: $elapsedTime).";
+        return "The user with id '$this->userid' changed ($type) a question with id '$questionid' on the 'longpage activity' with course module id " .
+            "'$this->contextinstanceid' in course '$this->courseid' (qtype: $qtype, selectedText: '$selectedText', selectedParagraphs: '$selectedParagraphs', useAI: $useAI, existingQuestions: '$existingQuestions', position: $position, embedid: $embedid, elapsedTimeMs: $elapsedTimeMs).";
     }
 
     public static function get_objectid_mapping() {
