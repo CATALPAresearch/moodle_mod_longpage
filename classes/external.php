@@ -2068,10 +2068,10 @@ class mod_longpage_external extends external_api
 
     protected static function chat($systemContent, $userContent)
     {
-        $key = "sk-Dl9C3sCqc5UEmb8dTMLL8g";
-        $url = "http://132.176.10.80/api/chat";
-        $model = "mixtral";
-        $authorization = "Authorization: Bearer " . $key;
+        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkOTk1YTFhLWNjYzMtNDQ0NC1hNTZkLTUzZTQ2NGQ2ZDBkNyJ9.MV_oCcjjzpaRfMn2F4hS3J1fofmTCUnv6OesTb-kye0";
+        $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
+        $model = "mixtral:latest";
+        $authorization = "Authorization: Bearer " . $token;
 
         // Remove new lines and carriage returns.
         $systemContent = str_replace("\n", "", $systemContent);
@@ -2095,6 +2095,7 @@ class mod_longpage_external extends external_api
         }';
 
         $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -2102,11 +2103,14 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
         $res = curl_exec($ch);
+        if (curl_errno($ch)) {
+            throw new Exception(curl_error($ch));
+        }
         $result = json_decode($res);
         curl_close($ch);        
 
         if (!isset($result->message->content)) {
-            throw new Exception("Problem with AI model.");
+            throw new Exception("Problem with AI model: '" . $res . "'");
         } 
 
         $result->message->content = str_replace("'", "", $result->message->content);
