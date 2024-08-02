@@ -29,7 +29,22 @@ footer#page-footer {
 
 #page 
 {
-  overflow: hidden;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+#page #topofscroll
+{
+  padding: 0 !important;
+}
+
+#page.drawers div[role="main"] {
+  padding-right: 0 !important;
+}
+
+#page .drawer-left-toggle
+{
+  margin-top: 3rem !important;
 }
 
 #page .secondary-navigation
@@ -47,6 +62,12 @@ footer#page-footer {
 {
   margin-top: 0.5rem !important;
   margin-bottom: 0 !important;
+}
+
+#region-main-box {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border: none;
 }
 
 #page-content
@@ -540,11 +561,6 @@ code {
   }
   h1, .h1 {
     font-size: 1.3rem;
-  }
-  #region-main-box.col-12 {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    border: none;
   }
   #region-main-box .card, header .card {
     border: none;

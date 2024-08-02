@@ -12,10 +12,7 @@
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-          <a class="dropdown-item" id="quickEditQuestion" href="javascript:void(0)"><i class="fa fa-edit fa-fw" /> Frage direkt bearbeiten</a>
-          <a class="dropdown-item" id="lockQuestion" href="javascript:void(0)"><i class="fa fa-unlock fa-fw" /> Frage freigeben / sperren</a>
           <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
-          <a class="dropdown-item" id="removeQuestion" href="javascript:void(0)"><i class="fa fa-minus-square fa-fw" />Einbettung entfernen</a>
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
@@ -34,6 +31,11 @@
         <a href="javascript:void(0)" id="nextQuestion" title="Nächste Frage" data-toggle="tooltip"><i class="fa fa-arrow-down fa-fw fa-lg" /></a>
       </div>
     </div> 
+    <div id="editButtons" class="btn-group position-absolute position-right z-index-1 mr-5 mt-3" role="group" v-if="this.$store.state.UserModule.userCanMod"  style="display:none">
+      <a class='btn btn-secondary btn-sm' id="quickEditQuestion" title='Frage direkt bearbeiten' href='javascript:void(0)'><i class='fa fa-edit' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary btn-sm' id="lockQuestion" title='Frage freigeben / sperren' href='javascript:void(0)'><i class='fa fa-unlock' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary btn-sm' id="removeQuestion" title='Einbettung entfernen' href='javascript:void(0)'><i class='fa fa-minus-square' style='cursor:pointer;'></i></a>
+    </div>
     <hr class="my-3">    
     <p id="quiz-placeholder" class="p-3">Zu diesem Abschnitt gibt es keine Aufgaben.</p>
     <div id="carousel" class="carousel slide" data-interval="false" style="display:none">
@@ -51,7 +53,7 @@
     </div>
     <div id="embedQuestion">
       <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.$store.state.UserModule.userCanMod">
-        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Mit Markierung Frage eingrenzen, mit Strg Kontext erweitern)" data-toggle="tooltip"/>
+        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Mit Markierung Frage eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
       <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Frage einbetten" data-toggle="tooltip"/>
@@ -558,7 +560,9 @@ export default {
               $("#question iframe" + idFixed).on("load", function () {
                 removePin(true);
 
-                $("#question iframe" + idFixed).contents().find("body").attr("data-tags", $(this).attr("data-tags"));
+                if(_this.$store.state.UserModule.userCanMod) {                  
+                  $("#question iframe" + idFixed).contents().find("body").attr("data-tags", $(this).attr("data-tags"));
+                }
 
                 var cssLink = document.createElement("link");
                 cssLink.href = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/')) + "/vue/src/styles/tasks.css";
@@ -632,6 +636,7 @@ export default {
 
         if ($("#question").children().length > 0) {
           $("#quiz-placeholder").hide();
+          $("#editButtons").show(); 
           $("#carousel").show();
           $("#question .carousel-item").removeClass("active");
           $("#question .carousel-item:first").addClass("active");
@@ -650,6 +655,7 @@ export default {
           $("#carousel").hide();
           $("#quiz-spinner").remove();
           $("#quiz-placeholder").show();
+          $("#editButtons").hide();
           $("#carousel-indicators").children().remove();
         }
       }
@@ -836,31 +842,39 @@ export default {
         $(".atto_embedquestion_button").click();
       });
 
+      var modalAdded = false;
+
       function addModalWait(message) {
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modal-wait-label">${message}</h5>
-          </div>
-          <div class="modal-body text-center">
-            <div class="spinner-border" role="status">                
-              <span class="sr-only">Bitte warten...</span>
-            </div>
-          </div>
-        </div>
-      </div>`;
+                      <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title" id="modal-wait-label">${message}</h5>
+                          </div>
+                          <div class="modal-body text-center">
+                            <div class="spinner-border" role="status">                
+                              <span class="sr-only">Bitte warten...</span>
+                            </div>
+                          </div>
+                      </div>
+                    </div>`;
 
-        $(modal).modal({ backdrop: "static", keyboard: false });
+        modalAdded = true;
+        setTimeout(function () {
+          if (modalAdded) {
+            $(modal).modal({ backdrop: "static", keyboard: false });
+          }
+        }, 500);        
       }
 
       function removeModalWait() {
+        modalAdded = false;
         $("#modal-wait").modal("hide").remove();
       }
 
       function addToast(message) {
         var toast =
-          `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="position: absolute; top: 50px; right: 20px">
+          `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500" style="position: absolute; top: 10%; left: 50%">
         <div class="toast-body">
           ${message}
           <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
@@ -876,7 +890,7 @@ export default {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
 
-        if (e.ctrlKey) {
+        if (e.ctrlKey || e.shiftKey) {
           $(this).css("cursor", "pointer");
         }
         else {
@@ -889,7 +903,7 @@ export default {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
 
-        if (e.ctrlKey) {
+        if (e.ctrlKey || e.shiftKey) {
           $(this).toggleClass("selected-paragraph");
         }
       });
@@ -944,11 +958,14 @@ export default {
         ]);
       });
 
-      $("#removeQuestion").on("click", function () {
+      $(document).on("click", "#removeQuestion", function () {
         var btn = $("#" + $("#question .carousel-item.active iframe").attr("data-paragraph")).next().next(".embedQuestion");
         if (btn.length == 0)
           return;
         var embedid = $("#question .carousel-item.active iframe").attr("id");
+        if (embedid == undefined) {
+          return;
+        }
         addModalWait("Frage wird entfernt...");
         ajax.call([
           {
@@ -997,9 +1014,12 @@ export default {
         });
       }
 
-      $("#lockQuestion").on("click", function () {
+      $(document).on("click", "#lockQuestion", function () {
         var active = $("#question .carousel-item.active iframe");
         var questionid = $(active).attr("data-questionid");
+        if (questionid == undefined) {
+          return;
+        }
         var embedid = $(active).attr("id").replace("/", "\\/");
         addModalWait("Frage wird geändert...");
         ajax.call([
@@ -1048,7 +1068,7 @@ export default {
         return result;
       }
 
-      $("#quickEditQuestion").on("click", function () {
+      $(document).on("click", "#quickEditQuestion", function () {
         var activeIframe = $("#question .carousel-item.active iframe");
         let questionid = $(activeIframe).attr("data-questionid");
         if (questionid == undefined) {
@@ -1056,6 +1076,25 @@ export default {
         }
 
         addPin();
+
+        var form = $(activeIframe).contents().find("form");
+        var formData = new FormData(form[0]);
+        formData.append("fillwithcorrect", 1);
+
+        fetch($(form).attr("action"), {
+          method: "POST",
+          body: formData
+        })
+          .then((response) => response.text())
+          .then((data) => {
+            var checked = $(data).find("input[type=radio]:checked");
+            $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").replaceWith('<span class="ml-2"><i class="icon fa fa-check text-success fa-fw " title="Correct" role="img" aria-label="Correct"></i></span>');
+            var sequencecheck = $(data).find("input[name$='sequencecheck']").val();
+            $(activeIframe).contents().find("input[name$='sequencecheck']").val(sequencecheck);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
 
         var editable = $(activeIframe).contents().find(".que .answer .flex-fill, .que .qtext");
         if ($(editable).attr("contenteditable") == "true") {
@@ -1067,6 +1106,11 @@ export default {
           autosavefun.cancel();
           $(activeIframe).contents().find("body").attr("data-autosave", "false");
         }
+
+        $(activeIframe).contents().find(".im-controls, .qtype_multichoice_clearchoice, .validationerror").hide();
+        $(activeIframe).contents().find("body").removeAttr("data-tags");
+        $(activeIframe).contents().find("input[type=radio]").attr("disabled", true);
+        $(activeIframe).contents().find("input[type=radio]").removeAttr("checked");
 
         $(editable).attr("contenteditable", true);
 
@@ -1091,46 +1135,47 @@ export default {
         });
 
         $(editable).on("blur", function () {
-          var text = $(this).text();
-          if (text == $(this).attr("data-text")) {
-            return;
-          }
+            var text = $(this).text();
+            if (text == $(this).attr("data-text")) {
+              return;
+            }
 
-          var optionNumber = $(this).hasClass("flex-fill") ? $(this).parent().prev().val() : -1;
-          questionid = $(activeIframe).attr("data-questionid");
-          var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
+            var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
+            questionid = $(activeIframe).attr("data-questionid");
+            var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
-          addModalWait("Frage wird aktualisiert...");
-          ajax.call([
-            {
-              methodname: "mod_longpage_edit_question",
-              args: {
-                longpageid: _this.context.longpageid,
-                questionid: questionid,
-                action: "edit",
-                qubaid: qubaid,
-                useAI: false,
-                text: text,
-                optionNumber: optionNumber,
+            addModalWait("Frage wird aktualisiert...");
+            ajax.call([
+              {
+                methodname: "mod_longpage_edit_question",
+                args: {
+                  longpageid: _this.context.longpageid,
+                  questionid: questionid,
+                  action: "edit",
+                  qubaid: qubaid,
+                  useAI: false,
+                  text: text,
+                  optionNumber: optionNumber,
+                },
+                done: function (data) {
+                  handleQuickEditQuestionResult(data);
+                  removeModalWait();
+                  removePin(true);
+                },
+                fail: function (e) {
+                  alert(e.message);
+                  removeModalWait();
+                  removePin(true);
+                },
               },
-              done: function (data) {
-                handleQuickEditQuestionResult(data);
-                removeModalWait();
-                removePin(true);
-              },
-              fail: function (e) {
-                alert(e.message);
-                removeModalWait();
-                removePin(true);
-              },
-            },
-          ]);
-        });
+            ]);
+          });
 
         var options = $(activeIframe).contents().find(".que .answer .flex-fill");
+        $(options).parent().removeClass("w-auto").addClass("w-100");
         $(options).each(function (idx, option) {
-          var minus = $("<button class='btn btn-outline-danger' title='Option löschen'><i class='fa fa-minus-circle fa-fw' style='cursor:pointer;'></i></button>");
-          $(minus).on("click", function () {
+          var removeOption = $("<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>");
+          $(removeOption).on("click", function () {
             addModalWait("Option wird gelöscht...");
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
@@ -1158,11 +1203,11 @@ export default {
               }]);
             return false;
           });
-          $(minus).prependTo($(option).parent().parent());
+          $(removeOption).prependTo($(option).parent().parent());
         });
 
-        var plusBlank = $("<button class='btn btn-outline-success w-50 addBlankDistractor' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i></button>");
-        var plusAI = $("<button class='btn btn-outline-success w-50 addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i></button>");
+        var plusBlank = $("<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>");
+        var plusAI = $("<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>");
         $(plusBlank).add(plusAI).on("click", function () {
           addModalWait("Distraktor wird hinzugefügt...");
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
@@ -1195,7 +1240,15 @@ export default {
             }]);
           return false;
         });
-        $(plusAI).add(plusBlank).insertAfter($(options).last().parent().parent());
+        var buttons = $("<div class='mt-3 mb-2'></div>").append($(plusAI).add(plusBlank)).insertAfter($(options).last().parent().parent()); 
+
+        //add save button
+        var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
+        $(quitButton).on("click", function () {
+          reloadAllIframesInQuiz();
+          addToast("Bearbeitung beendet.");
+        });
+        $(quitButton).insertAfter($(buttons));
       });
 
       $("#editQuestion").on("click", function () {

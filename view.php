@@ -75,6 +75,11 @@ if ($inpopup and $page->display == RESOURCELIB_DISPLAY_POPUP) {
     //$PAGE->set_activity_record($page);
 }
 
+$PAGE->set_secondary_navigation(false);
+set_user_preference('drawer-open-index', false);
+set_user_preference('drawer-open-block', false);
+set_user_preference('drawer-open-nav', false);
+
 echo $OUTPUT->header();
 
 /**
