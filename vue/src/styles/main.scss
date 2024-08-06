@@ -13,7 +13,11 @@ footer#page-footer {
   display: none;
 }
 
-#page-content .activity-navigation #jump-to-activity, #page-content .activity-navigation #prev-activity-link, #page-content .activity-navigation #next-activity-link
+.local_envbar .navbar.fixed-top {
+  top: 0 !important;
+}
+
+#page-content .activity-navigation #jump-to-activity, #page-content .activity-navigation #prev-activity-link, #page-content .activity-navigation #next-activity-link, .envbar, #envbar_spacer
 {
   display: none !important;
 }

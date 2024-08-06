@@ -2535,16 +2535,30 @@ class mod_longpage_external extends external_api
             $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
             if($useAI)
             {
-                $result = self::chat($question->questiontext['text'], "Please write a new distractor in German language for the given question. The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
-                $text = $result->message->content;      
+                $result = self::chat($text, "Please write a new distractor in German language for the following question to the given text. Question: '". $question->questiontext['text'] . "' The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
+                $answer = $result->message->content;      
             }
             else
             {
-                $text = "Falsche Antwort";
+                $answer = "Falsche Antwort";
             } 
-            $question->answer[$key] = ['text' => $text, 'format' => 1];
+            $question->answer[$key] = ['text' => $answer, 'format' => 1];
             $question->fraction[$key] = 0;
             $question->feedback[$key] = ['text' => "", 'format' => 1];
+        }
+        elseif($action == "rephrase")
+        {
+            if($optionNumber != -1)
+            {
+                $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
+                $result = self::chat($text, "Please rephrase the following answer for the following question in German language for the given text. Question: '" . $question->questiontext['text'] . "' Answer to rephrase: '" . $question->answer[$order[$optionNumber]]['text'] . "' The rephrased answer should be different from the following answers: " . $answers . ". Give only the rephrased answer text without any additional information. Keep it short."); 
+                $question->answer[$order[$optionNumber]] = ['text' => $result->message->content, 'format' => 1];
+            }
+            else
+            {
+                $result = self::chat($text, "Please rephrase the following question in German language for the given text with the following given answers. Question to rephrase: '" . $question->questiontext['text'] . "' Given answers: " . $answers . ". Give only the rephrased quiestion text without any additional information. Keep it short."); 
+                $question->questiontext = ['text' => $result->message->content, 'format' => 1];
+            }
         }
     
         $question->shuffleanswers = false;

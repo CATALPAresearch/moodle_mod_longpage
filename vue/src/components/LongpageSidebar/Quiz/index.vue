@@ -1140,6 +1140,8 @@ export default {
               return;
             }
 
+            var __this = this;
+
             var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
             questionid = $(activeIframe).attr("data-questionid");
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
@@ -1158,6 +1160,7 @@ export default {
                   optionNumber: optionNumber,
                 },
                 done: function (data) {
+                  $(__this).attr("data-text", text);                 
                   handleQuickEditQuestionResult(data);
                   removeModalWait();
                   removePin(true);
@@ -1212,6 +1215,9 @@ export default {
           addModalWait("Distraktor wird hinzugefügt...");
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
+          var paragraph = $(activeIframe).attr("data-paragraph");
+          var text = $("#longpage-main #" + paragraph).text();          
+
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1221,7 +1227,7 @@ export default {
                 action: "add",
                 qubaid: qubaid,
                 useAI: $(this).hasClass("addAIDistractor"),
-                text: "",
+                text: text,
                 optionNumber: -1,
               },
               done: function (data) {
@@ -1242,9 +1248,58 @@ export default {
         });
         var buttons = $("<div class='mt-3 mb-2'></div>").append($(plusAI).add(plusBlank)).insertAfter($(options).last().parent().parent()); 
 
+        var rephraseButton = $("<button class='btn btn-seccondary btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>");
+        $(rephraseButton).on("click", function () {
+          var paragraph = $(activeIframe).attr("data-paragraph");
+          var text = $("#longpage-main #" + paragraph).text();
+          var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
+          var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
+          questionid = $(activeIframe).attr("data-questionid");
+          addModalWait("Text wird umformuliert...");
+          ajax.call([
+            {
+              methodname: "mod_longpage_edit_question",
+              args: {
+                longpageid: _this.context.longpageid,
+                questionid: questionid,
+                action: "rephrase",
+                qubaid: qubaid,
+                useAI: true,
+                text: text,
+                optionNumber: optionNumber,
+              },
+              done: function (data) {
+                handleQuickEditQuestionResult(data);
+                $(activeIframe).one("load", function () {
+                  $("#quickEditQuestion").click();
+                  removeModalWait();
+                  addToast("Text wurde umformuliert.");
+                });
+                reloadAllIframesInQuiz();
+              },
+              fail: function (e) {
+                alert(e.message);
+                removeModalWait();
+              },
+            },
+          ]);
+          return false;
+        });
+        
+        //append rephrase button to editable p if it exists, otherwise to editable
+        $(editable).each(function (idx, el) {
+          if ($(el).find("p").length > 0) {
+            $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
+          }
+          else {
+            $(rephraseButton).clone(true, true).appendTo($(el));
+          }
+        });
+
         //add save button
         var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
-        $(quitButton).on("click", function () {
+        $(quitButton).on("click", function (e) {
+          e.preventDefault();
           reloadAllIframesInQuiz();
           addToast("Bearbeitung beendet.");
         });
@@ -1292,7 +1347,6 @@ export default {
       });
 
       $("#longpage-main, #longpage-sidebar").on("mouseenter mouseleave", function (ev) {
-        console.log(ev);
         var logentry = {
           pageX: ev.pageX ? ev.pageX : 0,
           pageY: ev.pageY ? ev.pageY : 0,

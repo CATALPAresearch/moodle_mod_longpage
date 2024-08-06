@@ -71,4 +71,9 @@ body[data-tags="neu"] .que .formulation::before
     background-color: white;
     cursor: text;
     padding: 5px;
+    margin-right: 10px;
   }
+
+.que .qtext {
+margin-right: 100px !important;
+}
