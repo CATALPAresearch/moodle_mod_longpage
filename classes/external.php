@@ -2556,13 +2556,17 @@ class mod_longpage_external extends external_api
             }
             else
             {
-                $result = self::chat($text, "Please rephrase the following question in German language for the given text with the following given answers. Question to rephrase: '" . $question->questiontext['text'] . "' Given answers: " . $answers . ". Give only the rephrased quiestion text without any additional information. Keep it short."); 
+                $result = self::chat($text, "Please rephrase the following question in German language for the given text with the following given answers. Question to rephrase: '" . $question->questiontext['text'] . "' Given answers: " . $answers . ". Give only the rephrased question text without any additional information. Keep it short."); 
                 $question->questiontext = ['text' => $result->message->content, 'format' => 1];
             }
         }
     
         $question->shuffleanswers = false;
         $created = question_bank::get_qtype($question->qtype)->save_question($question, clone $question);
+
+        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
+            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");
+        } 
 
         if ($created) {
             $category = $DB->get_record('question_categories', ['id' => $question->category]);

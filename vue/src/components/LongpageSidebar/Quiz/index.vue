@@ -8,15 +8,16 @@
           {{$t('sidebar.tabs.quiz.heading')}}
         </h3>
       
+        <!-- TODO: removed for study, add back in for production 
         <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-if="this.$store.state.UserModule.userCanMod">
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-          <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
+            <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> 
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
-        </div>
+        </div> -->
       
       <div class="col-auto px-0 offset-md-1">
         <a href="javascript:void(0)" id="total-reading-comprehension" title="Frage oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
@@ -51,16 +52,19 @@
         <span class="sr-only">&lt;-</span>
       </a>
     </div>
-    <div id="embedQuestion">
-      <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.$store.state.UserModule.userCanMod">
+    <div id="embedQuestion">    
+      <!-- TODO: v-if added for study, remove for production -->
+      <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.tags.includes('AI')">
         <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Mit Markierung Frage eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
-      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.$store.state.UserModule.userCanMod">
+      <!-- TODO: v-if added for study, remove for production -->
+      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.tags.includes('noAI')">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Frage einbetten" data-toggle="tooltip"/>
       </a>
+      <!-- TODO: removed for study, add back in for production 
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-circle fa-fw" title="Vorhandene Frage einbetten" data-toggle="tooltip"/>
-      </a>
+      </a> -->
     </div>
     </template>
   </sidebar-tab>
@@ -236,6 +240,8 @@ import Fragment from "core/fragment";
 import { EventBus } from "@/lib/event-bus"; 
 import "mark.js/dist/jquery.mark.min.js";
 import "bootstrap/js/dist/tooltip";
+import { driver } from "driver.js";
+import "driver.js/dist/driver.css";
 
 export default {
   name: "Quiz",
@@ -261,6 +267,8 @@ export default {
   mounted() {
     let _this = this;
     const _ = require('lodash');
+
+    $("#page").attr("style", ($("#page").attr("style") ? $("#page").attr("style") + " " : "") + "overflow: clip !important;");
 
     let moodleRelease = $("#longpage-app-container").data("moodle-release").split(".");
     moodleRelease = parseInt(moodleRelease[0]) * 100 + parseInt(moodleRelease[1]);
@@ -1246,7 +1254,14 @@ export default {
             }]);
           return false;
         });
-        var buttons = $("<div class='mt-3 mb-2'></div>").append($(plusAI).add(plusBlank)).insertAfter($(options).last().parent().parent()); 
+        var buttons = $("<div class='mt-3 mb-2'></div>");
+        if (_this.context.tags.includes("noAI")) {
+          $(plusBlank).appendTo($(buttons));
+        }
+        if (_this.context.tags.includes("AI")) {
+          $(plusAI).appendTo($(buttons));
+        }
+        $(buttons).insertAfter($(options).last().parent().parent()); 
 
         var rephraseButton = $("<button class='btn btn-seccondary btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>");
         $(rephraseButton).on("click", function () {
@@ -1288,6 +1303,8 @@ export default {
         
         //append rephrase button to editable p if it exists, otherwise to editable
         $(editable).each(function (idx, el) {
+          if (!_this.context.tags.includes("AI"))
+            return;
           if ($(el).find("p").length > 0) {
             $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
           }
@@ -1356,6 +1373,82 @@ export default {
         };
         log("moved", logentry);
       });
+      
+      var moveNextWhenReady = function (nextElementSelectorOrElementOrFunction, driverObj) {
+          var nextElementSelectorOrElement = typeof nextElementSelectorOrElementOrFunction === 'function' ? nextElementSelectorOrElementOrFunction() : nextElementSelectorOrElementOrFunction;
+            
+          if ($(nextElementSelectorOrElement).length > 0) {
+              driverObj.moveNext();
+          } else {
+              setTimeout(function () {
+                  moveNextWhenReady(nextElementSelectorOrElementOrFunction, driverObj);
+              }, 1000);
+          }
+      };
+
+      var processedElements = new Map();
+
+      function addStep(steps, element, title, description, nextElementSelectorOrElement, beforeOnNextClick, popoverSide, popoverAlign) {
+        var l = steps.length;
+        steps.push({
+          element: element,
+          popover: {
+            title: title,
+            description: description,
+            side: popoverSide || 'right',
+            align: popoverAlign || 'start',
+            onNextClick: () => {
+              
+              if(processedElements.has(l)) {
+                return;
+              }
+              if (nextElementSelectorOrElement === null) {
+                driverObj.moveNext();
+                return;
+              }
+              moveNextWhenReady(nextElementSelectorOrElement, driverObj);
+              processedElements.set(l, true);
+
+              if (beforeOnNextClick) {
+                beforeOnNextClick();
+              }
+            },
+          }
+        });
+        return steps;
+      }
+
+      var steps = addStep([], null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+      addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
+      addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+      addStep(steps, "#longpage-sidebar", 'Frage bearbeiten', 'Ändern Sie den Text einer Frage, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
+
+      //Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.
+      addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
+      //Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.
+      addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
+      //Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.
+      addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
+      //Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben oder zu sperren.
+      addStep(steps, "#lockQuestion", 'Frage freigeben / sperren', 'Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben.', ".toast-body:contains('Frage wurde freigegeben.')");
+      //Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.
+      addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.', ".toast-body:contains('Frage wurde entfernt.')");
+      addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Legen Sie noch einige Fragen an, bis Sie mit der Umgebung vertraut sind. Dann können Sie mit der Studie fortfahren.', null);
+
+      const driverObj = driver({
+        showProgress: true,
+        allowClose: false,
+        overlayOpacity: 0,
+        doneBtnText: "Fertig",
+        nextBtnText: "Weiter",
+        showButtons: ["next"],
+        steps: steps,
+        smoothScroll: true,
+      });
+
+      if(_this.context.tags.includes('tour')) {
+        driverObj.drive();
+      }
     });
   }
 };

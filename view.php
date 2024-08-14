@@ -76,6 +76,7 @@ if ($inpopup and $page->display == RESOURCELIB_DISPLAY_POPUP) {
 }
 
 $PAGE->set_secondary_navigation(false);
+$PAGE->activityheader->disable();
 set_user_preference('drawer-open-index', false);
 set_user_preference('drawer-open-block', false);
 set_user_preference('drawer-open-nav', false);
@@ -126,6 +127,14 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     $embedform = new MoodleQuickForm("embedform", 'POST', "", "", array("style" => "width: 0; height: 0; overflow: hidden"));
     $embedform->addElement('editor', 'embedform', "embedform", null, longpage_get_editor_options($context));
     $embedform->display();
+
+    //get tags
+    $tags = \core_tag_tag::get_item_tags('core', 'course_modules', $id);
+    $tagstr = array();
+    foreach ($tags as $tag) {
+        $tagstr[] = $tag->rawname;
+    }
+
     echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
     echo '<div class="row no-gutters vh-50">';
     echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
@@ -151,6 +160,7 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             !empty($page->showposts),
             !empty($page->showhighlights),
             !empty($page->showbookmarks),
+            $tagstr
         ]
     );
 } else {
