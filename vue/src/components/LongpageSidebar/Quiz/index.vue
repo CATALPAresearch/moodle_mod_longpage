@@ -358,7 +358,6 @@ export default {
     }
 
     function isElementInViewport(element, index, array) {
-      // Special bonus for those using jQuery
       if (typeof jQuery === "function" && element instanceof jQuery) {
         element = element[0];
       }
@@ -375,7 +374,6 @@ export default {
     }
 
     function isElementBottomInViewport(element) {
-      // Special bonus for those using jQuery
       if (typeof jQuery === "function" && element instanceof jQuery) {
         element = element[0];
       }
@@ -812,14 +810,12 @@ export default {
         ]);
       });
 
-      // Toggle visibility of embedQuestion on mouseover and mouseout
       $("#longpage-main").on("mouseover mouseout", ".wrapper", function () {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
         $(this).find(".embedQuestion").css("opacity", event.type === "mouseover" ? "1" : "0");
       });
 
-      // Toggle visibility of embedQuestion on mouseenter and mouseleave
       $("#longpage-main").on("mouseenter mouseleave", ".embedQuestion", function () {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
@@ -893,7 +889,6 @@ export default {
         $(toast).appendTo("#sidebar-tab-quiz").toast("show");
       }
 
-      //when hovering over a paragraph and holding the control key, the cursor changes to a hand
       $("#longpage-main").on("mousemove", ".wrapper", function (e) {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
@@ -906,7 +901,6 @@ export default {
         }
       });
 
-      //when clicking on a paragraph while holding the control key, the text of the paragraph is highlighted via a css class
       $("#longpage-main").on("click", ".wrapper", function (e) {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
@@ -916,7 +910,6 @@ export default {
         }
       });
 
-      //remove all selected paragraphs when double clicking on the page while holding the control key
       $("#longpage-main").on("dblclick", function (e) {
         if (!_this.$store.state.UserModule.userCanMod)
           return;
@@ -985,13 +978,10 @@ export default {
             },
             done: function (reads) {
               removePin();
-              //remove carousel item
               $("#question .carousel-item.active").remove();
 
-              //remove embedQuestion
               var iframecontainer = $(btn).parent(".wrapper").next().children().first();
               if ($(iframecontainer).children().length > 1) {
-                //remove iframe with embedid
                 var idFixed = embedid.replace("/", "\\/");
                 $(iframecontainer).find("#" + idFixed).remove();
               }
@@ -1301,7 +1291,6 @@ export default {
           return false;
         });
         
-        //append rephrase button to editable p if it exists, otherwise to editable
         $(editable).each(function (idx, el) {
           if (!_this.context.tags.includes("AI"))
             return;
@@ -1313,7 +1302,6 @@ export default {
           }
         });
 
-        //add save button
         var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
         $(quitButton).on("click", function (e) {
           e.preventDefault();
@@ -1388,7 +1376,7 @@ export default {
 
       var processedElements = new Map();
 
-      function addStep(steps, element, title, description, nextElementSelectorOrElement, beforeOnNextClick, popoverSide, popoverAlign) {
+      function addStep(steps, element, title, description, nextElementSelectorOrElement, afterOnNextClick, popoverSide, popoverAlign) {
         var l = steps.length;
         steps.push({
           element: element,
@@ -1398,19 +1386,21 @@ export default {
             side: popoverSide || 'right',
             align: popoverAlign || 'start',
             onNextClick: () => {
-              
+
               if(processedElements.has(l)) {
                 return;
               }
+
               if (nextElementSelectorOrElement === null) {
                 driverObj.moveNext();
                 return;
               }
+
               moveNextWhenReady(nextElementSelectorOrElement, driverObj);
               processedElements.set(l, true);
 
-              if (beforeOnNextClick) {
-                beforeOnNextClick();
+              if (afterOnNextClick) {
+                afterOnNextClick();
               }
             },
           }
@@ -1422,16 +1412,10 @@ export default {
       addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
       addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
       addStep(steps, "#longpage-sidebar", 'Frage bearbeiten', 'Ändern Sie den Text einer Frage, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
-
-      //Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.
       addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
-      //Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.
       addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
-      //Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.
       addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
-      //Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben oder zu sperren.
       addStep(steps, "#lockQuestion", 'Frage freigeben / sperren', 'Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben.', ".toast-body:contains('Frage wurde freigegeben.')");
-      //Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.
       addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.', ".toast-body:contains('Frage wurde entfernt.')");
       addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Legen Sie noch einige Fragen an, bis Sie mit der Umgebung vertraut sind. Dann können Sie mit der Studie fortfahren.', null);
 
