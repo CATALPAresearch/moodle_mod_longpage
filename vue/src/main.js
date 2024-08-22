@@ -30,12 +30,12 @@ import {toIdSelector} from '@/util/style';
 import {i18n} from '@/config/i18n';
 
 export const init = (courseId, longpageid, pageName, userId, content, scrollTop,
-    showreadingprogress, showreadingcomprehension, showsearch, showtableofcontents, showposts, showhighlights, showbookmarks, tags) => {
+    showreadingprogress, showreadingcomprehension, showsearch, showtableofcontents, showposts, showhighlights, showbookmarks, tags, isAdmin) => {
     try {
         const store = initStore({
             courseId: Number(courseId), longpageid: Number(longpageid), pageName, userId: Number(userId),
             showreadingprogress, showreadingcomprehension, showsearch, showtableofcontents, showposts, showhighlights, showbookmarks,
-            tags
+            tags, isAdmin
         });
         
         createApp(App, {content, scrollTop: Number(scrollTop)})

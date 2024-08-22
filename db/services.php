@@ -280,6 +280,14 @@ $functions = array(
         'capabilities'  => 'mod/longpage:view',
         'ajax'          => true
     ),
+    'mod_longpage_export_questions' => array(
+        'classname'     => 'mod_longpage_external',
+        'methodname'    => 'export_questions',
+        'description'   => 'Export questions for reading comprehension on page',
+        'type'          => 'read',
+        'capabilities'  => 'mod/longpage:view',
+        'ajax'          => true
+    ),
     'mod_longpage_autosave' => array(
         'classname'     => 'mod_longpage_external',
         'methodname'    => 'autosave',

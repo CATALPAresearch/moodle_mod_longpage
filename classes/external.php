@@ -46,6 +46,7 @@ require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/user/externallib.php");
 require_once("$CFG->dirroot/mod/longpage/locallib.php");
 require_once("$CFG->dirroot/question/engine/lib.php");
+require_once("$CFG->libdir/gradelib.php");
 
 /**
  * Page external functions
@@ -1801,6 +1802,7 @@ class mod_longpage_external extends external_api
         preg_match_all('/<iframe[\S\s]+class=\"filter_embedquestion-iframe[\S\s]+id=\"(?<catid>\S+)\/(?<qid>\S+)\"/iU', $page->content, $matches);
         $len = count($matches[1]);
         $cntSubmitted = 0;
+        $cntUnlocked = 0;
         $sum = 0;
         for ($i=0; $i<$len; $i++) {
             $embed = new embed_id($matches["catid"][$i], $matches["qid"][$i]);
@@ -1842,6 +1844,7 @@ class mod_longpage_external extends external_api
                                 array($USER->id, $question->id, date_format(date_sub(date_create(), DateInterval::createFromDateString('3 months')), "U")));
 
             $cntSubmitted += $avgfraction == null ? 0 : 1;
+            $cntUnlocked += $questionIsNew ? 0 : 1;
             $sum += $avgfraction;                        
             // $field_data = $customfieldhandler->get_field_data($field, $question->id);
             // $level = $field_data->get_value();
@@ -1849,16 +1852,29 @@ class mod_longpage_external extends external_api
             $result[strval($embed)] = array("value" => $avgfraction, "level" => $level, "id" => $question->id, "tags" => $tagobjects);        
         }
 
-        if($len > 0 && $cntSubmitted == $len)
-        {
-            $grade = new stdClass();
-            $grade->userid   = $USER->id;
-            $grade->rawgrade = 100*$sum/$len;
-            longpage_update_grades($page, $grade);
+        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        if (empty($grades->items)) {
+            $gradepass = 0;
         }
+        else {
+            $gradepass = floatval($grades->items[0]->gradepass);
+        }
+        $grade = new stdClass();
+        $grade->userid = $USER->id;
+
+        // if($len > 0 && $cntSubmitted == $len)
+        // {
+        //     $grade->rawgrade = 100*$sum/$len;
+        //     longpage_update_grades($page, $grade);
+        // }
+
+        //TODO: for study
+        $grade->rawgrade = $cntUnlocked;
+        longpage_update_grades($page, $grade);
         
         $return = array(
-            'response' => json_encode($result)
+            'response' => json_encode($result),
+            'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass))
         );
         return $return;
 
@@ -1875,7 +1891,9 @@ class mod_longpage_external extends external_api
     public static function get_reading_comprehension_returns(){
         return new external_single_structure(
             array(
-                "response" =>  new external_value(PARAM_RAW)));
+                "response" =>  new external_value(PARAM_RAW),
+                'gradeInfo' => new external_value(PARAM_RAW)
+            ));
     }
 
     public static function embed_question($longpageid, $embedcode, $position)
@@ -2068,7 +2086,7 @@ class mod_longpage_external extends external_api
 
     protected static function chat($systemContent, $userContent)
     {
-        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkOTk1YTFhLWNjYzMtNDQ0NC1hNTZkLTUzZTQ2NGQ2ZDBkNyJ9.MV_oCcjjzpaRfMn2F4hS3J1fofmTCUnv6OesTb-kye0";
+        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkOTk1YTFhLWNjYzMtNDQ0NC1hNTZkLTUzZTQ2NGQ2ZDBkNyJ9.ZAya1xx03duqmAQmyJkyVnD6w2evmtAF9N3y8c9hRgI";
         $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
         $model = "mixtral:latest";
         $authorization = "Authorization: Bearer " . $token;
@@ -2609,6 +2627,63 @@ class mod_longpage_external extends external_api
             array('response' => new external_value(PARAM_RAW, 'Server response to edit_question'))
         );
     }
+
+    public static function export_questions($format)
+    {
+        global $DB, $USER, $CFG;
+
+        $params = self::validate_parameters(
+            self::export_questions_parameters(),
+            array(
+                'format' => $format
+            )
+        );
+
+        $context = context_system::instance();
+
+        $questions = $DB->get_records('question', ['createdby' => $USER->id]);
+
+        require_once($CFG->dirroot . '/question/format/xml/format.php');
+        require_once($CFG->dirroot . '/question/format/gift/format.php');
+        require_once($CFG->dirroot . '/question/format/aiken/format.php');
+
+        $classname = 'qformat_' . $format;
+        if (!class_exists($classname)) {
+            throw new Exception("Format not found.");
+        }
+
+        $qformat = new $classname();
+        $expout = "";
+        foreach ($questions as $question) {
+            $question->contextid = $context->id;
+            try {
+                get_question_options($question);
+                $expout .= $qformat->writequestion($question);
+            } catch (Exception $e) {
+                continue;
+            }            
+        }
+
+        send_file($expout, 'questions.' . $format, 0, 0, true, true, $qformat->mime_type());
+    }
+
+    public static function export_questions_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'format' => new external_value(PARAM_TEXT, 'format')
+            )
+        );
+    }
+
+    public static function export_questions_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to export_questions'))
+        );
+    }
+
+
 
     public static function autosave($data)
     {

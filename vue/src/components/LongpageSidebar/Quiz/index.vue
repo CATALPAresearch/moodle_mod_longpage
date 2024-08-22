@@ -282,6 +282,11 @@ export default {
           },
           done: function (reads) {
             try {
+
+              //TODO: for study
+              let gradeInfo = JSON.parse(reads.gradeInfo);
+              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
+
               let data = JSON.parse(reads.response);
 
               for (const [id, entry] of Object.entries(data)) {
@@ -1361,76 +1366,99 @@ export default {
         };
         log("moved", logentry);
       });
+
+      if(_this.context.tags.includes('tour')) {
       
-      var moveNextWhenReady = function (nextElementSelectorOrElementOrFunction, driverObj) {
-          var nextElementSelectorOrElement = typeof nextElementSelectorOrElementOrFunction === 'function' ? nextElementSelectorOrElementOrFunction() : nextElementSelectorOrElementOrFunction;
-            
-          if ($(nextElementSelectorOrElement).length > 0) {
+        var moveNextWhenReady = function (nextElementSelectorOrElementOrFunction, driverObj, afterOnNextClick) {
+            var nextElementSelectorOrElement = typeof nextElementSelectorOrElementOrFunction === 'function' ? nextElementSelectorOrElementOrFunction() : nextElementSelectorOrElementOrFunction;
+              
+            if ($(nextElementSelectorOrElement).length > 0) {
               driverObj.moveNext();
-          } else {
-              setTimeout(function () {
-                  moveNextWhenReady(nextElementSelectorOrElementOrFunction, driverObj);
-              }, 1000);
-          }
-      };
-
-      var processedElements = new Map();
-
-      function addStep(steps, element, title, description, nextElementSelectorOrElement, afterOnNextClick, popoverSide, popoverAlign) {
-        var l = steps.length;
-        steps.push({
-          element: element,
-          popover: {
-            title: title,
-            description: description,
-            side: popoverSide || 'right',
-            align: popoverAlign || 'start',
-            onNextClick: () => {
-
-              if(processedElements.has(l)) {
-                return;
-              }
-
-              if (nextElementSelectorOrElement === null) {
-                driverObj.moveNext();
-                return;
-              }
-
-              moveNextWhenReady(nextElementSelectorOrElement, driverObj);
-              processedElements.set(l, true);
-
               if (afterOnNextClick) {
                 afterOnNextClick();
               }
-            },
-          }
+            } else {
+                setTimeout(function () {
+                    moveNextWhenReady(nextElementSelectorOrElementOrFunction, driverObj, afterOnNextClick);
+                }, 1000);
+            }
+        };
+
+        var processedElements = new Map();
+
+        function addStep(steps, element, title, description, nextElementSelectorOrElement, afterOnNextClick, popoverSide, popoverAlign) {
+          var l = steps.length;
+          steps.push({
+            element: element,
+            popover: {
+              title: title,
+              description: description,
+              side: popoverSide || 'right',
+              align: popoverAlign || 'start',
+              onNextClick: () => {
+
+                if(processedElements.has(l)) {
+                  return;
+                }
+
+                if (nextElementSelectorOrElement == null) {
+                  driverObj.moveNext();
+                  if (afterOnNextClick) {
+                    afterOnNextClick();
+                  }
+                  return;
+                }
+
+                moveNextWhenReady(nextElementSelectorOrElement, driverObj, afterOnNextClick);
+                processedElements.set(l, true);                
+              },
+            }
+          });
+          return steps;
+        }
+
+        var steps = [];
+        if (_this.context.tags.includes("noAI"))
+        {
+          addStep(steps, null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
+          addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+          addStep(steps, "#longpage-sidebar", 'Frage bearbeiten', 'Ändern Sie den Text einer Frage, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
+          addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
+          addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
+          addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
+          addStep(steps, "#lockQuestion", 'Frage freigeben / sperren', 'Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben.', ".toast-body:contains('Frage wurde freigegeben.')");
+          addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.', ".toast-body:contains('Frage wurde entfernt.')");
+          addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
+        }
+        else if (_this.context.tags.includes("AI"))
+        {
+          addStep(steps, null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-content', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Frage generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#longpage-content', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Frage festzulegen.', () => window.getSelection().toString() !== "", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen. Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Frage generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Frage mit KI zu generieren. Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+          addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Frage oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
+          addStep(steps, "#longpage-sidebar", 'Distraktor mit KI generieren', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor mit KI generieren" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
+          addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
+        }        
+
+        var showButtons = ["next"];
+        var allowClose = _this.context.isAdmin || window.location.search.includes("admin=1");
+        if (allowClose) {
+          showButtons.push("close");
+        }
+        const driverObj = driver({
+          showProgress: true,
+          allowClose: allowClose,
+          overlayOpacity: 0,
+          doneBtnText: "Fertig",
+          nextBtnText: "Weiter",
+          showButtons: showButtons,
+          steps: steps,
+          smoothScroll: true,
         });
-        return steps;
-      }
-
-      var steps = addStep([], null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-      addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-      addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
-      addStep(steps, "#longpage-sidebar", 'Frage bearbeiten', 'Ändern Sie den Text einer Frage, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
-      addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
-      addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
-      addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
-      addStep(steps, "#lockQuestion", 'Frage freigeben / sperren', 'Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben.', ".toast-body:contains('Frage wurde freigegeben.')");
-      addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.', ".toast-body:contains('Frage wurde entfernt.')");
-      addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Legen Sie noch einige Fragen an, bis Sie mit der Umgebung vertraut sind. Dann können Sie mit der Studie fortfahren.', null);
-
-      const driverObj = driver({
-        showProgress: true,
-        allowClose: false,
-        overlayOpacity: 0,
-        doneBtnText: "Fertig",
-        nextBtnText: "Weiter",
-        showButtons: ["next"],
-        steps: steps,
-        smoothScroll: true,
-      });
-
-      if(_this.context.tags.includes('tour')) {
+      
         driverObj.drive();
       }
     });
