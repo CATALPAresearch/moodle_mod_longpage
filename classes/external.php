@@ -1570,6 +1570,11 @@ class mod_longpage_external extends external_api
     {
         global $CFG, $DB, $USER;
 
+        $page = $DB->get_record('longpage', array('id' => $data['longpageid']), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);        
+
         $r = new stdClass();
         $r->name = 'mod_longpage';
         $r->component = 'mod_longpage';
@@ -1580,9 +1585,9 @@ class mod_longpage_external extends external_api
         $r->objectid = 0;
         $r->crud = 'r';
         $r->edulevel = 2;
-        $r->contextid = 120;
-        $r->contextlevel = 70;
-        $r->contextinstanceid = 86;
+        $r->contextid = $context->id;
+        $r->contextlevel = $context->contextlevel;
+        $r->contextinstanceid = $context->instanceid;
         $r->userid = $USER->id;
         $r->courseid = (int) $data['courseid'];
 
@@ -1603,7 +1608,7 @@ class mod_longpage_external extends external_api
             $s->sectionhash = (int) $d->sectionhash;
             $s->userid = (int) $USER->id;
             $s->course = (int) $data['courseid'];
-            $s->longpageid = (int) $d->longpageid;
+            $s->longpageid = (int) $data['longpageid'];
             $s->timemodified = (int) $data['utc'];
             $s->scrolltop = (int) $d->scrollTop;
             $s->scrollheight = (int) $d->scrollHeight;
@@ -1634,7 +1639,8 @@ class mod_longpage_external extends external_api
                         'courseid' => new external_value(PARAM_INT, 'id of course', VALUE_OPTIONAL),
                         'utc' => new external_value(PARAM_INT, '...utc time', VALUE_OPTIONAL),
                         'action' => new external_value(PARAM_TEXT, '..action', VALUE_OPTIONAL),
-                        'entry' => new external_value(PARAM_RAW, 'log data', VALUE_OPTIONAL)
+                        'entry' => new external_value(PARAM_RAW, 'log data', VALUE_OPTIONAL),
+                        'longpageid' => new external_value(PARAM_INT, 'id of longpage', VALUE_OPTIONAL)
                     )
                 )
             )
@@ -2383,7 +2389,7 @@ class mod_longpage_external extends external_api
             $iframecode  = self::embed_question($longpageid, $embedcode, $position);
             $iframecode = $iframecode['response'];    
             \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
-            self::log(array("courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => "create", "questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
+            self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => "create", "questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
             "existingQuestions" => $existingQuestions, "position" => $position, "elapsedTimeMs" => $now->diff(new DateTime())->f,"embedid" => $category->idnumber . "/" . $q->idnumber, "longpageid" => $longpageid)))); 
         }
 
@@ -2598,7 +2604,7 @@ class mod_longpage_external extends external_api
             $qa->find_or_create_attempt();
             $qubaid = $qa->get_question_usage()->get_id();
 
-            self::log(array("courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => $action, "questionid" => $created->id, "qtype" => $question->qtype, "useAI" => $useAI == true ? "true" : "false", "optionNumber" => $optionNumber, "embedid" => $category->idnumber . "/" . $question->idnumber, "elapsedTimeMs" => $now->diff(new DateTime())->f, "longpageid" => $longpageid)))); 
+            self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => $action, "questionid" => $created->id, "qtype" => $question->qtype, "useAI" => $useAI == true ? "true" : "false", "optionNumber" => $optionNumber, "embedid" => $category->idnumber . "/" . $question->idnumber, "elapsedTimeMs" => $now->diff(new DateTime())->f, "longpageid" => $longpageid)))); 
 
             return array('response' => json_encode(array("questionid" => $created->id, "qubaid" => $qubaid, "text" => $text), JSON_UNESCAPED_UNICODE));
         } else {
@@ -2639,8 +2645,6 @@ class mod_longpage_external extends external_api
             )
         );
 
-        $context = context_system::instance();
-
         $questions = $DB->get_records('question', ['createdby' => $USER->id]);
 
         require_once($CFG->dirroot . '/question/format/xml/format.php');
@@ -2655,9 +2659,13 @@ class mod_longpage_external extends external_api
         $qformat = new $classname();
         $expout = "";
         foreach ($questions as $question) {
-            $question->contextid = $context->id;
             try {
-                get_question_options($question);
+                $qtype = $question->qtype;
+                $question = question_bank::load_question($question->id);
+                $question->qtype = $qtype;
+                if(!is_latest($question->version, $question->questionbankentryid)) {
+                    continue;
+                }
                 $expout .= $qformat->writequestion($question);
             } catch (Exception $e) {
                 continue;

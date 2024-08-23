@@ -137,7 +137,8 @@ export default {
                       entry: JSON.stringify(logentry),
                       action: "scroll",
                       utc: Math.ceil(now.getTime() / 1000),
-                      courseid: _this.context.courseId
+                      courseid: _this.context.courseId,
+                      longpageid: _this.context.longpageid
                     },
                   },
                   done: function (reads) {

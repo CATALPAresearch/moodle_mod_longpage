@@ -33,9 +33,9 @@
       </div>
     </div> 
     <div id="editButtons" class="btn-group position-absolute position-right z-index-1 mr-5 mt-3" role="group" v-if="this.$store.state.UserModule.userCanMod"  style="display:none">
-      <a class='btn btn-secondary btn-sm' id="quickEditQuestion" title='Frage direkt bearbeiten' href='javascript:void(0)'><i class='fa fa-edit' style='cursor:pointer;'></i></a>
-      <a class='btn btn-secondary btn-sm' id="lockQuestion" title='Frage freigeben / sperren' href='javascript:void(0)'><i class='fa fa-unlock' style='cursor:pointer;'></i></a>
-      <a class='btn btn-secondary btn-sm' id="removeQuestion" title='Einbettung entfernen' href='javascript:void(0)'><i class='fa fa-minus-square' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary' id="quickEditQuestion" title='Frage direkt bearbeiten' href='javascript:void(0)'><i class='fa fa-edit' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary' id="lockQuestion" title='Frage freigeben / sperren' href='javascript:void(0)'><i class='fa fa-unlock' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary' id="removeQuestion" title='Einbettung entfernen' href='javascript:void(0)'><i class='fa fa-minus-square' style='cursor:pointer;'></i></a>
     </div>
     <hr class="my-3">    
     <p id="quiz-placeholder" class="p-3">Zu diesem Abschnitt gibt es keine Aufgaben.</p>
@@ -446,7 +446,8 @@ export default {
                 entry: JSON.stringify(logentry),
                 action: action,
                 utc: Math.ceil(new Date().getTime() / 1000),
-                courseid: _this.context.courseId
+                courseid: _this.context.courseId,
+                longpageid: _this.context.longpageid
               },
             },
             done: function (reads) {
@@ -459,7 +460,6 @@ export default {
       }
 
       function logClick(ev) {
-        console.log(ev);
         var iframe = $("#question .carousel-item.active iframe");
         var logentry = {
           pageX: ev.pageX ? ev.pageX : 0,
@@ -958,7 +958,12 @@ export default {
             },
             fail: function (e) {
               removeModalWait();
-              alert(e.message);
+              if(_this.context.isAdmin) {
+                alert(e.message);
+              }
+              else {
+                alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+              }
             }
           },
         ]);
@@ -1091,6 +1096,7 @@ export default {
           .then((response) => response.text())
           .then((data) => {
             var checked = $(data).find("input[type=radio]:checked");
+            $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").parent().find("button[title='Option löschen']").attr("disabled", true);
             $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").replaceWith('<span class="ml-2"><i class="icon fa fa-check text-success fa-fw " title="Correct" role="img" aria-label="Correct"></i></span>');
             var sequencecheck = $(data).find("input[name$='sequencecheck']").val();
             $(activeIframe).contents().find("input[name$='sequencecheck']").val(sequencecheck);
@@ -1209,7 +1215,7 @@ export default {
               }]);
             return false;
           });
-          $(removeOption).prependTo($(option).parent().parent());
+          $(removeOption).appendTo($(option).parent().parent());
         });
 
         var plusBlank = $("<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>");
@@ -1249,7 +1255,7 @@ export default {
             }]);
           return false;
         });
-        var buttons = $("<div class='mt-3 mb-2'></div>");
+        var buttons = $("<div class='mt-3 mb-2 float-right'></div>");
         if (_this.context.tags.includes("noAI")) {
           $(plusBlank).appendTo($(buttons));
         }
