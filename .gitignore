@@ -9,3 +9,4 @@ node_modules
 webpack.config.idea.js
 .DS_Store
 __pycache__/main.cpython-312.pyc
+credentials.json
