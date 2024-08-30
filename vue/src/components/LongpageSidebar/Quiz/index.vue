@@ -675,7 +675,8 @@ export default {
 
         if ($("#question").children().length > 0) {
           $("#quiz-placeholder").hide();
-          $("#editButtons").show(); 
+          $("#editButtons").show();           
+          $("#quickEditQuestion").removeClass("disabled");
           $("#carousel").show();
           $("#question .carousel-item").removeClass("active");
           $("#question .carousel-item:first").addClass("active");
@@ -816,7 +817,8 @@ export default {
           $("#carousel").carousel($("#question").children().length - 1);
           setTimeout(function () {
             $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
-            if(openEditMode) {
+            if (openEditMode) {
+              $("#quickEditQuestion").removeClass("disabled");
               $("#quickEditQuestion").click();
             }
           }, 1000);
@@ -1131,10 +1133,10 @@ export default {
         return result;
       }
 
-      $(document).on("click", "#quickEditQuestion", function () {
+      $(document).on("click", "#quickEditQuestion", function (ev) {
         var activeIframe = $("#question .carousel-item.active iframe");
         let questionid = $(activeIframe).attr("data-questionid");
-        if (questionid == undefined) {
+        if (questionid == undefined || ($(this).hasClass("disabled"))) {
           return;
         }
 
@@ -1301,6 +1303,7 @@ export default {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
                   removeModalWait(__this);
+                  $("#quickEditQuestion").removeClass("disabled");
                   $("#quickEditQuestion").click();
                   addToast("Distraktor wurde hinzugefügt.");
                 });
@@ -1346,6 +1349,7 @@ export default {
               done: function (data) {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
+                  $("#quickEditQuestion").removeClass("disabled");
                   $("#quickEditQuestion").click();
                   removeModalWait(__this);
                   addToast("Text wurde umformuliert.");
@@ -1416,6 +1420,14 @@ export default {
       $("#carousel").on("slide.bs.carousel", function (ev) {
         var iframe = $(ev.relatedTarget).find("iframe");
         changeLockButton(!($(iframe).attr("data-tags") && $(iframe).attr("data-tags").includes("neu")));
+        //wenn im Editiermodus
+        if ($(iframe).contents().find(".que .answer .flex-fill").attr("contenteditable") == "true")
+        {
+          $("#quickEditQuestion").addClass("disabled");
+        }
+        else {
+          $("#quickEditQuestion").removeClass("disabled");
+        }
       });
 
       $("#carousel").on("slid.bs.carousel", function (ev) {
@@ -1521,7 +1533,7 @@ export default {
         {
           addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.  Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-          addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+          addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Mit einem Klick auf den Editier-Button gelangen Sie in den Bearbeitungsmodus. Eine Blanko-Aufgabe startet direkt im Bearbeitungsmodus. Sie können also direkt weiter klicken.');
           addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Ändern Sie den Text einer Aufgabe, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
@@ -1539,6 +1551,7 @@ export default {
           addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren. Klicken Sie auf den Editier-Button, um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
           addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor mit KI generieren', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor mit KI generieren" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
+          addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.', ".toast-body:contains('Aufgabe wurde entfernt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }        
 

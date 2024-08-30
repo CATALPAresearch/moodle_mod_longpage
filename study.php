@@ -14,21 +14,21 @@ function generateRandomString($length = 10) {
     return $randomString;
 }
 
-require_logout();
+if(isloggedin()) {
+    require_logout();
+}
 
 $string = generateRandomString();
 $name = $string;
 $password= $string;
 
-//print($name);
+
 $user = create_user_record($name, $password);
-//print_r($user);
+
 print($user->username);
 print($user->password);
 $reason = null;
-//$user = authenticate_user_login($user->username, $user->password, false, $reason);
-//print_r($user);
-//print_r($reason);
+
 complete_user_login($user);
 
 $user->firstname = "Proband";
