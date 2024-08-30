@@ -18,198 +18,136 @@ const MOODLE_URL = "https://aple.moodle.staging.fernuni-hagen.de/";
 
 $longpagetext1 = "<p><em>Bitte legen Sie mindestens fünf Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
 $longpagetext2 = "<p><em>Bitte legen Sie mindestens fünf Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
-$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p><h3>Aufbau und Änderung von Gewohnheiten</h3>
-<p>Es lohnt sich, bereits <em>früh </em>im
-    Studium förderliche Lern- und Arbeitsroutinen zu etablieren. Denn der
-    Aufbau neuer (guter) Gewohnheiten ist deutlich einfacher als
-    der Abbau bereits bestehender (schlechter) Gewohnheiten. Gute
-    Gewohnheiten
-    sind natürlich nicht nur im Studium hilfreich, sondern auch in allen
-    anderen
-    Lebensbereichen. Wählen Sie Ihre neuen Gewohnheiten jedoch mit
-    Bedacht aus.
-    Gelingt der Gewohnheitsaufbau, lässt sich die Gewohnheit nicht mehr
-    einfach
-    so „löschen“.</p>
-<h4>Erwünschte Gewohnheiten aufbauen</h4>
-<p>Eine neue Gewohnheit aufzubauen ist
-    wie einen <em>Trampelpfad </em>anzulegen:
-    Wenn Sie einmal durch eine Wiese mit hohem Gras laufen, stellen sich
-    die Grashalme sofort wieder auf. Wenn Sie jedoch immer und immer wieder
-    denselben Weg durch
-    das hohe Gras laufen, entsteht
-    mit der Zeit ein Pfad,
-    der auch nicht
-    mehr so schnell zuwächst. Wenn Sie eine neue Gewohnheit aufbauen,
-    legen Sie aktiv einen
-    solchen „Trampelpfad“ in Ihrem Gehirn an. Dazu brauchen Sie einen
-    Auslösereiz, eine Routine und eine Belohnung. Diese drei Komponenten
-    fügen
-    Sie zu einer Schleife
-    zusammen. Durch vielfache Wiederholung automatisieren
-    Sie die Schleife und das erwünschte Verhalten.</p>
-
-<p>Lassen Sie mich zur
-    Veranschaulichung ein bereits früher genanntes Beispiel wieder
-    aufgreifen: Sie möchten zukünftig abends eine
-    To-Do-Liste für den nächsten Tag schreiben (Routine). Als
-    Auslösereiz wählen
-    Sie das Beenden des Zähneputzens. Sobald Sie mit dem Putzen der
-    Zähne fertig
-    sind, setzen Sie sich an den Schreibtisch und notieren Ihre To-Dos.
-    Ihre Belohnung könnte
-    (zunächst) sein, dass Sie nach dem To-Do-Liste-Schreiben noch zehn
-    Minuten
-    ein spannendes Buch lesen. Diese Schleife durchlaufen Sie nun einige
-    Male ganz bewusst und immer in gleicher Form. Dadurch bringen Sie
-    Ihrem Gehirn bei,
-    Auslösereiz, Routine und Belohnung miteinander zu verknüpfen. Das
-    wird am Anfang vielleicht lästig sein – möglicherweise stellen
-    Sie aber auch bald fest, dass Ihnen das
-    To-Do-Liste-Schreiben sogar Spaß macht, Sie sich danach erleichtert
-    fühlen und besser schlafen können. In diesem Fall bräuchten Sie die
-    extrinsische Belohnung (Buch lesen)
-    vielleicht irgendwann gar nicht
-    mehr. Nach einiger Zeit werden
-    Sie merken, dass Sie sich nicht mehr bewusst
-    an Ihre neue Routine erinnern müssen, sondern sich automatisch nach
-    dem
-    Zähneputzen hinsetzen und Ihre To-Dos notieren.</p>
-
-<p>In Bezug auf die einzelnen Komponenten der
-    Gewohnheitsschleife gilt es Folgendes zu beachten:<br>
-
-    ▸ <em>Auslösereiz</em>: Der
-    Auslösereiz sollte auffällig-markant sein, sowie häufig und regelmäßig
-    auftreten. Fast alle Auslösereize unserer täglichen Gewohnheiten stammen aus
-    einer der folgenden fünf Kategorien:
-    <br>
-    ▸ Standorte oder Umgebungen (z. B. Schreibtisch, Keller, Hörsaal)<br>▸ Uhr- oder Tageszeiten (z. B. 8.00 Uhr, mittags, nach dem Abendessen)<br>▸ Emotionaler Zustand
-    (z. B. Ärger,
-    Freude, Langeweile)<br>▸ Andere Menschen (z. B. Nachbar/-in, Partner/-in, Lerngruppe)<br>▸ Unmittelbar vorangehende Handlungen (z. B. duschen, Kaffee kochen, PC anschalten)
-    <br><br>
-    Ereignisse eignen sich dabei besser als genaue Uhrzeiten.
-    Die neue Routine kann zudem
-    in einen bereits
-    etablierten Ablauf (z. B. zwischen Zähneputzen und ins Bett gehen)
-    „eingeklemmt“ oder daran angehängt werden. Häufig
-    stoßen nach einiger
-    Zeit nicht mehr nur die spezifischen Auslösereize die Routine an (z.
-    B. ein
-    bestimmter Schreibtisch),
-    sondern auch verwandte Reize (z. B.
-    ein beliebiger Schreibtisch). Der
-    Einsatz von Erinnerungen (z. B.
-    Haftnotiz „To-Do-Liste!“ am Badspiegel) kann beim Gewohnheitsaufbau ebenfalls
-    helfen.
+$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p><h4>Parzival</h4>
+<p><b>Parzival</b> ist ein Versroman der mittelhochdeutschen höfischen Literatur von Wolfram von Eschenbach, der zwischen 1200 und 1210 entstand. Das Werk umfasst etwa 25.000 paarweise gereimte Verse und wird in den modernen Ausgaben in 16 Bücher gegliedert.
+<br>
+In kunstvoll verzahnten Handlungssträngen einer Doppelromanstruktur werden die Aventiuren
+    erzählt, die abenteuerlichen Geschicke zweier ritterlicher Hauptfiguren
+    – einerseits die Entwicklung des Titelhelden Parzival (von
+    altfranzösisch <i>Perceval</i>) vom Unwissenden im Narrenkleid zum Gralskönig, andererseits die gefahrvollen Bewährungsproben für den Artusritter Gawain.
+</p>
+<p>Thematisch gehört der Roman zur sogenannten Artusepik, wobei die Aufnahme Parzivals in die Tafelrunde des legendären britischen Königs nur als Durchgangsstation der Gralssuche erscheint, doch dann zur Voraussetzung seiner Bestimmung als Gralskönig wird.
+<br>
+Der Stoff wurde literarisch, aber auch in der Bildenden Kunst und
+    in der Musik vielfach bearbeitet; die nachhaltigste Wirkung erreichte Richard Wagners Adaption für das Musiktheater mit seinem <i>Bühnenweihfestspiel</i> <i>Parsifal</i> (Uraufführung 1882).
+</p>
+<h4>Thema</h4>
+<p>Der Parzival-Stoff behandelt komplexe
+    Themengebiete. Es geht um das Verhältnis von Gesellschaft und Weltferne,
+    die Gegensätze zwischen Männerwelt und Frauenwelt, die Spannung
+    zwischen der höfischen Gesellschaft und der spirituellen Gemeinschaft
+    der Gralshüter, um Schuld im existenziellen Sinn, Minne und Sexualität,
+    Erlösungs-, Heils-, Heilungs- und Paradiesesphantasien. Aufgegriffen
+    wird nach psychologischem bzw. psychoanalytischem Fokus die Entwicklung des Protagonisten von seiner Selbstbezogenheit zur Empathiefähigkeit und zum Ausbruch aus der engen Dyade
+    mit Parzivals Mutter Herzeloyde. Parzival ist zunächst ein Ignorant und
+    Sünder, der im Handlungsverlauf zu Erkenntnis und Läuterung gelangt und
+    bei seinem zweiten Besuch auf der Gralsburg Munsalvaesche den Makel des
+    Frageversäumnisses (der mitleidbezeugenden Frage nach dem Leiden seines
+    Onkels, des Gralskönigs) wiedergutmachen kann. Parzival ist die Erlösergestalt im Gralsmythos.</p>
+<h4>Literaturgeschichtliche Einordnung</h4>
+<h5>Geschichte und Struktur</h5>
+<p>Unter den Versromanen der mittelhochdeutschen Literatur ragt Wolframs <i>wilde maere</i> – von Gottfried von Straßburg im „Literaturexkurs“ des Tristan polemisch abwertend so genannt – in mehrfacher Hinsicht heraus:
+<ul>
+    <li>Mit seiner komplexen Sinnstruktur und der aufwendigen erzählerischen Komposition ist der <i>Parzival</i> von vornherein keine „leichte Lektüre“; dennoch kann dem Werk mit über 80 überlieferten Textzeugnissen eine einzigartige Wirkungsgeschichte schon im Mittelalter nachgesagt werden. Joachim Bumke (siehe unten: <i>Literatur</i>)
+        spricht von einer „literarischen Sensation“, die das Werk gewesen sein
+        müsse, so häufig zitiert und kopiert wie kein anderes im 13.
+        Jahrhundert.</li>
+</ul>
+</p>
+<p>
+<ul>
+    <li>Die Einteilung in 16 Bücher und 827 Abschnitte zu 30 Versen ist der ersten kritischen Edition Karl Lachmanns (1793–1851) von 1833 zu verdanken. Diese Edition ist bis in die Gegenwart gültig und unersetzt geblieben. Zuvor hatte Christoph Heinrich Myller, ein Schüler Johann Jacob Bodmers, einen Editionsversuch unternommen. Ludwig Tiecks Vorhaben von 1801, den <i>Parzival</i> Wolframs zu edieren, wurde nicht verwirklicht.</li>
+</ul>
+</p>
+<p>
+<ul>
+    <li>Wolfram verarbeitet alle geläufigen Problemstellungen seiner literarischen Epoche (vor allem Minne-Problematik, Aventiure-Forderungen, Geeignetsein zum Herrscher, religiöse Determiniertheit)
+        – teilweise kritisch ironisierend, teilweise für seine Zeit neuartig
+        zuspitzend; dem Roman kommt damit exemplarische Bedeutung für die
+        Themenkomplexe der höfischen Literatur insgesamt zu.</li>
+</ul>
+</p>
+<p>
+<ul>
+    <li>Der Autor verfolgt parallel zum Hauptgeschehen um Parzival eine
+        Vielzahl von weiteren Handlungssträngen. In immer neuen „Würfelwürfen“ (<i>schanzen</i>, Parz. 2,13 – Metapher Wolframs im Prolog des <i>Parzival</i>
+        in Bezug auf sein eigenes narratives Verfahren) spielt er die
+        politischen, gesellschaftlichen und religiösen Probleme, vor die sich
+        Parzival gestellt sieht, mit anderen Protagonisten durch und entfaltet
+        die Romanhandlung so zu einer umfassenden Anthropologie.</li>
+</ul>
+</p>
+<p>Wolfram selbst war sich bewusst, dass seine oft sprunghafte,
+    bildreich assoziierende Erzählweise neu und ungewöhnlich war; er
+    vergleicht sie mit dem „Hakenschlagen eines Hasen auf der Flucht vor
+    Ignoranten“ (<i>tumben liuten</i>, Parz. 1,15 ff) und betont damit,
+    wiederum gegenüber Gottfried, der dieselbe Metapher spöttisch abwertend
+    verwendet, selbstbewusst seine auffällige sprachkünstlerische Formkraft
+    und inhaltliche sowie thematische Phantasie. Auffällig und ungewöhnlich
+    für einen mittelalterlichen Autor ist das souveräne Neuarrangement des
+    vorgefundenen Stoffes durch Wolfram. Die Bearbeitung geschieht gemäß
+    eigenen literarischen Ideen und Intentionen.
+</p>
+<p>Der <i>Parzival</i> folgt einer Doppelromanstruktur mit einem
+    langen Prolog. Nach den ersten beiden Büchern, die sich der
+    Vorgeschichte der Haupthandlung widmen, also den Abenteuern von
+    Gahmuret, Parzivals Vater, beginnt Wolfram von der Kindheit seines
+    Protagonisten zu erzählen. Es folgt später der Wechsel zur
+    Gawan-Handlung, die durch den Besuch Parzivals beim Einsiedler
+    Trevrizent unterbrochen und anschließend wieder aufgenommen wird. Der
+    Inhalt der beiden letzten Bücher ist Parzival gewidmet.
 </p>
 
-<p>▸ <em>Routine: </em>Zunächst sollte eine einfache, gut umsetzbare Routine ausgewählt werden,
-    die man stets in gleicher
-    Form durchführen kann. Variation sollte vor allem am Anfang vermieden werden –
-    sie mag zwar vor Langeweile schützen, ist aber anstrengend und inkompatibel
-    mit der Entwicklung von Automatizität. Bei komplexeren Routinen (z. B. eine Runde durch die Stadt joggen)
-    kann man dafür sorgen, dass zumindest die ersten
-    Handlungsschritte immer relativ gleichförmig ablaufen (z. B. Laufschuhe anziehen – Schlüsselband um
-    den Hals hängen – Haus verlassen).</p>
-<p>▸ <em>Belohnung</em>: Die Belohnung muss unmittelbar auf die Ausführung der Routine folgen
-    und eine „echte“
-    Belohnung sein – also subjektiv als angenehm und befriedigend wahrgenommen werden.
-    Optimalerweise werden diese positiven Gefühle durch die Aktivität selbst
-    hervorgerufen, z. B. weil die Ausführung Spaß macht oder man
-    stolz darauf ist, es geschafft zu haben (= intrinsischer Anreiz). Man kann aber
-    zunächst auch mit einem extrinsischen Anreiz nachhelfen. Beispielsweise tragen positive Rückmeldungen durch andere („Super,
-    wie Du das durchziehst!“) dazu bei, dass die (intrinsische) Motivation beim
-    Aufbau neuer Gewohnheiten länger aufrechterhalten werden kann. Materielle
-    Belohnungen oder Lob können den Gewohnheitsaufbau also unterstützen –
-    interessanterweise vor allem dann, wenn ihr Auftreten unerwartet ist (z. B. wenn man unerwartet von einem/-r
-    Dozent/-in gelobt wird). Extrinsische Anreize sollten jedoch nicht zum
-    eigentlichen Ziel des Verhaltens werden. Das eigentliche Ziel ist und bleibt
-    das Verhalten selbst. Zudem sollte man sich nur belohnen, wenn man die Routine
-    auch wirklich ausgeführt hat. Die Belohnung darf also nichts sein, das
-    unabhängig vom Ausführen oder Nichtausführen der Routine sowieso auftreten
-    wird (z. B. Abendessen).
+<div>
+    <h4><span></span>Wolframs <i>Parzival</i> und Chrétiens <i>Perceval</i></h4>
+</div>
+<p>Hauptquelle des <i>Parzival</i> ist der unvollendete Versroman <i>Perceval le Gallois ou le conte du Graal/Li contes del Graal</i> von Chrétien de Troyes,
+    entstanden um 1180 und 1190. Wolfram selbst distanziert sich im Epilog
+    von Chrétien und nennt mehrfach das Werk eines „Kyot“ als Vorlage, das
+    er mit einer abenteuerlichen Entstehungsgeschichte versieht. Da aber ein
+    solcher „Kyot“ außerhalb von Wolframs Dichtung nicht identifiziert
+    werden konnte, werden diese Angaben in der Forschung als Quellenfiktion
+    und literarische Koketterie des Autors eingeordnet.
 </p>
-
-<p>Der (willentlich angestoßene) Gewohnheitsaufbau umfasst drei Phasen:<br>
-    ▸ In der <strong>Initiierungsphase </strong>wird eine bewusste
-    Entscheidung getroffen, welche neue
-    Gewohnheit aufgebaut werden soll, sowie Auslösereiz,
-    Routine und Belohnung bestimmt.<br>
-    ▸ Darauf folgt die <strong>Lernphase</strong>. Durch wiederholtes
-    Durchlaufen der Gewohnheitsschleife wird die Gewohnheit immer regelmäßiger und
-    automatischer ausgeführt, d. h. die
-    Gewohnheitsstärke nimmt kontinuierlich zu.<br>
-    ▸ In der <strong>Stabilitätsphase </strong>erreicht
-    die Gewohnheitsstärke ein Plateau.
-    Man muss sich nicht mehr aktiv ans Handeln erinnern, die Routine hat
-    sich
-    verselbstständigt und wird mit minimaler Anstrengung weiter
-    aufrechterhalten. Dass diese Phase erreicht ist, kann man auch daran
-    erkennen,
-    dass einem etwas fehlt, wenn man die Routine einmal nicht ausführt.</p>
-
-
-<p>Der Aufbau einer neuen Gewohnheit dauert im Mittel <em>66 Tage</em>,
-    also knapp zehn Wochen. Dies
-    geht aus einer häufig zitierten Studie zum Aufbau
-    gesundheitsförderlicher Routinen
-    hervor.
-    Die Spannweite (also die
-    Differenz zwischen kleinstem und größtem Messwert) war in dieser
-    Studie
-    allerdings sehr groß, mit einem Minimum von 18 und einem Maximum von
-    254 Tagen.
-    Diese doch sehr unterschiedlich lange Dauer des Gewohnheitsaufbaus
-    kann auf persönliche
-    Merkmale der Studienteilnehmer/-innen, aber auch auf Unterschiede in
-    der
-    Komplexität der Routinen zurückzuführen sein – eine simple
-    Gewohnheit
-    aufzubauen (z. B. nach dem morgendlichen Aufstehen ein Glas
-    Wasser zu trinken) benötigt weniger Zeit als eine komplexe
-    Gewohnheit (z. B. 15 Minuten Bewegung am Tag). Darüber
-    hinaus findet sich nicht immer sofort ein geeigneter
-    Auslösereiz/-kontext. Je unkomplizierter sich das erwünschte Verhalten
-    in die bereits bestehenden täglichen Abläufe
-    integrieren und regelmäßig wiederholen lässt, desto größer ist die
-    Chance, dass
-    es zur Routine wird.<br>
-
-    Diese Befunde liefern auch eine plausible
-    Erklärung für das oft klägliche Scheitern vieler <em>Neujahrsvorsätze </em>innerhalb
-    der ersten drei Monate: Man startet
-    voller Elan und Enthusiasmus ins neue Jahr: Endlich wird alles
-    anders! Ab
-    sofort bin ich ein neuer Mensch! Nach ein paar Wochen (oder auch
-    schon Tagen) lässt dieser Anfangsenthusiasmus dann nach – ohne dass sich
-    bereits tiefgreifende
-    Veränderungen eingestellt hätten. Frustriert wirft man das Handtuch
-    und
-    resümiert: „Neujahrsvorsätze funktionieren einfach nicht!“ Die
-    Erkenntnis, dass
-    sich spürbare Veränderungen oft erst nach vielen Wochen oder sogar
-    Monaten
-    einstellen, ermöglicht die Anpassung solch überzogener Vorstellungen
-    und eine
-    realistischere Planung.<br>
-
-    Ermutigend an der Studie ist zudem der
-    Befund, dass einzelne <strong>Auslassungen </strong>der
-    neuen Routine („verpasste Gelegenheiten“) den Gewohnheitsaufbau nicht entscheidend verlangsamen. Es bedeutet
-    also keinen Rückschlag, wenn man ein- oder zweimal aussetzt. Zwar ist es
-    besser, insbesondere am Anfang diszipliniert zu sein und die Routine möglichst
-    zuverlässig auszuführen. Bei so vielen kleinen Schritten fällt ein Schritt mehr oder weniger jedoch
-    nicht so sehr ins Gewicht.
-    Die Überzeugung, dass man
-    den Aufbau einer neuen Routine
-    nach einmaligem Aussetzen
-    eigentlich auch gleich wieder bleiben lassen könne, „weil es ja jetzt
-    sowieso keinen Sinn mehr hat“, wäre damit als Rationalisierung entlarvt. Und
-    wenn es sich um eine Gewohnheit
-    handelt, die man dauerhaft etablieren möchte (z. B. für viele Jahre oder Jahrzehnte), ist es vielleicht auch gar
-    nicht so wichtig, ob es nun ein paar
-    Tage kürzer oder länger gedauert hat, sie aufzubauen.</p>
+<p>Die Handlung des <i>Parzival</i> ist gegenüber der Vorlage
+    umfangreich erweitert, insbesondere durch die Rahmung mit der
+    einleitenden Vorgeschichte um Parzivals Vater Gahmuret und den abschließenden Ereignissen im Zusammentreffen Parzivals mit seinem Halbbruder Feirefiz.
+    Die Einbettung in die Familiengeschichte dient – über die pure Lust am
+    Fabulieren hinaus – der verstärkten Kausalmotivation der Handlung.
+    Wolfram kommt auf fast 24.900 Verse gegenüber den 9.432 Versen bei
+    Chrétien.
+</p>
+<p>In jenen Passagen, in denen Wolfram Chrétien inhaltlich folgt
+    (Buch III bis Buch XIII), geht er wesentlich freier und selbstbewusster
+    an die Nacherzählung als andere zeitgenössische Autoren (etwa Hartmann von Aue, dessen Artus-Romane Erec und Iwein
+    Bearbeitungen von Chrétiens Romanen sind). Der Textumfang der Vorlage
+    erfuhr eine Verdoppelung auf etwa 18.000 Verse, weil Wolfram seine
+    Protagonisten wesentlich ausführlicher ethische und religiöse
+    Fragestellungen reflektieren lässt und sich selbst als reflektierender
+    Erzähler zu Vorgängen der fiktiven Handlung äußert. Er bindet die
+    Figuren in ein Netz von Verwandtschaftsbeziehungen ein und weist ihnen Namen zu.
+</p>
+<p>Siehe auch die kymrische Sage <i>Peredur fab Efrawg</i>
+    („Peredur, Sohn des Efrawg“), die ebenfalls dieses Thema behandelt. Die
+    wechselseitige Beeinflussung konnte noch nicht restlos geklärt werden.</p>
+<h4>Handlung – Überblick</h4>
+<p>Parzivals Erziehung zum Ritter
+    und seine Suche nach dem Gral ist zwar –&nbsp;wie der Erzähler mehrfach
+    betont&nbsp;– Hauptthema der Handlung, fast gleichwertig aber verfolgt
+    Wolfram kontrastierend die Ritterfahrt Gawans.
+    Während Gawan durchgängig als der geradezu vollkommene Ritter auftritt
+    und sich in zahlreichen Abenteuern immer erfolgreich bewährt, die
+    Schuldigen an Missständen der Weltordnung zur Verantwortung zu ziehen
+    und diese Ordnung zu restituieren, durchlebt Parzival neben Abenteuern
+    auch extreme persönliche Konfliktsituationen und wird –&nbsp;aus Unkenntnis
+    oder aufgrund von Fehlinterpretationen von Aussagen und Situationen&nbsp;–
+    immer wieder selbst schuldig.
+    Doch gerade er, der über lange Jahre hinweg die Folgen seines
+    Fehlverhaltens ertragen muss, erlangt am Ende die Gralsherrschaft.
+    Das Epos endet mit einem Ausblick auf die Geschichte von Parzivals Sohn Loherangrin (vgl. Wagners Lohengrin).
+</p>
+<p>Der folgende Überblick orientiert sich mit der Einteilung des Textes in sogenannte ‚Bücher‘ am etablierten Ordnungsprinzip Karl Lachmanns, des ersten ‚kritischen‘ Herausgebers des <i>Parzival</i>, auf dessen – mittlerweile allerdings überarbeitete – Edition die Forschung auch heute noch angewiesen ist.
+</p>
 ";
 
 list($cm, $course, $questionnaire) = questionnaire_get_standard_page_items(PRESURVEY_CM_ID);
@@ -367,7 +305,7 @@ function createlongpage($longpagename, $tags, $longpagetext, $sectionid, $availa
     return $matches[1];
 }
 
-//login();
+login();
 $id = createlongpage("1. Übungstext (ohne KI-Unterstützung)", ["noAI", "tour"], $GLOBALS['trainingtext'], 2, [
     "op" => "&",
     "c" => [
@@ -389,7 +327,7 @@ $id = createlongpage("2. Übungstext (mit KI-Unterstützung)", ["AI", "tour"], $
     "showc" => [false, false, false, false]
 ]);
 
-$id = createlongpage("1. Lehrtext (ohne KI-Unterstützung)", ["noAI"], $GLOBALS['longpagetext1'], 3, [
+$id = createlongpage("Ihr erster Lehrtext (ohne KI-Unterstützung)", ["noAI"], $GLOBALS['longpagetext1'], 3, [
     "op" => "&",
     "c" => [
         ["type" => "profile", "sf" => "idnumber", "op" => "isequalto", "v" => $USER->idnumber],
@@ -400,7 +338,7 @@ $id = createlongpage("1. Lehrtext (ohne KI-Unterstützung)", ["noAI"], $GLOBALS[
     "showc" => [false, false, false, false]
 ]);
 
-createlongpage("2. Lehrtext (mit KI-Unterstützung)", ["AI"], $GLOBALS['longpagetext2'], 3, [
+createlongpage("Ihr zweiter Lehrtext (mit KI-Unterstützung)", ["AI"], $GLOBALS['longpagetext2'], 3, [
     "op" => "&",
     "c" => [
         ["type" => "profile", "sf" => "idnumber", "op" => "isequalto", "v" => $USER->idnumber],

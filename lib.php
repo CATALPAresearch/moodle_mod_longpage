@@ -591,7 +591,7 @@ function longpage_grade_item_update($longpage, $grades=NULL) {
         require_once($CFG->libdir.'/gradelib.php');
     }
 
-    $params = array('itemname'=>$longpage->name, 'idnumber'=>$longpage->cmidnumber);
+    $params = array('itemname'=>$longpage->name);
 
     if($grades == NULL)
     {

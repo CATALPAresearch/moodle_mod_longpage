@@ -2092,7 +2092,7 @@ class mod_longpage_external extends external_api
 
     protected static function chat($systemContent, $userContent)
     {
-        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVkOTk1YTFhLWNjYzMtNDQ0NC1hNTZkLTUzZTQ2NGQ2ZDBkNyJ9.ZAya1xx03duqmAQmyJkyVnD6w2evmtAF9N3y8c9hRgI";
+        $token = "sk-e9cd0f26c3ab4a778ae4bf42199d4e85";
         $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
         $model = "mixtral:latest";
         $authorization = "Authorization: Bearer " . $token;
@@ -2125,7 +2125,7 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 2000);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 180);
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
             throw new Exception(curl_error($ch));
@@ -2137,8 +2137,7 @@ class mod_longpage_external extends external_api
             throw new Exception("Problem with AI model: '" . $res . "'");
         } 
 
-        $result->message->content = str_replace("'", "", $result->message->content);
-        $result->message->content = str_replace('"', "", $result->message->content);      
+        $result->message->content = str_replace(["'", '"'], "", $result->message->content);    
 
         return $result;
     }
@@ -2284,7 +2283,7 @@ class mod_longpage_external extends external_api
                     "~Wrong answer 3 " . 
                     //"#Feedback to wrong answer3 " .  
                     "}' " .
-                    "Do not forget any equal or tilde sign! ";   
+                    "Do not forget any equal or tilde sign! Only one correct answer is allowed! Question title and question text are mandatory and different from each other!";   
                     break;
                 case 'multiresponse':
                     $explanation = 
@@ -2359,6 +2358,7 @@ class mod_longpage_external extends external_api
                     if (!$created) {
                         throw new Exception("Question not created.");
                     }
+                    break;
                 }
                 catch (\Throwable $th) {
                     error_log("Create Question Error: " . $th->getMessage());
@@ -2636,7 +2636,7 @@ class mod_longpage_external extends external_api
 
     public static function export_questions($format)
     {
-        global $DB, $USER, $CFG;
+        global $DB, $USER, $CFG, $PAGE, $COURSE;
 
         $params = self::validate_parameters(
             self::export_questions_parameters(),
@@ -2650,6 +2650,7 @@ class mod_longpage_external extends external_api
         require_once($CFG->dirroot . '/question/format/xml/format.php');
         require_once($CFG->dirroot . '/question/format/gift/format.php');
         require_once($CFG->dirroot . '/question/format/aiken/format.php');
+        require_once($CFG->dirroot . '/report/embedquestion/lib.php');
 
         $classname = 'qformat_' . $format;
         if (!class_exists($classname)) {
@@ -2657,22 +2658,32 @@ class mod_longpage_external extends external_api
         }
 
         $qformat = new $classname();
+        $qformat->exportpreprocess();
+        $PAGE = new \moodle_page();
         $expout = "";
         foreach ($questions as $question) {
             try {
                 $qtype = $question->qtype;
-                $question = question_bank::load_question($question->id);
-                $question->qtype = $qtype;
-                if(!is_latest($question->version, $question->questionbankentryid)) {
-                    continue;
-                }
-                $expout .= $qformat->writequestion($question);
+                if($qtype == "multichoice") {
+                    $question = question_bank::load_question($question->id);
+                    if(count($question->answers) > 0 && is_latest($question->version, $question->questionbankentryid) && report_embedquestion_questions_in_use(array($question->id))) {
+                        $context = context::instance_by_id($question->contextid);
+                        $PAGE->set_context($context);
+                        $course = $DB->get_record('course', ['id' => $context->instanceid]);
+                        $qformat->setCourse($course);
+                        $qformat->category = $question->category;
+                        $question->qtype = $qtype;
+                        get_question_options($question);
+                        $question = json_decode(json_encode($question), false);
+                        $expout .= $qformat->writequestion($question)."\n";
+                    }   
+                }             
             } catch (Exception $e) {
                 continue;
             }            
         }
 
-        send_file($expout, 'questions.' . $format, 0, 0, true, true, $qformat->mime_type());
+        send_file($expout, 'questions.txt', 0, 0, true, true, $qformat->mime_type());
     }
 
     public static function export_questions_parameters()

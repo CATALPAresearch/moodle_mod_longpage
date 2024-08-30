@@ -14,6 +14,8 @@ function generateRandomString($length = 10) {
     return $randomString;
 }
 
+require_logout();
+
 $string = generateRandomString();
 $name = $string;
 $password= $string;

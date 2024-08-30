@@ -14,28 +14,28 @@
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
             <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> 
-          <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Frage bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
-          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Frage löschen <i class="fa fa-external-link fa-fw small" /> </a>
-          <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Fragensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
+          <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
+          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
+          <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
         </div> -->
       
       <div class="col-auto px-0 offset-md-1">
-        <a href="javascript:void(0)" id="total-reading-comprehension" title="Frage oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="total-reading-comprehension" title="Aufgabe oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="pinQuestion" title="Frage oben halten" data-toggle="tooltip"><i class="fa fa-thumb-tack fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="pinQuestion" title="Aufgabe oben halten" data-toggle="tooltip"><i class="fa fa-thumb-tack fa-fw fa-lg" /></a>
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="prevQuestion" title="Vorherige Frage" data-toggle="tooltip"><i class="fa fa-arrow-up fa-fw fa-lg" /></a> 
+        <a href="javascript:void(0)" id="prevQuestion" title="Vorherige Aufgabe" data-toggle="tooltip"><i class="fa fa-arrow-up fa-fw fa-lg" /></a> 
       </div>
       <div class="col-auto px-0">
-        <a href="javascript:void(0)" id="nextQuestion" title="Nächste Frage" data-toggle="tooltip"><i class="fa fa-arrow-down fa-fw fa-lg" /></a>
+        <a href="javascript:void(0)" id="nextQuestion" title="Nächste Aufgabe" data-toggle="tooltip"><i class="fa fa-arrow-down fa-fw fa-lg" /></a>
       </div>
     </div> 
-    <div id="editButtons" class="btn-group position-absolute position-right z-index-1 mr-5 mt-3" role="group" v-if="this.$store.state.UserModule.userCanMod"  style="display:none">
-      <a class='btn btn-secondary' id="quickEditQuestion" title='Frage direkt bearbeiten' href='javascript:void(0)'><i class='fa fa-edit' style='cursor:pointer;'></i></a>
-      <a class='btn btn-secondary' id="lockQuestion" title='Frage freigeben / sperren' href='javascript:void(0)'><i class='fa fa-unlock' style='cursor:pointer;'></i></a>
-      <a class='btn btn-secondary' id="removeQuestion" title='Einbettung entfernen' href='javascript:void(0)'><i class='fa fa-minus-square' style='cursor:pointer;'></i></a>
+    <div id="editButtons" class="btn-group position-absolute position-right z-index-1 mr-5 mt-3" role="group" v-if="this.$store.state.UserModule.userCanMod" style="display: none;">
+      <a class='btn btn-secondary' id="quickEditQuestion" title='Aufgabe direkt bearbeiten' href='javascript:void(0)'><i class='fa fa-edit' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary' id="lockQuestion" title='Aufgabe sperren' href='javascript:void(0)'><i class='fa fa-lock' style='cursor:pointer;'></i></a>
+      <a class='btn btn-secondary' id="removeQuestion" title='Einbettung entfernen' href='javascript:void(0)'><i class='fa fa-trash' style='cursor:pointer;'></i></a>
     </div>
     <hr class="my-3">    
     <p id="quiz-placeholder" class="p-3">Zu diesem Abschnitt gibt es keine Aufgaben.</p>
@@ -55,15 +55,15 @@
     <div id="embedQuestion">    
       <!-- TODO: v-if added for study, remove for production -->
       <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.tags.includes('AI')">
-        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Frage einbetten (Mit Markierung Frage eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
+        <i class="fa fa-plus fa-fw" title="Neue KI-generierte Aufgabe einbetten (Mit Markierung Aufgabe eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
       <!-- TODO: v-if added for study, remove for production -->
       <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.tags.includes('noAI')">
-        <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Frage einbetten" data-toggle="tooltip"/>
+        <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
       <!-- TODO: removed for study, add back in for production 
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
-        <i class="fa fa-plus-circle fa-fw" title="Vorhandene Frage einbetten" data-toggle="tooltip"/>
+        <i class="fa fa-plus-circle fa-fw" title="Vorhandene Aufgabe einbetten" data-toggle="tooltip"/>
       </a> -->
     </div>
     </template>
@@ -131,7 +131,16 @@
   width: 25px;
   filter: invert(100%);
   align-items: normal;
-  top: 200px;
+  top: 100px;
+}
+
+.carousel-control-prev
+{
+  left: -15px;
+}
+
+.carousel-control-next {
+  right: -10px;
 }
 
 .carousel-control-prev:focus, .carousel-control-next:focus
@@ -228,6 +237,22 @@ mark
   background-color: rgba(255, 230, 0, 0.6);
 }
 
+.driver-popover.driverjs-theme {
+  background-color: #ffffff;
+  color: #000;
+  border: 1px solid #000;
+}
+
+.driver-popover.driverjs-theme .driver-popover-next-btn {
+  text-align: center;
+  border: 1px solid #000;
+  text-shadow: none;
+  font-size: 14px;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+
+
 </style>
 <script>
 
@@ -307,9 +332,9 @@ export default {
                   }
                 });
 
-                $(iframe).attr("data-embedid", idFixed);
-                $(iframe).attr("data-questionid", entry["id"]);
-                $(iframe).attr("data-tags", tags);
+                $(iframe, "#question iframe#" + idFixed).attr("data-embedid", idFixed);
+                $(iframe, "#question iframe#" + idFixed).attr("data-questionid", entry["id"]);
+                $(iframe, "#question iframe#" + idFixed).attr("data-tags", tags);
               }
 
               var sum = 0;
@@ -342,10 +367,10 @@ export default {
               }
 
               if (rc <= 50) {
-                EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.QUIZ, count: repeat, title: "Ihr geschätztes Leseverständnis für die ganze Seite \nund " + repeat + " Fragen beträgt weniger als 50%." });
+                EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.QUIZ, count: repeat, title: "Ihr geschätztes Leseverständnis für die ganze Seite \nund " + repeat + " Aufgaben beträgt weniger als 50%." });
               }
 
-              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Fragen.").tooltip({ "placement": "top", "html": true, "title": "" }).attr("title", "");
+              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Aufgaben.").tooltip({ "placement": "top", "html": true, "title": "" }).attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr("class", "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25));
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
               if (successFunction)
@@ -539,8 +564,6 @@ export default {
               $(iframeCloned).attr("src", "");
               $(iframeCloned).appendTo(div);
 
-              let questionid = $(iframeCloned).attr("data-questionid");
-
               var obs = new IntersectionObserver((entries, o) => {
                 var spinner = `<div id="quiz-spinner" class="row no-gutters vh-50">
               <div class="spinner-border m-auto" role="status">
@@ -551,9 +574,8 @@ export default {
                 entries.forEach((entry) => {
                   if (entry.isIntersecting) {
                     o.unobserve(entry.target);
-                    $("#question").css("opacity", 0.2);
-                    $("#quiz-spinner").remove();
-                    $(spinner).appendTo("#sidebar-tab-quiz");
+                    $(div).css("opacity", 0.2);
+                    $(spinner).appendTo(div);
                     $(entry.target).attr("src", src);
                   }
                 });
@@ -570,9 +592,12 @@ export default {
 
               $("#question iframe" + idFixed).on("load", function () {
                 removePin(true);
-
-                if(_this.$store.state.UserModule.userCanMod) {                  
+                if (_this.$store.state.UserModule.userCanMod) {   
+                  $(this).attr("data-questionid", $("#longpage-main " + idFixed).attr("data-questionid")); 
+                  $(this).attr("data-tags", $("#longpage-main " + idFixed).attr("data-tags"));     
+                  $("#editButtons").show();       
                   $("#question iframe" + idFixed).contents().find("body").attr("data-tags", $(this).attr("data-tags"));
+                  changeLockButton(!($(this).attr("data-tags") && $(this).attr("data-tags").includes("neu")));
                 }
 
                 var cssLink = document.createElement("link");
@@ -593,8 +618,11 @@ export default {
                     setTimeout(waitPending, 500, cnt + 1);
                   }
                   else {
-                    $("#quiz-spinner").remove();
-                    $("#question").css("opacity", 1);
+                    $(div).find("#quiz-spinner").remove();
+                    $(div).css("opacity", 1);
+                    if($(div).is(":visible")) {
+                      adjustCarouselControltoHeight();
+                    }
                   }
                 }
 
@@ -755,7 +783,7 @@ export default {
         observerStates = {};
       });
 
-      function embedIframeCode(iframecode, btn) {
+      function embedIframeCode(iframecode, btn, openEditMode = false) {
         if (iframecode == "error") {
           alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
           return;
@@ -788,6 +816,9 @@ export default {
           $("#carousel").carousel($("#question").children().length - 1);
           setTimeout(function () {
             $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
+            if(openEditMode) {
+              $("#quickEditQuestion").click();
+            }
           }, 1000);
         });
 
@@ -852,18 +883,24 @@ export default {
       });
 
       var modalAdded = false;
+      var modalInterval = null;
 
-      function addModalWait(message) {
+      function addModalWait(title, btn, waitingMessages = ["Bitte warten..."]) {
+        if(btn) {
+          $(btn).addClass("disabled");
+        }
+        var message = waitingMessages[0];
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
                       <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                         <div class="modal-content">
                           <div class="modal-header">
-                            <h5 class="modal-title" id="modal-wait-label">${message}</h5>
+                            <h5 class="modal-title" id="modal-wait-label">${title}</h5>
                           </div>
                           <div class="modal-body text-center">
                             <div class="spinner-border" role="status">                
                               <span class="sr-only">Bitte warten...</span>
                             </div>
+                            <div class="mt-3 mb-2 small message">${message}</span>                            
                           </div>
                       </div>
                     </div>`;
@@ -873,12 +910,25 @@ export default {
           if (modalAdded) {
             $(modal).modal({ backdrop: "static", keyboard: false });
           }
-        }, 500);        
+        }, 1000);
+        if (waitingMessages.length > 0) {
+          var i = 0;
+          modalInterval = setInterval(function () {
+            if (modalAdded) {
+              $("#modal-wait .modal-body .message").text(waitingMessages[i]);
+              i = (i + 1) % waitingMessages.length;
+            }
+          }, 5000);
+        }        
       }
 
-      function removeModalWait() {
+      function removeModalWait(btn) {
         modalAdded = false;
         $("#modal-wait").modal("hide").remove();
+        if(btn) {
+          $(btn).removeClass("disabled");
+        }
+        clearInterval(modalInterval);
       }
 
       function addToast(message) {
@@ -936,14 +986,15 @@ export default {
             selectedText = selection.getRangeAt(0).toString();
           }
         }
-        addModalWait("Frage wird generiert...");
+        var useAI = $(this).hasClass("embedNewAIQuestion") ? true : false;
+        addModalWait("Aufgabe wird generiert...", btn, ["Bitte warten...", "Das kann einen Moment dauern.", "Es werden mehrere Versionen erstellt, um die Qualität und Struktur der Aufgaben zu optimieren.", "Nach fünf erfolglosen Versuchen wird eine Fehlermeldung angezeigt. Versuchen Sie es in solchen Fällen bitte erneut."]);
         ajax.call([
           {
             methodname: "mod_longpage_create_question",
             args: {
               longpageid: _this.context.longpageid,
               position: $(btn).index(".embedQuestion"),
-              useAI: $(this).hasClass("embedNewAIQuestion") ? true : false,
+              useAI: useAI,
               existingQuestions: $(btn).parent().next().find(".filter_embedquestion-iframe").contents().find(".qtext").map(function () { return $(this).text(); }).get().join(", "),
               selectedText: selectedText,
               selectedParagraphs: $(".selected-paragraph .embedQuestion").map(function () { return $(this).index(".embedQuestion"); }).get().join(", "),
@@ -951,13 +1002,13 @@ export default {
             done: function (data) {
               let result = JSON.parse(data.response);
               removePin();
-              removeModalWait();
-              embedIframeCode(result["iframecode"], btn);
+              removeModalWait(btn);
+              embedIframeCode(result["iframecode"], btn, !useAI);
               console.log(result["log"]);
-              addToast("Frage wurde erstellt.");
+              addToast("Aufgabe wurde erstellt.");
             },
             fail: function (e) {
-              removeModalWait();
+              removeModalWait(btn);
               if(_this.context.isAdmin) {
                 alert(e.message);
               }
@@ -977,7 +1028,7 @@ export default {
         if (embedid == undefined) {
           return;
         }
-        addModalWait("Frage wird entfernt...");
+        addModalWait("Aufgabe wird entfernt...", btn);
         ajax.call([
           {
             methodname: "mod_longpage_remove_question",
@@ -1002,12 +1053,12 @@ export default {
               }
               get_reading_comprehension();
               observerCall();
-              removeModalWait();
-              addToast("Frage wurde entfernt.");
+              removeModalWait(btn);
+              addToast("Aufgabe wurde entfernt.");
             },
             fail: function (e) {
               console.error("fail", e);
-              removeModalWait();
+              removeModalWait(btn);
             },
           },
         ]);
@@ -1029,7 +1080,8 @@ export default {
           return;
         }
         var embedid = $(active).attr("id").replace("/", "\\/");
-        addModalWait("Frage wird geändert...");
+        addModalWait("Aufgabe wird geändert...", this);
+        var __this = this;
         ajax.call([
           {
             methodname: "mod_longpage_lock_question",
@@ -1043,11 +1095,13 @@ export default {
               var iframe = $("#longpage-content #" + embedid);
               if (!$(iframe).attr("data-tags").includes("neu")) {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags") + ($(iframe).attr("data-tags") != "" ? "," : "") + "neu");
-                addToast("Frage wurde gesperrt.");
+                changeLockButton(false);
+                addToast("Aufgabe wurde gesperrt.");
               }
               else {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags").replace("neu", "").replace(/,$/, ""));
-                addToast("Frage wurde freigegeben.");
+                changeLockButton(true);
+                addToast("Aufgabe wurde freigegeben.");
               }
 
               $("#longpage-content iframe#" + embedid + ", #question iframe#" + embedid).each(function (idx, ifr) {
@@ -1055,11 +1109,12 @@ export default {
               });
 
               reloadAllIframesInQuiz();
-              removeModalWait();
+              removeModalWait(__this);
+            
             },
             fail: function (e) {
               console.error("fail", e);
-              removeModalWait();
+              removeModalWait(__this);
             },
           },
         ]);
@@ -1084,6 +1139,7 @@ export default {
         }
 
         addPin();
+        $(this).addClass("disabled");
 
         var form = $(activeIframe).contents().find("form");
         var formData = new FormData(form[0]);
@@ -1140,6 +1196,7 @@ export default {
           if (e.key === "Escape") {
             reloadAllIframesInQuiz();
             addToast("Bearbeitung wurde abgebrochen.");
+            $("#quickEditQuestion").removeClass("disabled");
           }
         });
 
@@ -1155,7 +1212,7 @@ export default {
             questionid = $(activeIframe).attr("data-questionid");
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
-            addModalWait("Frage wird aktualisiert...");
+            addModalWait("Aufgabe wird aktualisiert...", this);
             ajax.call([
               {
                 methodname: "mod_longpage_edit_question",
@@ -1171,12 +1228,12 @@ export default {
                 done: function (data) {
                   $(__this).attr("data-text", text);                 
                   handleQuickEditQuestionResult(data);
-                  removeModalWait();
+                  removeModalWait(__this);
                   removePin(true);
                 },
                 fail: function (e) {
                   alert(e.message);
-                  removeModalWait();
+                  removeModalWait(__this);
                   removePin(true);
                 },
               },
@@ -1188,7 +1245,8 @@ export default {
         $(options).each(function (idx, option) {
           var removeOption = $("<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>");
           $(removeOption).on("click", function () {
-            addModalWait("Option wird gelöscht...");
+            addModalWait("Option wird gelöscht...", this);
+            var __this = this;
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
             ajax.call([
@@ -1206,11 +1264,11 @@ export default {
                 done: function (data) {
                   handleQuickEditQuestionResult(data);
                   $(option).parent().parent().remove();
-                  removeModalWait();
+                  removeModalWait(__this);
                 },
                 fail: function (e) {
                   alert(e.message);
-                  removeModalWait();
+                  removeModalWait(__this);
                 },
               }]);
             return false;
@@ -1221,12 +1279,12 @@ export default {
         var plusBlank = $("<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>");
         var plusAI = $("<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>");
         $(plusBlank).add(plusAI).on("click", function () {
-          addModalWait("Distraktor wird hinzugefügt...");
+          addModalWait("Distraktor wird hinzugefügt...", this);
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
           var paragraph = $(activeIframe).attr("data-paragraph");
           var text = $("#longpage-main #" + paragraph).text();          
-
+          var __this = this;
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1242,15 +1300,15 @@ export default {
               done: function (data) {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
+                  removeModalWait(__this);
                   $("#quickEditQuestion").click();
-                  removeModalWait();
                   addToast("Distraktor wurde hinzugefügt.");
                 });
                 reloadAllIframesInQuiz();
               },
               fail: function (e) {
                 alert(e.message);
-                removeModalWait();
+                removeModalWait(__this);
               },
             }]);
           return false;
@@ -1271,7 +1329,8 @@ export default {
           var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
-          addModalWait("Text wird umformuliert...");
+          addModalWait("Text wird umformuliert...", this);
+          var __this = this;
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1288,14 +1347,14 @@ export default {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
                   $("#quickEditQuestion").click();
-                  removeModalWait();
+                  removeModalWait(__this);
                   addToast("Text wurde umformuliert.");
                 });
                 reloadAllIframesInQuiz();
               },
               fail: function (e) {
                 alert(e.message);
-                removeModalWait();
+                removeModalWait(__this);
               },
             },
           ]);
@@ -1316,6 +1375,7 @@ export default {
         var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
         $(quitButton).on("click", function (e) {
           e.preventDefault();
+          $("#quickEditQuestion").removeClass("disabled");
           reloadAllIframesInQuiz();
           addToast("Bearbeitung beendet.");
         });
@@ -1353,6 +1413,27 @@ export default {
 
       $("#carousel").parent().removeClass("overflow-y-auto").css("overflow-y", "hidden");
 
+      $("#carousel").on("slide.bs.carousel", function (ev) {
+        var iframe = $(ev.relatedTarget).find("iframe");
+        changeLockButton(!($(iframe).attr("data-tags") && $(iframe).attr("data-tags").includes("neu")));
+      });
+
+      $("#carousel").on("slid.bs.carousel", function (ev) {
+        var iframe = $(ev.relatedTarget).find("iframe");
+        adjustCarouselControltoHeight(iframe);
+      });
+
+      function adjustCarouselControltoHeight(iframe = null) {
+        if (iframe == null) {
+          iframe = $("#question .carousel-item.active iframe");
+        }
+        var top = $(iframe).contents().find(".que").height() / 2;
+        if (top >= 50) {
+          $(".carousel-control-prev, .carousel-control-next").css("top", top);
+        }
+      }
+      
+
       $(document).on("click", ".reading-comprehension", function () {
         _this.toggleTab();
         $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index())
@@ -1372,6 +1453,18 @@ export default {
         };
         log("moved", logentry);
       });
+
+      function changeLockButton(lock)
+      {
+        if (lock) {
+          $("#lockQuestion").find("i").removeClass("fa-lock").addClass("fa-unlock");
+          $("#lockQuestion").attr("title", "Aufgabe freigeben");
+        }
+        else {
+          $("#lockQuestion").find("i").removeClass("fa-unlock").addClass("fa-lock");
+          $("#lockQuestion").attr("title", "Aufgabe sperren");
+        }
+      }
 
       if(_this.context.tags.includes('tour')) {
       
@@ -1426,25 +1519,25 @@ export default {
         var steps = [];
         if (_this.context.tags.includes("noAI"))
         {
-          addStep(steps, null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-          addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
-          addStep(steps, "#longpage-sidebar", 'Frage bearbeiten', 'Ändern Sie den Text einer Frage, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.  Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
+          addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Klicken Sie auf den Editier-Button, um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+          addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Ändern Sie den Text einer Aufgabe, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
           addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
-          addStep(steps, "#lockQuestion", 'Frage freigeben / sperren', 'Klicken Sie auf den Button "Frage freigeben / sperren", um die Frage freizugeben.', ".toast-body:contains('Frage wurde freigegeben.')");
-          addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Frage zu entfernen.', ".toast-body:contains('Frage wurde entfernt.')");
+          addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben / sperren", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
+          addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.', ".toast-body:contains('Aufgabe wurde entfernt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }
         else if (_this.context.tags.includes("AI"))
         {
-          addStep(steps, null, 'Willkommen!', 'Warten Sie einen Moment, bis die Seite geladen hat und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-content', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Frage generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", () => $("#longpage-main").scrollTop(0), 'right', 'center');
-          addStep(steps, '#longpage-content', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Frage festzulegen.', () => window.getSelection().toString() !== "", () => $("#longpage-main").scrollTop(0), 'right', 'center');
-          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Frage hinzuzufügen. Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Frage generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", () => $("#longpage-main").scrollTop(0), 'right', 'center');
-          addStep(steps, '#quickEditQuestion', 'Frage bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Frage mit KI zu generieren. Klicken Sie auf den Editier-Button, um eine Frage zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
-          addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Frage oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden. Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-content', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#longpage-content', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen.', () => window.getSelection().toString() !== "", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen. Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren. Klicken Sie auf den Editier-Button, um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
+          addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor mit KI generieren', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor mit KI generieren" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }        
@@ -1463,6 +1556,7 @@ export default {
           showButtons: showButtons,
           steps: steps,
           smoothScroll: true,
+          popoverClass: 'driverjs-theme'
         });
       
         driverObj.drive();
