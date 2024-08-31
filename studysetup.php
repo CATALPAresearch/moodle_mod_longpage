@@ -11,7 +11,7 @@ const ENROL_ID = 7;
 const MODULE_ID = 21;
 const PRESURVEY_CM_ID = 86;//317;//296; // 86;
 const ANSWER1_ID = 0;
-const ANSWER2_ID = 1;
+const ANSWER2_ID = 2;
 const SECONDSTEP_CM_ID = 136;
 const THIRDSTEP_CM_ID = 156;
 const MOODLE_URL = "https://aple.moodle.staging.fernuni-hagen.de/";
@@ -141,7 +141,7 @@ function createlongpage($longpagename, $tags, $longpagetext, $sectionid, $availa
     return $matches[1];
 }
 
-login();
+//login();
 // $id = createlongpage("1. Übungstext (ohne KI-Unterstützung)", ["noAI", "tour"], $GLOBALS['trainingtext'], 2, [
 //     "op" => "&",
 //     "c" => [

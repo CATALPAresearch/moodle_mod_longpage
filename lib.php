@@ -86,6 +86,79 @@ function longpage_get_post_actions() {
 }
 
 /**
+ * Sanitize the HTML content of a longpage by wrapping all tags on the top level with a p tag.
+ * @param string $content The HTML content to sanitize
+ * @return string The sanitized HTML content
+ */
+function longpage_sanitize_html($content) {
+    // Use DOMDocument to parse and manipulate the HTML
+    $dom = new DOMDocument('UTF-8');   
+    $dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS);
+
+    $xpath = new DOMXPath($dom);
+    $nodes = $xpath->query('//body/text()');
+
+    // Schleife durch alle gefundenen Texte
+    foreach ($nodes as $node) {
+        // Trim, um unnötige Leerzeichen oder Zeilenumbrüche zu entfernen
+        $text = trim($node->nodeValue);
+        if (!empty($text)) {
+            // Erstelle ein neues <p>-Element und füge den Text hinzu
+            $p = $dom->createElement('p', $text);
+            
+            // Ersetze den Textknoten durch das neue <p>-Element
+            $node->parentNode->replaceChild($p, $node);
+        }
+    } 
+
+    // Get all top-level elements which are not div or h tags
+    $elements = $dom->getElementsByTagName('*');
+
+    $topLevelElements = [];
+    $toRemove = [];
+    foreach ($elements as $element) {
+        // Entferne alle non-visible whitespace characters einschließlich &nbsp;
+        $textContent = $element->textContent;        
+        // Normalisieren von Whitespace-Zeichen, einschließlich &nbsp; und non-breaking spaces
+        $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);        
+        // Überprüfen, ob der Inhalt nach der Normalisierung leer ist
+        if ($normalizedText === '') {        
+            $toRemove[] = $element;        
+        } else
+        if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+            $topLevelElements[] = $element;
+        }
+    }
+
+    foreach ($toRemove as $emptyP) {
+        $emptyP->parentNode->removeChild($emptyP);
+    }
+
+    //if all top-level elements are p or h tags, return the content as is
+    $allPTags = true;
+    foreach ($topLevelElements as $element) {
+        if (!in_array($element->nodeName, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+            $allPTags = false;
+            break;
+        }
+    }
+    
+    if (!$allPTags) {
+        // Wrap each top-level element with a div tag
+        foreach ($topLevelElements as $element) {
+            $divTag = $dom->createElement('div');
+            $element->parentNode->insertBefore($divTag, $element);
+            $divTag->appendChild($element);
+        }
+    }
+    
+    // Save the modified HTML back to a string
+    $sanitizedContent = $dom->saveHTML($dom->documentElement);
+
+    return $sanitizedContent;
+}
+
+/**
  * Add page instance.
  * @param stdClass $data
  * @param mod_longpage_mod_form $mform
@@ -123,6 +196,7 @@ function longpage_add_instance($data, $mform = null) {
     if ($mform and !empty($data->longpage['itemid'])) {
         $draftitemid = $data->longpage['itemid'];
         $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
@@ -176,6 +250,7 @@ function longpage_update_instance($data, $mform) {
     $context = context_module::instance($cmid);
     if ($draftitemid) {
         $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
