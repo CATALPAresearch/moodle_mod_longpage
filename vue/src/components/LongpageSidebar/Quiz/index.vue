@@ -370,7 +370,7 @@ export default {
                 EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: SidebarTabKeys.QUIZ, count: repeat, title: "Ihr geschätztes Leseverständnis für die ganze Seite \nund " + repeat + " Aufgaben beträgt weniger als 50%." });
               }
 
-              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Aufgaben.").tooltip({ "placement": "top", "html": true, "title": "" }).attr("title", "");
+              $("#sidebar-tab-quiz #total-reading-comprehension").attr("title", "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " + rc + " %.<br>Klicken Sie für eine Übersicht der Aufgaben.").tooltip("dispose").tooltip({ "placement": "top", "html": true, "title": "" }).attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr("class", "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25));
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
               if (successFunction)
@@ -1494,7 +1494,10 @@ export default {
       
 
       $(document).on("click", ".reading-comprehension", function () {
-        _this.toggleTab();
+        //if no tab is open, open the first tab
+        if ($("#longpage-sidebar > .nav > .nav-link.active").length == 0) {
+          _this.toggleTab();
+        }
         $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index())
       });
 
