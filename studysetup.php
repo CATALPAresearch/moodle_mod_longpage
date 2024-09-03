@@ -58,10 +58,19 @@ function login() {
 
 function createlongpage($longpagename, $tags, $longpagetext, $sectionid, $availabilityConditions) {
     global $curl;
+
     $contents = $curl->get(MOODLE_URL . "course/modedit.php?add=longpage&type=&course=" . COURSE_ID . "&section=$sectionid&return=0&sr=0");
     $response = $curl->getResponse();
-
     preg_match('/<input type="hidden" name="introeditor\[itemid\]" value="(.*)"/', $contents, $matches);
+    
+    if(!$matches)
+    {
+        login();
+        $contents = $curl->get(MOODLE_URL . "course/modedit.php?add=longpage&type=&course=" . COURSE_ID . "&section=$sectionid&return=0&sr=0");
+        $response = $curl->getResponse();
+        preg_match('/<input type="hidden" name="introeditor\[itemid\]" value="(.*)"/', $contents, $matches);
+    } 
+
     $introeditoritemid = $matches[1];
     preg_match('/<input type="hidden" name="longpage\[itemid\]" value="(.*)"/', $contents, $matches);
     $longpageitemid = $matches[1];
@@ -141,7 +150,7 @@ function createlongpage($longpagename, $tags, $longpagetext, $sectionid, $availa
     return $matches[1];
 }
 
-//login();
+
 // $id = createlongpage("1. Übungstext (ohne KI-Unterstützung)", ["noAI", "tour"], $GLOBALS['trainingtext'], 2, [
 //     "op" => "&",
 //     "c" => [

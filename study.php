@@ -29,6 +29,9 @@ if(!isloggedin()) {
     $user->firstname = "Proband";
     $user->lastname =(string) ($user->id);
     $user->idnumber = (string) ($user->id);
+    if(isset($_GET['test'])) {
+        $user->idnumber = "test" . $user->idnumber;
+    }
     $user->email = $user->username . "@example.com";
     user_update_user($user, false, false);
 

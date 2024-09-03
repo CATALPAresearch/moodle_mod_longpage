@@ -448,7 +448,7 @@ export default {
     $(document).ready(function () {
       var readfun = _.debounce(function () {
         get_reading_comprehension();
-      }, 2000);
+      }, 2000, { leading: true });
 
       get_reading_comprehension();
 
@@ -753,7 +753,7 @@ export default {
         $(el).unmark();
       });
 
-      $("#nextQuestion").click(function () {
+      $("#nextQuestion").on("click", function () {
         var t = $("#longpage-main").scrollTop();
         $("#longpage-main .filter_embedquestion-iframe").each(function (i, el) {
           if (el.offsetTop > t + 500) {
@@ -763,7 +763,7 @@ export default {
         })
       });
 
-      $("#prevQuestion").click(function () {
+      $("#prevQuestion").on("click", function () {
         var t = $("#longpage-main").scrollTop();
         $($("#longpage-main .filter_embedquestion-iframe").get().reverse()).each(function (i, el) {
           if (el.offsetTop < t) {
@@ -819,7 +819,7 @@ export default {
             $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
             if (openEditMode) {
               $("#quickEditQuestion").removeClass("disabled");
-              $("#quickEditQuestion").click();
+              $("#quickEditQuestion").trigger("click");
             }
           }, 1000);
         });
@@ -866,14 +866,14 @@ export default {
 
       var addPin = function () {
         if (!hasPin()) {
-          $("#pinQuestion").click();
+          $("#pinQuestion").trigger("click");
           $("#pinQuestion").addClass("autopin");
         }
       }
 
       var removePin = function (onlyIfAutoPin = false) {
         if (hasPin(onlyIfAutoPin)) {
-          $("#pinQuestion").click();
+          $("#pinQuestion").trigger("click");
         }
       }
 
@@ -881,15 +881,18 @@ export default {
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
         $("#id_embedformeditable").data("position", $(this).parent().index(".embedQuestion"));
-        $(".atto_embedquestion_button").click();
+        $(".atto_embedquestion_button").trigger("click");
       });
 
       var modalAdded = false;
       var modalInterval = null;
 
       function addModalWait(title, btn, waitingMessages = ["Bitte warten..."]) {
-        if(btn) {
-          $(btn).addClass("disabled");
+        if (btn) {
+          if ($(btn).attr("disabled")) {
+            throw "Button already disabled";
+          }
+          $(btn).addClass("disabled").attr("disabled", "disabled");
         }
         var message = waitingMessages[0];
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
@@ -928,7 +931,7 @@ export default {
         modalAdded = false;
         $("#modal-wait").modal("hide").remove();
         if(btn) {
-          $(btn).removeClass("disabled");
+          $(btn).removeClass("disabled").removeAttr("disabled");
         }
         clearInterval(modalInterval);
       }
@@ -980,6 +983,14 @@ export default {
 
       $(".embedNewAIQuestion, .embedNewEmptyQuestion").on("click", function () {
         var btn = $(this).parent();
+        var __this = this;
+        try {
+          addModalWait("Aufgabe wird generiert...", __this, ["Bitte warten...", "Das kann einen Moment dauern.", "Es werden mehrere Versionen erstellt, um die Qualität und Struktur der Aufgaben zu optimieren.", "Nach fünf erfolglosen Versuchen wird eine Fehlermeldung angezeigt. Versuchen Sie es in solchen Fällen bitte erneut."]);
+        }
+        catch (e) {
+          console.error(e);
+          return;
+        }
         var selection = window.getSelection();
         var selectedText = "";
         if (!selection.isCollapsed) {
@@ -988,8 +999,7 @@ export default {
             selectedText = selection.getRangeAt(0).toString();
           }
         }
-        var useAI = $(this).hasClass("embedNewAIQuestion") ? true : false;
-        addModalWait("Aufgabe wird generiert...", btn, ["Bitte warten...", "Das kann einen Moment dauern.", "Es werden mehrere Versionen erstellt, um die Qualität und Struktur der Aufgaben zu optimieren.", "Nach fünf erfolglosen Versuchen wird eine Fehlermeldung angezeigt. Versuchen Sie es in solchen Fällen bitte erneut."]);
+        var useAI = $(this).hasClass("embedNewAIQuestion") ? true : false;        
         ajax.call([
           {
             methodname: "mod_longpage_create_question",
@@ -1004,13 +1014,13 @@ export default {
             done: function (data) {
               let result = JSON.parse(data.response);
               removePin();
-              removeModalWait(btn);
+              removeModalWait(__this);
               embedIframeCode(result["iframecode"], btn, !useAI);
               console.log(result["log"]);
               addToast("Aufgabe wurde erstellt.");
             },
             fail: function (e) {
-              removeModalWait(btn);
+              removeModalWait(__this);
               if(_this.context.isAdmin) {
                 alert(e.message);
               }
@@ -1030,7 +1040,13 @@ export default {
         if (embedid == undefined) {
           return;
         }
-        addModalWait("Aufgabe wird entfernt...", btn);
+        try {
+          addModalWait("Aufgabe wird entfernt...", btn);
+        }
+        catch (e) {
+          console.error(e);
+          return;
+        }
         ajax.call([
           {
             methodname: "mod_longpage_remove_question",
@@ -1081,8 +1097,14 @@ export default {
         if (questionid == undefined) {
           return;
         }
+        try {
+          addModalWait("Aufgabe wird geändert...", this);
+        }
+        catch (e) {
+          console.error(e);
+          return;
+        }
         var embedid = $(active).attr("id").replace("/", "\\/");
-        addModalWait("Aufgabe wird geändert...", this);
         var __this = this;
         ajax.call([
           {
@@ -1203,43 +1225,50 @@ export default {
         });
 
         $(editable).on("blur", function () {
-            var text = $(this).text();
-            if (text == $(this).attr("data-text")) {
-              return;
-            }
-
-            var __this = this;
-
-            var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
-            questionid = $(activeIframe).attr("data-questionid");
-            var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
-
+          var text = $(this).text();
+          if (text == $(this).attr("data-text")) {
+            return;
+          }
+          try {
             addModalWait("Aufgabe wird aktualisiert...", this);
-            ajax.call([
-              {
-                methodname: "mod_longpage_edit_question",
-                args: {
-                  longpageid: _this.context.longpageid,
-                  questionid: questionid,
-                  action: "edit",
-                  qubaid: qubaid,
-                  useAI: false,
-                  text: text,
-                  optionNumber: optionNumber,
-                },
-                done: function (data) {
-                  $(__this).attr("data-text", text);                 
-                  handleQuickEditQuestionResult(data);
-                  removeModalWait(__this);
-                  removePin(true);
-                },
-                fail: function (e) {
-                  alert(e.message);
-                  removeModalWait(__this);
-                  removePin(true);
-                },
+          }
+          catch (e) {
+            console.error(e);
+            return;
+          }
+
+          var __this = this;
+
+          var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
+          questionid = $(activeIframe).attr("data-questionid");
+          var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
+
+
+          ajax.call([
+            {
+              methodname: "mod_longpage_edit_question",
+              args: {
+                longpageid: _this.context.longpageid,
+                questionid: questionid,
+                action: "edit",
+                qubaid: qubaid,
+                useAI: false,
+                text: text,
+                optionNumber: optionNumber,
               },
-            ]);
+              done: function (data) {
+                $(__this).attr("data-text", text);                 
+                handleQuickEditQuestionResult(data);
+                removeModalWait(__this);
+                removePin(true);
+              },
+              fail: function (e) {
+                alert(e.message);
+                removeModalWait(__this);
+                removePin(true);
+              },
+            },
+          ]);
           });
 
         var options = $(activeIframe).contents().find(".que .answer .flex-fill");
@@ -1247,7 +1276,13 @@ export default {
         $(options).each(function (idx, option) {
           var removeOption = $("<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>");
           $(removeOption).on("click", function () {
-            addModalWait("Option wird gelöscht...", this);
+            try {
+              addModalWait("Option wird gelöscht...", this);
+            }
+            catch (e) {
+              console.error(e);
+              return;
+            }
             var __this = this;
             var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
@@ -1281,7 +1316,13 @@ export default {
         var plusBlank = $("<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>");
         var plusAI = $("<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>");
         $(plusBlank).add(plusAI).on("click", function () {
-          addModalWait("Distraktor wird hinzugefügt...", this);
+          try { 
+            addModalWait("Distraktor wird hinzugefügt...", this);
+          }
+          catch (e) {
+            console.error(e);
+            return;
+          }
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
           var paragraph = $(activeIframe).attr("data-paragraph");
@@ -1304,7 +1345,7 @@ export default {
                 $(activeIframe).one("load", function () {
                   removeModalWait(__this);
                   $("#quickEditQuestion").removeClass("disabled");
-                  $("#quickEditQuestion").click();
+                  $("#quickEditQuestion").trigger("click");
                   addToast("Distraktor wurde hinzugefügt.");
                 });
                 reloadAllIframesInQuiz();
@@ -1325,14 +1366,20 @@ export default {
         }
         $(buttons).insertAfter($(options).last().parent().parent()); 
 
-        var rephraseButton = $("<button class='btn btn-seccondary btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>");
+        var rephraseButton = $("<button class='btn btn-success btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>");
         $(rephraseButton).on("click", function () {
+          try {
+            addModalWait("Text wird umformuliert...", this);
+          }
+          catch (e) {
+            console.error(e);
+            return;
+          }
           var paragraph = $(activeIframe).attr("data-paragraph");
           var text = $("#longpage-main #" + paragraph).text();
           var optionNumber = $(activeIframe).contents().find(".que .answer > div").index($(this).parents(".r0, .r1"));
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
-          addModalWait("Text wird umformuliert...", this);
           var __this = this;
           ajax.call([
             {
@@ -1350,7 +1397,7 @@ export default {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
                   $("#quickEditQuestion").removeClass("disabled");
-                  $("#quickEditQuestion").click();
+                  $("#quickEditQuestion").trigger("click");
                   removeModalWait(__this);
                   addToast("Text wurde umformuliert.");
                 });
@@ -1400,7 +1447,7 @@ export default {
         if (questionid == undefined) {
           return;
         }
-        $("#removeQuestion").click();
+        $("#removeQuestion").trigger("click");
         var deleteLink = moodleRelease < 400 ? "question/edit.php" : "question/bank/deletequestion/delete.php";
         window.open(window.location.href.replace("mod/longpage/view.php", deleteLink).replace("id", "cmid") + "&deleteselected=" + questionid + "&q" + questionid + "=1&returnurl=" + encodeURIComponent(window.location.href), '_blank');
       });

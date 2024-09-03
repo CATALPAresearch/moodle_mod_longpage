@@ -2352,7 +2352,8 @@ class mod_longpage_external extends external_api
                         throw new Exception("There has to be one answer with 100%.");
                     }
                                     
-                    $q->idnumber = "ai-generated-".time()."-".$USER->id;              
+                    $q->idnumber = "ai-generated-".time()."-".$USER->id;  
+                    $q->shuffleanswers = false;    
 
                     $created = self::save_question($q, $category, $qtype);
                     if (!$created) {
@@ -2377,6 +2378,7 @@ class mod_longpage_external extends external_api
                     "}";           
             $q = $qformat->readquestion(explode("\n", $content));   
             $q->idnumber = "manually-generated-".time()."-".$USER->id;
+            $q->shuffleanswers = false;
 
             $created = self::save_question($q, $category, $qtype);
             if (!$created) {
