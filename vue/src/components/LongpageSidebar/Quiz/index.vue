@@ -448,7 +448,7 @@ export default {
     $(document).ready(function () {
       var readfun = _.debounce(function () {
         get_reading_comprehension();
-      }, 2000, { leading: true });
+      }, 2000, { leading: false });
 
       get_reading_comprehension();
 
@@ -597,7 +597,6 @@ export default {
                   $(this).attr("data-tags", $("#longpage-main " + idFixed).attr("data-tags"));     
                   $("#editButtons").show();       
                   $("#question iframe" + idFixed).contents().find("body").attr("data-tags", $(this).attr("data-tags"));
-                  changeLockButton(!($(this).attr("data-tags") && $(this).attr("data-tags").includes("neu")));
                 }
 
                 var cssLink = document.createElement("link");
@@ -682,6 +681,7 @@ export default {
           $("#question .carousel-item:first").addClass("active");
           $("#carousel-indicators").children().remove();
           $(".carousel-control-prev, .carousel-control-next").hide();
+          changeLockButton($("#question .carousel-item.active iframe").attr("data-tags") && $("#question .carousel-item.active iframe").attr("data-tags").includes("neu"));
 
           if ($("#question").children().length > 1) {
             $(".carousel-control-prev, .carousel-control-next").show();
@@ -1119,12 +1119,12 @@ export default {
               var iframe = $("#longpage-content #" + embedid);
               if (!$(iframe).attr("data-tags").includes("neu")) {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags") + ($(iframe).attr("data-tags") != "" ? "," : "") + "neu");
-                changeLockButton(false);
+                changeLockButton(true);
                 addToast("Aufgabe wurde gesperrt.");
               }
               else {
                 $(iframe).attr("data-tags", $(iframe).attr("data-tags").replace("neu", "").replace(/,$/, ""));
-                changeLockButton(true);
+                changeLockButton(false);
                 addToast("Aufgabe wurde freigegeben.");
               }
 
@@ -1466,7 +1466,7 @@ export default {
 
       $("#carousel").on("slide.bs.carousel", function (ev) {
         var iframe = $(ev.relatedTarget).find("iframe");
-        changeLockButton(!($(iframe).attr("data-tags") && $(iframe).attr("data-tags").includes("neu")));
+        changeLockButton($(iframe).attr("data-tags") && $(iframe).attr("data-tags").includes("neu"));
         //wenn im Editiermodus
         if ($(iframe).contents().find(".que .answer .flex-fill").attr("contenteditable") == "true")
         {
@@ -1486,16 +1486,12 @@ export default {
         if (iframe == null) {
           iframe = $("#question .carousel-item.active iframe");
         }
-        var top = $(iframe).contents().find(".que").height() / 2;
-        if (top >= 50) {
-          $(".carousel-control-prev, .carousel-control-next").css("top", top);
-        }
       }
       
 
       $(document).on("click", ".reading-comprehension", function () {
         //if no tab is open, open the first tab
-        if ($("#longpage-sidebar > .nav > .nav-link.active").length == 0) {
+        if (!$("#longpage-sidebar-tab-content").is(":visible")) {
           _this.toggleTab();
         }
         $("#carousel").carousel($("#carousel").find("#" + $(this).parent(".wrapper").next().find("iframe").attr("id").replace("/", "\\/")).parent(".carousel-item").index())
@@ -1516,14 +1512,14 @@ export default {
         log("moved", logentry);
       });
 
-      function changeLockButton(lock)
+      function changeLockButton(locked)
       {
-        if (lock) {
-          $("#lockQuestion").find("i").removeClass("fa-lock").addClass("fa-unlock");
-          $("#lockQuestion").attr("title", "Aufgabe freigeben");
+        if (locked) {     
+          $("#lockQuestion").find("i").removeClass("fa-unlock").addClass("fa-lock");
+          $("#lockQuestion").attr("title", "Aufgabe freigeben");     
         }
         else {
-          $("#lockQuestion").find("i").removeClass("fa-unlock").addClass("fa-lock");
+          $("#lockQuestion").find("i").removeClass("fa-lock").addClass("fa-unlock");
           $("#lockQuestion").attr("title", "Aufgabe sperren");
         }
       }
@@ -1583,7 +1579,6 @@ export default {
         {
           addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.  Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-          addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Mit einem Klick auf den Editier-Button gelangen Sie in den Bearbeitungsmodus. Eine Blanko-Aufgabe startet direkt im Bearbeitungsmodus. Sie können also direkt weiter klicken.');
           addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Ändern Sie den Text einer Aufgabe, indem Sie auf den Text klicken und den Text bearbeiten. Klicken Sie außerhalb des Textes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
