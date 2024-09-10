@@ -1858,29 +1858,16 @@ class mod_longpage_external extends external_api
             $result[strval($embed)] = array("value" => $avgfraction, "level" => $level, "id" => $question->id, "tags" => $tagobjects);        
         }
 
-        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
-        if (empty($grades->items)) {
-            $gradepass = 0;
-        }
-        else {
-            $gradepass = floatval($grades->items[0]->gradepass);
-        }
-        $grade = new stdClass();
-        $grade->userid = $USER->id;
-
         // if($len > 0 && $cntSubmitted == $len)
         // {
+                //$grade = new stdClass();
+        //$grade->userid = $USER->id;
         //     $grade->rawgrade = 100*$sum/$len;
         //     longpage_update_grades($page, $grade);
         // }
-
-        //TODO: for study
-        $grade->rawgrade = $cntUnlocked;
-        longpage_update_grades($page, $grade);
         
         $return = array(
-            'response' => json_encode($result),
-            'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass))
+            'response' => json_encode($result)
         );
         return $return;
 
@@ -1897,8 +1884,7 @@ class mod_longpage_external extends external_api
     public static function get_reading_comprehension_returns(){
         return new external_single_structure(
             array(
-                "response" =>  new external_value(PARAM_RAW),
-                'gradeInfo' => new external_value(PARAM_RAW)
+                "response" =>  new external_value(PARAM_RAW)
             ));
     }
 
@@ -2167,6 +2153,9 @@ class mod_longpage_external extends external_api
         // Find $position-th top level tag "p" or "div"
         if (count($filteredElements) > $position) {
             $topLevelElement = $filteredElements[$position];
+        }
+        else {
+            $topLevelElement = $topLevelTag;
         }
 
         return $topLevelElement;
@@ -2456,14 +2445,32 @@ class mod_longpage_external extends external_api
 
         require_capability('mod/longpage:modannotations', $context);
 
+        //TODO: for study
+        $grade = new stdClass();
+        $grade->userid = $USER->id;
+        $gradepass = 0;
+        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        if (empty($grades->items)) {            
+            $grade->rawgrade = 0;
+        }
+        else {
+            $gradepass = floatval($grades->items[0]->gradepass);
+            $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
+        }
+
        
         if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
             \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
+            $grade->rawgrade = $grade->rawgrade + 1;
         } else {
             \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
+            $grade->rawgrade = $grade->rawgrade - 1;
         }
+        
+        longpage_update_grades($page, $grade);
 
-        return array('response' => json_encode("success"));
+        return array('response' => json_encode("success"),    
+        'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
     }
 
     public static function lock_question_parameters()
@@ -2479,7 +2486,8 @@ class mod_longpage_external extends external_api
     public static function lock_question_returns()
     {
         return new external_single_structure(
-            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'))
+            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'),
+                'gradeInfo' => new external_value(PARAM_RAW))
         );
     }
 

@@ -92,6 +92,9 @@ export default {
             const lastIntersectingEntry = findLast(entries, e => e.isIntersecting);
             if (lastIntersectingEntry) {
               this.activeTOCEntryIndex = this.tocEntries.findIndex(e => e.hId === lastIntersectingEntry.target.id);
+              if (this.activeTOCEntryIndex === -1) {
+                return;
+              }
               $(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`).get(0).scrollIntoView(false);
              return;
             }
@@ -99,6 +102,9 @@ export default {
             const lastEntry = entries[entries.length - 1];
             if (lastEntry.boundingClientRect.y > root.getBoundingClientRect().y) {
               this.activeTOCEntryIndex = this.tocEntries.findIndex(e => e.hId === lastEntry.target.id) - 1;
+              if (this.activeTOCEntryIndex === -1) {
+                return;
+              }
               $(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`).get(0).scrollIntoView(false);
             }
           }, {root});

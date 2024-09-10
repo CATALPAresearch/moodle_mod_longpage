@@ -111,7 +111,7 @@ function longpage_sanitize_html($content) {
         }
     } 
 
-    // Get all top-level elements which are not div or h tags
+    // Get all top-level elements which are not h tags
     $elements = $dom->getElementsByTagName('*');
 
     $topLevelElements = [];
@@ -125,7 +125,7 @@ function longpage_sanitize_html($content) {
         if ($normalizedText === '') {        
             $toRemove[] = $element;        
         } else
-        if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+        if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
             $topLevelElements[] = $element;
         }
     }

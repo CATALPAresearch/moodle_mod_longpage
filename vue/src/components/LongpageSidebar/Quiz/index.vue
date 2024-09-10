@@ -308,10 +308,6 @@ export default {
           done: function (reads) {
             try {
 
-              //TODO: for study
-              let gradeInfo = JSON.parse(reads.gradeInfo);
-              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
-
               let data = JSON.parse(reads.response);
 
               for (const [id, entry] of Object.entries(data)) {
@@ -619,9 +615,6 @@ export default {
                   else {
                     $(div).find("#quiz-spinner").remove();
                     $(div).css("opacity", 1);
-                    if($(div).is(":visible")) {
-                      adjustCarouselControltoHeight();
-                    }
                   }
                 }
 
@@ -815,13 +808,13 @@ export default {
           }]);
 
           $("#carousel").carousel($("#question").children().length - 1);
-          setTimeout(function () {
+          $("#carousel .carousel-item").last().find("iframe").one("load", function () {
             $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
             if (openEditMode) {
               $("#quickEditQuestion").removeClass("disabled");
               $("#quickEditQuestion").trigger("click");
             }
-          }, 1000);
+          });
         });
 
       }
@@ -1134,6 +1127,10 @@ export default {
 
               reloadAllIframesInQuiz();
               removeModalWait(__this);
+
+              //TODO: for study
+              let gradeInfo = JSON.parse(reads.gradeInfo);
+              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
             
             },
             fail: function (e) {
@@ -1476,18 +1473,6 @@ export default {
           $("#quickEditQuestion").removeClass("disabled");
         }
       });
-
-      $("#carousel").on("slid.bs.carousel", function (ev) {
-        var iframe = $(ev.relatedTarget).find("iframe");
-        adjustCarouselControltoHeight(iframe);
-      });
-
-      function adjustCarouselControltoHeight(iframe = null) {
-        if (iframe == null) {
-          iframe = $("#question .carousel-item.active iframe");
-        }
-      }
-      
 
       $(document).on("click", ".reading-comprehension", function () {
         //if no tab is open, open the first tab
