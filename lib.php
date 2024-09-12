@@ -41,6 +41,7 @@ function longpage_supports($feature) {
         case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
+    // Remove the original element as it has been split into multiple elements.
     }
 }
 
@@ -90,26 +91,26 @@ function longpage_get_post_actions() {
  * @param string $content The HTML content to sanitize
  * @return string The sanitized HTML content
  */
-function longpage_sanitize_html($content) {
+function longpage_sanitize_html($content, $maxWords = 250) {
     // Use DOMDocument to parse and manipulate the HTML
-    $dom = new DOMDocument('UTF-8');   
+    $dom = new DOMDocument('UTF-8');
     $dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS);
 
     $xpath = new DOMXPath($dom);
     $nodes = $xpath->query('//body/text()');
 
-    // Schleife durch alle gefundenen Texte
+    // Loop through all found texts
     foreach ($nodes as $node) {
-        // Trim, um unnötige Leerzeichen oder Zeilenumbrüche zu entfernen
+        // Trim to remove unnecessary spaces or line breaks
         $text = trim($node->nodeValue);
         if (!empty($text)) {
-            // Erstelle ein neues <p>-Element und füge den Text hinzu
+            // Create a new <p> element and add the text
             $p = $dom->createElement('p', $text);
-            
-            // Ersetze den Textknoten durch das neue <p>-Element
+
+            // Replace the text node with the new <p> element
             $node->parentNode->replaceChild($p, $node);
         }
-    } 
+    }
 
     // Get all top-level elements which are not h tags
     $elements = $dom->getElementsByTagName('*');
@@ -117,15 +118,14 @@ function longpage_sanitize_html($content) {
     $topLevelElements = [];
     $toRemove = [];
     foreach ($elements as $element) {
-        // Entferne alle non-visible whitespace characters einschließlich &nbsp;
-        $textContent = $element->textContent;        
-        // Normalisieren von Whitespace-Zeichen, einschließlich &nbsp; und non-breaking spaces
-        $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);        
-        // Überprüfen, ob der Inhalt nach der Normalisierung leer ist
-        if ($normalizedText === '') {        
-            $toRemove[] = $element;        
-        } else
-        if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+        // Remove all non-visible whitespace characters including &nbsp;
+        $textContent = $element->textContent;
+        // Normalize whitespace characters, including &nbsp; and non-breaking spaces
+        $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);
+        // Check if the content is empty after normalization
+        if ($normalizedText === '') {
+            $toRemove[] = $element;
+        } else if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
             $topLevelElements[] = $element;
         }
     }
@@ -134,7 +134,7 @@ function longpage_sanitize_html($content) {
         $emptyP->parentNode->removeChild($emptyP);
     }
 
-    //if all top-level elements are p or h tags, return the content as is
+    // If all top-level elements are p or h tags, return the content as is
     $allPTags = true;
     foreach ($topLevelElements as $element) {
         if (!in_array($element->nodeName, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
@@ -142,16 +142,94 @@ function longpage_sanitize_html($content) {
             break;
         }
     }
-    
+
     if (!$allPTags) {
         // Wrap each top-level element with a div tag
         foreach ($topLevelElements as $element) {
+            if ($element->nodeName === 'div') {
+                continue;
+            }
             $divTag = $dom->createElement('div');
             $element->parentNode->insertBefore($divTag, $element);
             $divTag->appendChild($element);
         }
+
+        // If div has no attributes and no text node as a direct child, but only div children, attach the children to the parent div and remove the empty div
+        $divs = $dom->getElementsByTagName('div');
+        //also spans
+        $spans = $dom->getElementsByTagName('span');
+        $divs = array_merge(iterator_to_array($divs), iterator_to_array($spans));
+        $toRemove = [];
+        foreach ($divs as $div) {
+            if ($div->childNodes->length === 0) {
+                continue;
+            }
+            $hasText = false;
+            $hasOnlyDiv = true;
+            foreach ($div->childNodes as $child) {
+                if ($child->nodeType === XML_TEXT_NODE) {
+                    $hasText = true;
+                    break;
+                }
+                if ($child->nodeName !== 'div') {
+                    $hasOnlyDiv = false;
+                    break;
+                }
+            }
+            if (!$hasText && $hasOnlyDiv) {
+                $toRemove[] = $div;
+            }
+        }
+
+        foreach ($toRemove as $emptyDiv) {
+            while ($emptyDiv->childNodes->length > 0) {
+                $emptyDiv->parentNode->insertBefore($emptyDiv->childNodes->item(0), $emptyDiv);
+            }
+            $emptyDiv->parentNode->removeChild($emptyDiv);
+        }
     }
-    
+
+    // Split top-level elements with text longer than maxWords 
+    // at sentence boundaries (e.g., .) into multiple tags 
+    // of the same type
+    foreach ($topLevelElements as $element) {
+        $text = $element->textContent;
+        $words = preg_split('/\s+/u', $text);
+        if (count($words) > $maxWords) {
+            $currentElement = $element;
+            $currentText = '';
+            $wordCount = 0;
+            foreach ($words as $word) {
+                $currentText .= $word . ' ';
+                //if the current text has more than maxWords words and the current word is a sentence boundary, split the text
+                $wordCount += 1;
+                if ($wordCount > $maxWords && preg_match('/[.!?]/u', $word)) {
+                    $newElement = $currentElement->cloneNode();
+                    $newElement->removeAttribute('id');
+                    $newTextNode = $dom->createTextNode(trim($currentText));
+                    $newElement->appendChild($newTextNode);
+                    $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
+                    $currentText = '';
+                    $currentElement = $newElement;
+                    $wordCount = 0;
+                }
+            }
+            if (!empty($currentText)) {
+                $newElement = $currentElement->cloneNode();
+                $newElement->removeAttribute('id');
+                $newTextNode = $dom->createTextNode(trim($currentText));
+                $newElement->appendChild($newTextNode);
+                $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
+            }
+            if ($currentElement !== $element) {
+                if ($currentElement !== null && $currentElement !== $element) {
+                    $element->parentNode->removeChild($element);
+                }
+            }
+        }
+    }
+
+
     // Save the modified HTML back to a string
     $sanitizedContent = $dom->saveHTML($dom->documentElement);
 
