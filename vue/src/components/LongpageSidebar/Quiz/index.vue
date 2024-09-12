@@ -267,6 +267,7 @@ import "mark.js/dist/jquery.mark.min.js";
 import "bootstrap/js/dist/tooltip";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
+import { set } from "lodash";
 
 export default {
   name: "Quiz",
@@ -882,10 +883,10 @@ export default {
 
       function addModalWait(title, btn, waitingMessages = ["Bitte warten..."]) {
         if (btn) {
-          if ($(btn).attr("disabled")) {
+          if ($(btn).attr("disabled") || $(btn).hasClass("disabled")) {
             throw "Button already disabled";
           }
-          $(btn).addClass("disabled").attr("disabled", "disabled");
+          $(btn).addClass("disabled").attr("disabled", "disabled").attr("onbeforeinput", "return false;");
         }
         var message = waitingMessages[0];
         var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
@@ -924,7 +925,7 @@ export default {
         modalAdded = false;
         $("#modal-wait").modal("hide").remove();
         if(btn) {
-          $(btn).removeClass("disabled").removeAttr("disabled");
+          $(btn).removeClass("disabled").removeAttr("disabled").removeAttr("onbeforeinput");
         }
         clearInterval(modalInterval);
       }
@@ -1165,6 +1166,7 @@ export default {
         var form = $(activeIframe).contents().find("form");
         var formData = new FormData(form[0]);
         formData.append("fillwithcorrect", 1);
+        var correctOptionDelete = null;
 
         fetch($(form).attr("action"), {
           method: "POST",
@@ -1173,7 +1175,10 @@ export default {
           .then((response) => response.text())
           .then((data) => {
             var checked = $(data).find("input[type=radio]:checked");
-            $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").parent().find("button[title='Option löschen']").attr("disabled", true);
+            correctOptionDelete = $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").parent().find("button[title='Option löschen']");
+            editButtons = $(editButtons).not(correctOptionDelete);
+            editElements = $(editButtons).add(editable);
+            $(correctOptionDelete).attr("disabled", true);
             $(activeIframe).contents().find("input[type=radio][value='" + $(checked).val() + "']").replaceWith('<span class="ml-2"><i class="icon fa fa-check text-success fa-fw " title="Correct" role="img" aria-label="Correct"></i></span>');
             var sequencecheck = $(data).find("input[name$='sequencecheck']").val();
             $(activeIframe).contents().find("input[name$='sequencecheck']").val(sequencecheck);
@@ -1205,6 +1210,15 @@ export default {
           $(editable[i]).attr("data-text", text);
         }
 
+        $(editable).on("focus", function () {
+          if ($(editButtons).hasClass("disabled") || $(editButtons).attr("disabled") || $(editButtons).attr("onbeforeinput")) {
+            $(this).blur();
+            return;
+          }
+          $(this).css("background-color", "#ffffea");
+          $(editButtons).addClass("disabled").attr("disabled", "disabled").attr("onbeforeinput", "return false;");
+        });
+
         $(editable).on("keydown", function (e) {
           if (e.key === "Escape") {
             $(this).text($(this).attr("data-text"));
@@ -1222,8 +1236,12 @@ export default {
         });
 
         $(editable).on("blur", function () {
+          $(this).css("background-color", "");
           var text = $(this).text();
           if (text == $(this).attr("data-text")) {
+            setTimeout(function () {
+              $(editButtons).removeClass("disabled").removeAttr("disabled").removeAttr("onbeforeinput");
+            }, 500);
             return;
           }
           try {
@@ -1240,7 +1258,6 @@ export default {
           questionid = $(activeIframe).attr("data-questionid");
           var qubaid = new URLSearchParams($(activeIframe).contents().find("form").attr("action")).get("qubaid");
 
-
           ajax.call([
             {
               methodname: "mod_longpage_edit_question",
@@ -1256,17 +1273,17 @@ export default {
               done: function (data) {
                 $(__this).attr("data-text", text);                 
                 handleQuickEditQuestionResult(data);
-                removeModalWait(__this);
+                removeModalWait(editElements);
                 removePin(true);
               },
               fail: function (e) {
                 alert(e.message);
-                removeModalWait(__this);
+                removeModalWait(editElements);
                 removePin(true);
               },
             },
           ]);
-          });
+        });
 
         var options = $(activeIframe).contents().find(".que .answer .flex-fill");
         $(options).parent().removeClass("w-auto").addClass("w-100");
@@ -1274,7 +1291,7 @@ export default {
           var removeOption = $("<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>");
           $(removeOption).on("click", function () {
             try {
-              addModalWait("Option wird gelöscht...", this);
+              addModalWait("Option wird gelöscht...", editElements);
             }
             catch (e) {
               console.error(e);
@@ -1298,11 +1315,11 @@ export default {
                 done: function (data) {
                   handleQuickEditQuestionResult(data);
                   $(option).parent().parent().remove();
-                  removeModalWait(__this);
+                  removeModalWait(editElements);
                 },
                 fail: function (e) {
                   alert(e.message);
-                  removeModalWait(__this);
+                  removeModalWait(editElements);
                 },
               }]);
             return false;
@@ -1314,7 +1331,7 @@ export default {
         var plusAI = $("<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>");
         $(plusBlank).add(plusAI).on("click", function () {
           try { 
-            addModalWait("Distraktor wird hinzugefügt...", this);
+            addModalWait("Distraktor wird hinzugefügt...", editElements);
           }
           catch (e) {
             console.error(e);
@@ -1340,7 +1357,7 @@ export default {
               done: function (data) {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
-                  removeModalWait(__this);
+                  removeModalWait(editElements);
                   $("#quickEditQuestion").removeClass("disabled");
                   $("#quickEditQuestion").trigger("click");
                   addToast("Distraktor wurde hinzugefügt.");
@@ -1349,7 +1366,7 @@ export default {
               },
               fail: function (e) {
                 alert(e.message);
-                removeModalWait(__this);
+                removeModalWait(editElements);
               },
             }]);
           return false;
@@ -1366,7 +1383,7 @@ export default {
         var rephraseButton = $("<button class='btn btn-success btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>");
         $(rephraseButton).on("click", function () {
           try {
-            addModalWait("Text wird umformuliert...", this);
+            addModalWait("Text wird umformuliert...", editElements);
           }
           catch (e) {
             console.error(e);
@@ -1395,14 +1412,14 @@ export default {
                 $(activeIframe).one("load", function () {
                   $("#quickEditQuestion").removeClass("disabled");
                   $("#quickEditQuestion").trigger("click");
-                  removeModalWait(__this);
+                  removeModalWait(editElements);
                   addToast("Text wurde umformuliert.");
                 });
                 reloadAllIframesInQuiz();
               },
               fail: function (e) {
                 alert(e.message);
-                removeModalWait(__this);
+                removeModalWait(editElements);
               },
             },
           ]);
@@ -1428,6 +1445,8 @@ export default {
           addToast("Bearbeitung beendet.");
         });
         $(quitButton).insertAfter($(buttons));
+        var editButtons = $(activeIframe).contents().find(".que .btn").not(correctOptionDelete);
+        var editElements = $(editButtons).add(editable);
       });
 
       $("#editQuestion").on("click", function () {
