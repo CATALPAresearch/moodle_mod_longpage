@@ -1860,14 +1860,22 @@ class mod_longpage_external extends external_api
 
         // if($len > 0 && $cntSubmitted == $len)
         // {
-                //$grade = new stdClass();
-        //$grade->userid = $USER->id;
-        //     $grade->rawgrade = 100*$sum/$len;
-        //     longpage_update_grades($page, $grade);
+
+        $grade = new stdClass();
+        $grade->userid = $USER->id;
+        $grade->rawgrade = $cntUnlocked;
+            //$grade->rawgrade = 100*$sum/$len;
+        $gradepass = 0;
+        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        if (!empty($grades->items)) {            
+            $gradepass = floatval($grades->items[0]->gradepass);
+        }
+        longpage_update_grades($page, $grade);
         // }
         
         $return = array(
-            'response' => json_encode($result)
+            'response' => json_encode($result),
+            'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass))
         );
         return $return;
 
@@ -1884,7 +1892,8 @@ class mod_longpage_external extends external_api
     public static function get_reading_comprehension_returns(){
         return new external_single_structure(
             array(
-                "response" =>  new external_value(PARAM_RAW)
+                "response" =>  new external_value(PARAM_RAW),
+                'gradeInfo' => new external_value(PARAM_RAW)
             ));
     }
 
@@ -2446,31 +2455,31 @@ class mod_longpage_external extends external_api
         require_capability('mod/longpage:modannotations', $context);
 
         //TODO: for study
-        $grade = new stdClass();
-        $grade->userid = $USER->id;
-        $gradepass = 0;
-        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
-        if (empty($grades->items)) {            
-            $grade->rawgrade = 0;
-        }
-        else {
-            $gradepass = floatval($grades->items[0]->gradepass);
-            $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
-        }
+        // $grade = new stdClass();
+        // $grade->userid = $USER->id;
+        // $gradepass = 0;
+        // $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        // if (empty($grades->items)) {            
+        //     $grade->rawgrade = 0;
+        // }
+        // else {
+        //     $gradepass = floatval($grades->items[0]->gradepass);
+        //     $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
+        // }
 
        
         if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
             \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
-            $grade->rawgrade = $grade->rawgrade + 1;
+            //$grade->rawgrade = $grade->rawgrade + 1;
         } else {
             \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
-            $grade->rawgrade = $grade->rawgrade - 1;
+            //$grade->rawgrade = $grade->rawgrade - 1;
         }
         
-        longpage_update_grades($page, $grade);
+        // longpage_update_grades($page, $grade);
 
-        return array('response' => json_encode("success"),    
-        'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
+        return array('response' => json_encode("success"));    
+        //'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
     }
 
     public static function lock_question_parameters()
@@ -2486,8 +2495,8 @@ class mod_longpage_external extends external_api
     public static function lock_question_returns()
     {
         return new external_single_structure(
-            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'),
-                'gradeInfo' => new external_value(PARAM_RAW))
+            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'))
+                //'gradeInfo' => new external_value(PARAM_RAW))
         );
     }
 

@@ -309,6 +309,10 @@ export default {
           done: function (reads) {
             try {
 
+              //TODO: for study
+              let gradeInfo = JSON.parse(reads.gradeInfo);
+              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
+
               let data = JSON.parse(reads.response);
 
               for (const [id, entry] of Object.entries(data)) {
@@ -889,7 +893,7 @@ export default {
           $(btn).addClass("disabled").attr("disabled", "disabled").attr("onbeforeinput", "return false;");
         }
         var message = waitingMessages[0];
-        var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true">
+        var modal = `<div class="modal" id="modal-wait" tabindex="-1" role="dialog" aria-labelledby="modal-wait-label" aria-hidden="true" style="z-index: 10000000000">
                       <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                         <div class="modal-content">
                           <div class="modal-header">
@@ -1127,12 +1131,7 @@ export default {
               });
 
               reloadAllIframesInQuiz();
-              removeModalWait(__this);
-
-              //TODO: for study
-              let gradeInfo = JSON.parse(reads.gradeInfo);
-              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
-            
+              removeModalWait(__this);            
             },
             fail: function (e) {
               console.error("fail", e);
@@ -1581,8 +1580,8 @@ export default {
         var steps = [];
         if (_this.context.tags.includes("noAI"))
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.  Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br><br>  Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Eine neue Blanko-Aufgabe wechselt direkt in den Bearbeitungsmodus. Falls nicht, dann drücken Sie rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
@@ -1593,10 +1592,10 @@ export default {
         }
         else if (_this.context.tags.includes("AI"))
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden. Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-content', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", () => $("#longpage-main").scrollTop(0), 'right', 'center');
-          addStep(steps, '#longpage-content', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen.', () => window.getSelection().toString() !== "", () => $("#longpage-main").scrollTop(0), 'right', 'center');
-          addStep(steps, '#longpage-content', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.<br><br>Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", () => $("#longpage-main").scrollTop(0), 'right', 'center');
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", null, 'right', 'center');
+          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen.', () => window.getSelection().toString() !== "", null, 'right', 'center');
+          addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.<br><br>Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren.<br><br>Klicken Sie auf den Button "Aufgabe direkt bearbeiten", um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
           addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor mit KI generieren', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor mit KI generieren" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
@@ -1612,7 +1611,7 @@ export default {
         const driverObj = driver({
           showProgress: true,
           allowClose: allowClose,
-          overlayOpacity: 0,
+          overlayOpacity: 0.4,
           doneBtnText: "Fertig",
           nextBtnText: "Weiter",
           showButtons: showButtons,
