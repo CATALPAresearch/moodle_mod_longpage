@@ -813,7 +813,7 @@ export default {
           }]);
 
           $("#carousel").carousel($("#question").children().length - 1);
-          $("#carousel .carousel-item").last().find("iframe").one("load", function () {
+          $("#question .carousel-item.active").find("iframe").one("load", function () {
             $("#question .carousel-item.active").animate({ "margin-top": "+=20px" }, 200).animate({ "margin-top": "-=20px" }, 200);
             if (openEditMode) {
               $("#quickEditQuestion").removeClass("disabled");
