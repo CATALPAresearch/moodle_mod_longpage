@@ -357,7 +357,7 @@ function longpage_delete_instance($id) {
 
     // note: all context files are deleted automatically
 
-    grade_update('mod/longpage', $page, 'mod', 'longpage', $page->id, 0, null, array('deleted'=>1));
+    grade_update('mod/longpage', $page->course, 'mod', 'longpage', $page->id, 0, null, array('deleted'=>1));
 
     $DB->delete_records('longpage', array('id'=>$page->id));
 
