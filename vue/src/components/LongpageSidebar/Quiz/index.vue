@@ -1356,9 +1356,9 @@ export default {
               done: function (data) {
                 handleQuickEditQuestionResult(data);
                 $(activeIframe).one("load", function () {
-                  removeModalWait(editElements);
                   $("#quickEditQuestion").removeClass("disabled");
                   $("#quickEditQuestion").trigger("click");
+                  removeModalWait(editElements);
                   addToast("Distraktor wurde hinzugefügt.");
                 });
                 reloadAllIframesInQuiz();
@@ -1592,9 +1592,9 @@ export default {
         }
         else if (_this.context.tags.includes("AI"))
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter Strg- oder Umschalt-Taste auf den jeweiligen Absatz.', ".selected-paragraph", null, 'right', 'center');
-          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen.', () => window.getSelection().toString() !== "", null, 'right', 'center');
+          addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz.', ".selected-paragraph", null, 'right', 'center');
+          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie nun, anders als zuvor, mit der Maus einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen. Das können einzelne Wörter oder ein oder mehrere Sätze sein.', () => window.getSelection().toString() !== "", null, 'right', 'center');
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.<br><br>Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren.<br><br>Klicken Sie auf den Button "Aufgabe direkt bearbeiten", um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
           addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
