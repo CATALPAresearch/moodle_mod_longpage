@@ -8,16 +8,16 @@
           {{$t('sidebar.tabs.quiz.heading')}}
         </h3>
       
-        <!-- TODO: removed for study, add back in for production 
+        <!-- TODO: removed for study, add back in for production -->
         <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-if="this.$store.state.UserModule.userCanMod">
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-            <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> 
+          <!--<a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
-        </div> -->
+        </div> 
       
       <div class="col-auto px-0 offset-md-1">
         <a href="javascript:void(0)" id="total-reading-comprehension" title="Aufgabe oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
@@ -61,10 +61,10 @@
       <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.tags.includes('noAI')">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
-      <!-- TODO: removed for study, add back in for production 
+      <!-- TODO: removed for study, add back in for production  -->
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-circle fa-fw" title="Vorhandene Aufgabe einbetten" data-toggle="tooltip"/>
-      </a> -->
+      </a>
     </div>
     </template>
   </sidebar-tab>
@@ -308,11 +308,6 @@ export default {
           },
           done: function (reads) {
             try {
-
-              //TODO: for study
-              let gradeInfo = JSON.parse(reads.gradeInfo);
-              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
-
               let data = JSON.parse(reads.response);
 
               for (const [id, entry] of Object.entries(data)) {
