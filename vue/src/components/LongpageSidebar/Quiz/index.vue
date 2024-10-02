@@ -337,6 +337,7 @@ export default {
               var len = 0;
               var repeat = 0;
 
+              $(".reading-progress").tooltip("dispose");
               $(".wrapper[data-reading-comprehension-count]").each(function (index, paragraph) {
                 var progress = $(paragraph).find(".reading-progress");
                 var value = parseFloat($(paragraph).attr("data-reading-comprehension-sum")) / parseInt($(paragraph).attr("data-reading-comprehension-count"));
@@ -354,8 +355,7 @@ export default {
                   ).css("opacity", Math.max(0.1, value)).addClass("reading-comprehension");
                 $(paragraph).attr("data-reading-comprehension-count", "");
               });
-
-              $(".reading-progress").tooltip("dispose").tooltip({ "placement": "auto", "html": true });
+              $(".reading-progress").tooltip({ "placement": "auto", "html": true });
 
               var rc = 0;
               if (len > 0) {
@@ -1510,6 +1510,25 @@ export default {
           type: ev.type, 
         };
         log("moved", logentry);
+      });
+
+      $('[data-toggle="tooltip"]').on('show.bs.tooltip', function () {
+         // Überprüfen, ob das Element selbst und alle übergeordneten Elemente sichtbar sind
+        var $element = $(this);
+        var isVisible = $element.is(':visible') && $element.css('opacity') > 0;
+
+        // Übergeordnete Elemente durchlaufen, um deren Sichtbarkeit zu überprüfen
+        $element.parents().each(function() {
+            if ($(this).is(':hidden') || $(this).css('opacity') === '0') {
+                isVisible = false; // Wenn ein übergeordnetes Element versteckt oder opak ist, nicht sichtbar
+                return false; // Stoppe die Schleife
+            }
+        });
+
+        // Wenn das Element oder ein übergeordnetes Element nicht sichtbar ist, verhindere das Anzeigen des Tooltips
+        if (!isVisible) {
+            return false; // Verhindert die Anzeige des Tooltips
+        }
       });
 
       function changeLockButton(locked)
