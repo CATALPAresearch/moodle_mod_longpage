@@ -702,6 +702,8 @@ export default {
 
       $("#longpage-main .filter_embedquestion-iframe").each(function (i, el) {
         var paragraph = $(el).parents(".wrapper").prev();
+        if(paragraph.length == 0)
+          return;
         $(el).attr("data-paragraph", $(paragraph).children().first().attr("id"));
         $(el).attr("data-embedid", el.id);
         $(el).attr("data-questionid", $(el).attr("data-questionid"));

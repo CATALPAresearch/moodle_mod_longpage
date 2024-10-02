@@ -9,11 +9,11 @@ require_once($CFG->libdir.'/filelib.php');
 const COURSE_ID = 4;
 const ENROL_ID = 7;
 const MODULE_ID = 21;
-const PRESURVEY_CM_ID = 86;//317;//296; // 86;
+const PRESURVEY_CM_ID = 573;//317;//296; // 86;
 const ANSWER1_ID = 0;
 const ANSWER2_ID = 2;
-const SECONDSTEP_CM_ID = 136;
-const THIRDSTEP_CM_ID = 156;
+const SECONDSTEP_CM_ID = 574;
+const THIRDSTEP_CM_ID = 575;
 const MOODLE_URL = "https://aple.moodle.staging.fernuni-hagen.de/";
 
 $longpagetext1 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
