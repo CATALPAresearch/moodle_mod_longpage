@@ -1015,7 +1015,7 @@ export default {
               let result = JSON.parse(data.response);
               removePin();
               removeModalWait(__this);
-              embedIframeCode(result["iframecode"], btn, !useAI);
+              embedIframeCode(result["iframecode"], btn);
               console.log(result["log"]);
               addToast("Aufgabe wurde erstellt.");
             },
@@ -1603,7 +1603,7 @@ export default {
         {
           addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br><br>  Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-          addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Eine neue Blanko-Aufgabe wechselt direkt in den Bearbeitungsmodus. Falls nicht, dann drücken Sie rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
+          addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Klicken Sie nun rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
           addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");

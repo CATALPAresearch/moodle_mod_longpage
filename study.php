@@ -1,8 +1,8 @@
 <?php
 
 require('../../config.php');
-const COURSE_ID = 4;
-const PARTICIPANTS_ROLE_ID = 9;
+const COURSE_ID = 60;
+const PARTICIPANTS_ROLE_ID = 10;
 
 function generateRandomString($length = 10) {
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
