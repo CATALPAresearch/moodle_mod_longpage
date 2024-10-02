@@ -9,3 +9,4 @@ node_modules
 webpack.config.idea.js
 .DS_Store
 __pycache__
+credentials.json
