@@ -126,9 +126,8 @@ export default {
   mounted() {
     EventBus.subscribe("page-ready", () => {
       this.pageReady = true;
-            this.$nextTick(() => {
-        this.$refs.mainRef.scrollTop =
-          this.scrollTop; // * this.$refs.mainRef.scrollHeight;
+      this.$nextTick(() => {
+        this.$refs.mainRef.scrollTop = this.scrollTop; // * this.$refs.mainRef.scrollHeight;
         document.getElementById(LONGPAGE_MAIN_ID).addEventListener(
           "scroll",
           throttle(
@@ -145,31 +144,6 @@ export default {
     });
 
     var _this = this;
-
-    this.$nextTick(function () {
-      // Code that will run only after the
-      // entire view has been rendered
-      if ($("body").hasClass("drawer-open-left")) //Moodle < V4
-      {
-        $("button[data-action='toggle-drawer']").trigger("click");
-      }
-    });
-
-    function waitLoading()
-    {
-      if (M.util.js_pending())
-      {
-        setTimeout(waitLoading, 500);
-      }
-      else
-      {
-        if ($(".drawer").hasClass("show")) // Moode > V4
-        {
-          $("button.drawertoggle").trigger("click");
-        }
-      }
-    }
-    waitLoading();
 
     EventBus.subscribe("searchresult-selected", (logdata) => {
       _this.logger.add("searchresult_selected", logdata);

@@ -28,6 +28,9 @@ defined('MOODLE_INTERNAL') || die;
 
 use core_question\statistics\questions\calculator;
 use filter_embedquestion\embed_id;
+use filter_embedquestion\external;
+use filter_embedquestion\embed_location;
+use filter_embedquestion\attempt;
 use filter_embedquestion\utils;
 use mod_longpage\local\constants\annotation_type as annotation_type;
 use mod_longpage\local\constants\selector as selector;
@@ -43,6 +46,7 @@ require_once("$CFG->dirroot/course/externallib.php");
 require_once("$CFG->dirroot/user/externallib.php");
 require_once("$CFG->dirroot/mod/longpage/locallib.php");
 require_once("$CFG->dirroot/question/engine/lib.php");
+require_once("$CFG->libdir/gradelib.php");
 
 /**
  * Page external functions
@@ -1566,6 +1570,11 @@ class mod_longpage_external extends external_api
     {
         global $CFG, $DB, $USER;
 
+        $page = $DB->get_record('longpage', array('id' => $data['longpageid']), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);        
+
         $r = new stdClass();
         $r->name = 'mod_longpage';
         $r->component = 'mod_longpage';
@@ -1576,9 +1585,9 @@ class mod_longpage_external extends external_api
         $r->objectid = 0;
         $r->crud = 'r';
         $r->edulevel = 2;
-        $r->contextid = 120;
-        $r->contextlevel = 70;
-        $r->contextinstanceid = 86;
+        $r->contextid = $context->id;
+        $r->contextlevel = $context->contextlevel;
+        $r->contextinstanceid = $context->instanceid;
         $r->userid = $USER->id;
         $r->courseid = (int) $data['courseid'];
 
@@ -1599,7 +1608,7 @@ class mod_longpage_external extends external_api
             $s->sectionhash = (int) $d->sectionhash;
             $s->userid = (int) $USER->id;
             $s->course = (int) $data['courseid'];
-            $s->longpageid = (int) $d->longpageid;
+            $s->longpageid = (int) $data['longpageid'];
             $s->timemodified = (int) $data['utc'];
             $s->scrolltop = (int) $d->scrollTop;
             $s->scrollheight = (int) $d->scrollHeight;
@@ -1630,7 +1639,8 @@ class mod_longpage_external extends external_api
                         'courseid' => new external_value(PARAM_INT, 'id of course', VALUE_OPTIONAL),
                         'utc' => new external_value(PARAM_INT, '...utc time', VALUE_OPTIONAL),
                         'action' => new external_value(PARAM_TEXT, '..action', VALUE_OPTIONAL),
-                        'entry' => new external_value(PARAM_RAW, 'log data', VALUE_OPTIONAL)
+                        'entry' => new external_value(PARAM_RAW, 'log data', VALUE_OPTIONAL),
+                        'longpageid' => new external_value(PARAM_INT, 'id of longpage', VALUE_OPTIONAL)
                     )
                 )
             )
@@ -1758,7 +1768,7 @@ class mod_longpage_external extends external_api
         global $DB, $USER, $CFG;
 
         $params = self::validate_parameters(
-            self::get_questions_by_page_id_parameters(),
+            self::get_reading_comprehension_parameters(),
             array(
                 'longpageid' => $longpageid
             )
@@ -1798,11 +1808,32 @@ class mod_longpage_external extends external_api
         preg_match_all('/<iframe[\S\s]+class=\"filter_embedquestion-iframe[\S\s]+id=\"(?<catid>\S+)\/(?<qid>\S+)\"/iU', $page->content, $matches);
         $len = count($matches[1]);
         $cntSubmitted = 0;
+        $cntUnlocked = 0;
         $sum = 0;
         for ($i=0; $i<$len; $i++) {
             $embed = new embed_id($matches["catid"][$i], $matches["qid"][$i]);
             $category = utils::get_category_by_idnumber($context, $embed->categoryidnumber);
             $question = utils::get_question_by_idnumber(intval($category->id), $embed->questionidnumber);
+            $tagobjectsbyquestion = \core_tag_tag::get_item_tags('core_question', 'question', $question->id);
+            $tagobjects = array();
+            if (!empty($tagobjectsbyquestion)) {
+                $tagobjects = array_map(function($tagobject) {
+                    return strtolower($tagobject->rawname);
+                }, $tagobjectsbyquestion);
+            }
+
+            $questionIsNew = false;
+            foreach ($tagobjects as $tagobject) {
+                if ($tagobject == "neu") {
+                    $questionIsNew = true;
+                    break;
+                }
+            }
+
+            if($questionIsNew && !has_capability('mod/longpage:modannotations', $context))
+            {
+                continue;
+            }
 
             $avgfraction = $DB->get_field_sql("SELECT AVG(fraction) as avgfraction FROM (SELECT qas.fraction FROM ". $CFG->prefix."question_attempts qa 
                                 INNER JOIN ". $CFG->prefix."question_attempt_steps qas 
@@ -1819,24 +1850,32 @@ class mod_longpage_external extends external_api
                                 array($USER->id, $question->id, date_format(date_sub(date_create(), DateInterval::createFromDateString('3 months')), "U")));
 
             $cntSubmitted += $avgfraction == null ? 0 : 1;
+            $cntUnlocked += $questionIsNew ? 0 : 1;
             $sum += $avgfraction;                        
             // $field_data = $customfieldhandler->get_field_data($field, $question->id);
             // $level = $field_data->get_value();
             $level = 1;
-            $result[strval($embed)] = array("value" => $avgfraction, "level" => $level);
-        
+            $result[strval($embed)] = array("value" => $avgfraction, "level" => $level, "id" => $question->id, "tags" => $tagobjects);        
         }
 
-        if($len > 0 && $cntSubmitted == $len)
-        {
-            $grade = new stdClass();
-            $grade->userid   = $USER->id;
-            $grade->rawgrade = 100*$sum/$len;
-            longpage_update_grades($page, $grade);
+        // if($len > 0 && $cntSubmitted == $len)
+        // {
+
+        $grade = new stdClass();
+        $grade->userid = $USER->id;
+        $grade->rawgrade = $cntUnlocked;
+            //$grade->rawgrade = 100*$sum/$len;
+        $gradepass = 0;
+        $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        if (!empty($grades->items)) {            
+            $gradepass = floatval($grades->items[0]->gradepass);
         }
+        longpage_update_grades($page, $grade);
+        // }
         
         $return = array(
-            'response' => json_encode($result)
+            'response' => json_encode($result),
+            'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass))
         );
         return $return;
 
@@ -1853,8 +1892,836 @@ class mod_longpage_external extends external_api
     public static function get_reading_comprehension_returns(){
         return new external_single_structure(
             array(
-                "response" =>  new external_value(PARAM_RAW)));
+                "response" =>  new external_value(PARAM_RAW),
+                'gradeInfo' => new external_value(PARAM_RAW)
+            ));
     }
+
+    public static function embed_question($longpageid, $embedcode, $position)
+    {
+        global $DB, $USER, $PAGE, $CFG;
+
+        $params = self::validate_parameters(
+            self::embed_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'embedcode' => $embedcode,
+                'position' => $position
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:modannotations', $context);
+
+        $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
+        list($page->content, $page->contentformat) = external_format_text(
+            $page->content,
+            $page->contentformat,
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision,
+            $options
+        );
+        
+        // Load $page->content as HTML
+        $dom = new DOMDocument();
+        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+
+        $topLevelElement = self::getTopLevelElement($dom, $position);
+
+        $newcontent = $page->content;
+
+        if ($topLevelElement) {
+
+            $sibling = $topLevelElement->nextSibling;
+            while ($sibling && $sibling->nodeName !== $topLevelElement->nodeName) {
+                $sibling = $sibling->nextSibling;
+            }
+
+            if (!$sibling || strpos($sibling->textContent, "{Q{") === false) {
+                // Create a new p-tag or div-tag with $embedcode
+                $newElement = $dom->createElement($topLevelElement->nodeName);
+                $newElement->nodeValue = $embedcode;
+
+                // Append the new tag to the DOM
+                $topLevelElement->parentNode->insertBefore($newElement, $topLevelElement->nextSibling);
+            } else {
+                // Add to content of p-tag when $embedcode is already present
+                $sibling->nodeValue .= " " . $embedcode;
+            }
+           
+
+            // Get the updated content
+            $newcontent = $dom->saveHTML();
+        } else {
+            // Handle the case when $position is out of range
+            $newcontent = $page->content;
+        }
+
+        // Save newcontent to page
+        $DB->update_record('longpage', ['id' => $longpageid, 'content' => $newcontent, 'timemodified' => time()]);
+
+        require_once($CFG->dirroot . '/filter/embedquestion/filter.php');
+        $filter = new filter_embedquestion($context, []);
+        $filter->setup($PAGE, $context);
+        $embedcode = str_replace("{Q{", "", $embedcode);
+        $embedcode = str_replace("}Q}", "", $embedcode);
+        $iframecode = $filter->embed_question($embedcode);
+
+        // Return the updated content
+        return array('response' => $iframecode);
+    }
+
+    public static function embed_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'embedcode' => new external_value(PARAM_RAW, 'embed code'),
+                'position' => new external_value(PARAM_INT, 'position')
+            )
+        );
+    }
+
+    public static function embed_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to autosave'))
+        );
+    }
+
+    public static function remove_question($longpageid, $embedid, $position)
+    {
+        global $DB, $USER;
+
+        $params = self::validate_parameters(
+            self::remove_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'embedid' => $embedid,
+                'position' => $position
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:modannotations', $context);
+
+        $options = array('trusted' => true, 'noclean' => true, 'filter' => false);
+        list($page->content, $page->contentformat) = external_format_text(
+            $page->content,
+            $page->contentformat,
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision,
+            $options
+        );
+        
+        // Load $page->content as HTML
+        $dom = new DOMDocument();
+        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+
+        $topLevelElement = self::getTopLevelElement($dom, $position);
+
+        $newcontent = $page->content;
+
+        if ($topLevelElement) {
+
+            $sibling = $topLevelElement->nextSibling;
+            while ($sibling && $sibling->nodeName !== $topLevelElement->nodeName) {
+                $sibling = $sibling->nextSibling;
+            }
+
+            // Find element with text content equal to $embedcode and remove from next sibling of topLevelElement
+            if (strpos($sibling->textContent, $embedid) !== false) {
+                $sibling->textContent = preg_replace('/{Q{' . preg_quote($embedid, '/') . '.*?}Q}/', '', $sibling->textContent);
+                if (empty(trim($sibling->textContent))) {
+                    $topLevelElement->parentNode->removeChild($sibling);
+                }
+            }
+
+            // Get the updated content
+            $newcontent = $dom->saveHTML();
+        } else {
+            // Handle the case when $position is out of range
+            $newcontent = $page->content;
+        }
+
+        // Save newcontent to page
+        $DB->update_record('longpage', ['id' => $longpageid, 'content' => $newcontent, 'timemodified' => time()]);
+
+        // Return the updated content
+        return array('response' => json_encode("success"));
+    }
+
+    public static function remove_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'embedid' => new external_value(PARAM_RAW, 'embed id'),
+                'position' => new external_value(PARAM_INT, 'position')
+            )
+        );
+    }
+
+    public static function remove_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to remove_question'))
+        );
+    }
+
+    protected static function chat($systemContent, $userContent)
+    {
+        $token = "sk-e9cd0f26c3ab4a778ae4bf42199d4e85";
+        $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
+        $model = "mixtral:latest";
+        $authorization = "Authorization: Bearer " . $token;
+
+        // Remove new lines and carriage returns.
+        $systemContent = str_replace("\n", "", $systemContent);
+        $systemContent = str_replace("\r", "", $systemContent);
+
+        $escapers = array("\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c");
+        $replacements = array("\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b");
+        $systemContent = str_replace($escapers, $replacements, $systemContent);
+        $userContent = str_replace($escapers, $replacements, $userContent);
+        //replace single quotes with double quotes
+        $systemContent = str_replace("'", "\\\"", $systemContent);
+        $userContent = str_replace("'", "\\\"", $userContent);
+
+        $data = '{
+            "model": "' . $model . '",
+            "messages": [
+                {"role": "system", "content": "' . $systemContent . '"},
+                {"role": "user", "content": "' . $userContent. '"}
+            ],
+            "stream": false
+        }';
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);   
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , $authorization ));
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 180);
+        $res = curl_exec($ch);
+        if (curl_errno($ch)) {
+            throw new Exception(curl_error($ch));
+        }
+        $result = json_decode($res);
+        curl_close($ch);        
+
+        if (!isset($result->message->content)) {
+            throw new Exception("Problem with AI model: '" . $res . "'");
+        } 
+
+        $result->message->content = str_replace(["'", '"'], "", $result->message->content);    
+
+        return $result;
+    }
+
+    protected static function getTopLevelElement($dom, $position)
+    {
+        // Get the top level tag (div or p), i.e. that has no other div or p as a parent
+        $topLevelTag = $dom->getElementsByTagName("body")->item(0)->childNodes->item(0);
+        while ($topLevelTag->nodeName != "div" && $topLevelTag->nodeName != "p" && $topLevelTag->nextSibling) {
+            $topLevelTag = $topLevelTag->nextSibling;
+        }
+
+        // Get all elements that are direct children of topLevelTag with the same tag name                  
+        //filter elements that are not the same tag name as topLevelTag
+        $topLevelElements = array_filter(iterator_to_array($topLevelTag->parentNode->childNodes), function($element) use ($topLevelTag) {
+            return $element->nodeName == $topLevelTag->nodeName;
+        });                    
+
+        // Filter out p-tags that do not contain text with "{Q{"
+        $filteredElements = [];
+        foreach ($topLevelElements as $element) {
+            if (strpos($element->textContent, '{Q{') === false) {
+                $filteredElements[] = $element;
+            }
+        }
+
+        // Find $position-th top level tag "p" or "div"
+        if (count($filteredElements) > $position) {
+            $topLevelElement = $filteredElements[$position];
+        }
+        else {
+            $topLevelElement = $topLevelTag;
+        }
+
+        return $topLevelElement;
+    }
+
+    public static function create_question($longpageid, $position, $useAI=true, $existingQuestions="", $selectedText="", $selectedParagraphs="")
+    {
+        global $CFG, $DB, $USER, $PAGE;
+
+        $now = new DateTime();
+    
+        $params = self::validate_parameters(
+            self::create_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'position' => $position,
+                'useAI' => $useAI,
+                'existingQuestions' => $existingQuestions,
+                'selectedText' => $selectedText,
+                'selectedParagraphs' => $selectedParagraphs
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+        
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:modannotations', $context);
+
+        $coursecontext = \context_course::instance($course->id);
+        // Use existing questions category for quiz or create the defaults.
+        if($useAI)
+        {
+            if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated'])) {
+                throw new Exception("Category with idnumber 'aigenerated' not found.");
+            }
+        }        
+        else
+        {
+            if (!$category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'manuallygenerated'])) {
+                throw new Exception("Category with idnumber 'manuallygenerated' not found.");
+            }
+        }
+        
+        $options = array('noclean' => true, 'filter' => false);
+        list($page->content, $page->contentformat) = external_format_text(
+            $page->content,
+            $page->contentformat,
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision,
+            $options
+        );
+
+        require_once($CFG->libdir . '/questionlib.php');
+        require_once($CFG->dirroot . '/question/format.php');
+        require_once($CFG->dirroot . '/question/format/gift/format.php');
+
+        $qformat = new \qformat_gift(); 
+
+        if($useAI)
+        {
+            // Load $page->content as HTML
+            $dom = new DOMDocument();
+            $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+
+            //Get the text content of the selected paragraphs
+            if($selectedParagraphs != "")
+            {
+                $selectedParagraphs = explode(",", $selectedParagraphs);
+                $textFromSelectedParagraphs = "";
+                foreach ($selectedParagraphs as $selectedParagraph) {
+                    if($selectedParagraph != $position)
+                    {
+                        $paragraph = self::getTopLevelElement($dom, $selectedParagraph);
+                        $textFromSelectedParagraphs .= $paragraph->textContent;
+                    }
+                }
+            }
+
+            $topLevelElement = self::getTopLevelElement($dom, $position);
+            
+            // get text from top level element
+            $textContent = $topLevelElement->textContent;
+        
+            // get text from startIndex to endIndex
+            if ($selectedText != "") {
+                $textContent = "The complete text is: '" . $textContent . "' You should create a question based on the following excerpt: '" . $selectedText . "'";
+            }   
+            
+            if($selectedParagraphs != "")
+            {
+                $textContent .= " The following text is from the context and should be considered for the question and answer options: '" . $textFromSelectedParagraphs . "'";
+            }
+
+            $qtypes = array('multichoice'); //array('match', 'multichoice', 'multiresponse');          
+            $qtype = $qtypes[array_rand($qtypes)];
+
+            // create new question
+            switch ($qtype) {
+                case 'multichoice':
+                    $explanation = 
+                    "Please write one multiple choice question with one correct answer and multiple wrong answers in German language in GIFT format on the following text. GIFT format uses equal sign for right answers and tilde sign for wrong answers at the beginning of answers. For example: " .
+                    "'::Question title:: Question text { " .
+                    "=Correct answer 1 " . 
+                    "~Wrong answer 1 " .
+                    //"#Feedback to wrong answer1 " .
+                    "~Wrong answer 2 " .
+                    //"#Feedback to wrong answer2 " . 
+                    "~Wrong answer 3 " . 
+                    //"#Feedback to wrong answer3 " .  
+                    "}' " .
+                    "Do not forget any equal or tilde sign! Only one correct answer is allowed! Question title and question text are mandatory and different from each other!";   
+                    break;
+                case 'multiresponse':
+                    $explanation = 
+                    "Please write one multiple choice question with multiple correct answers in German language in GIFT format on the following text. GIFT format uses a tilde and percent sign at the beginning of answers, followed by a positive grade in percent for correct answers and a negative grade in negative percent with minus sign for wrong answers. All positive grades must sum up to 100%. For example: " .
+                    "'::Question title:: Question text { " .
+                    "~%-100% Wrong answer 1 " .
+                    "~%50% Correct answer 1 " .
+                    "~%50% Correct answer 2 " .
+                    "~%-100% Wrong answer 2 " .
+                    "}' " .
+                    "Do not forget any tilde or percent sign! ";
+                    break;
+                case 'match':
+                    $explanation =  
+                    "Please write one matching question in German language in GIFT format on the following text. GIFT format uses an equal sign at the beginning of answers and and arrow sign for assigning matching pairs. For example: " .
+                    "'::Question title:: Question text { " .
+                    "=match 1 -> match 1 " .
+                    "=match 2 -> match 2 " .
+                    "=match 3 -> match 3 " .
+                    "}' " .
+                    "The matches should be concepts of only a few words. ".
+                    "Do not forget any equal or arrow sign! ";
+                    break;
+            }
+
+            if($existingQuestions != "")
+            {
+                $explanation .= "The following questions are already created and should not be created again: '" . $existingQuestions . "' ";
+            }
+
+            $explanation .= "Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!";
+        
+            $maxTries = 5;
+        
+            for ($i=0; $i < $maxTries; $i++) { 
+                try {              
+                    $result = self::chat($textContent, $explanation);
+
+                    if($qtype == "multiresponse") {
+                        $qtype = "multichoice";
+                    }           
+                
+                    $q = $qformat->readquestion(explode("\n", $result->message->content));
+                    
+                    if (!$q) {
+                        throw new Exception("Question not valid.");
+                    }
+
+                    if($q->questiontext == null) {
+                        throw new Exception("Question text is empty.");
+                    }
+
+                    $correctAnswers = 0;
+                    $sum = 0;
+                    foreach ($q->fraction as $fraction) {
+                        if ($fraction == 1) {
+                            $correctAnswers++;
+                            $sum += $fraction;
+                            if ($correctAnswers > 1) {
+                                throw new Exception("More than one correct answer.");
+                            }
+                        }
+                    }
+                    
+                    if($sum != 1) {
+                        throw new Exception("There has to be one answer with 100%.");
+                    }
+                                    
+                    $q->idnumber = "ai-generated-".time()."-".$USER->id;  
+                    $q->shuffleanswers = false;    
+
+                    $created = self::save_question($q, $category, $qtype);
+                    if (!$created) {
+                        throw new Exception("Question not created.");
+                    }
+                    break;
+                }
+                catch (\Throwable $th) {
+                    error_log("Create Question Error: " . $th->getMessage());
+                    if ($i >= $maxTries-1) {
+                        throw $th;
+                    }
+                }
+            }
+        }
+        else
+        {
+            $qtype = 'multichoice';
+            $content = "::Fragenname:: Fragentext { " .
+                    "=Korrekte Antwort " . 
+                    "~Falsche Antwort " .
+                    "}";           
+            $q = $qformat->readquestion(explode("\n", $content));   
+            $q->idnumber = "manually-generated-".time()."-".$USER->id;
+            $q->shuffleanswers = false;
+
+            $created = self::save_question($q, $category, $qtype);
+            if (!$created) {
+                throw new Exception("Question not created.");
+            }
+        }
+
+        if ($created) {
+            $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "", "");
+            $iframecode  = self::embed_question($longpageid, $embedcode, $position);
+            $iframecode = $iframecode['response'];    
+            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
+            self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => "create", "questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
+            "existingQuestions" => $existingQuestions, "position" => $position, "elapsedTimeMs" => $now->diff(new DateTime())->f,"embedid" => $category->idnumber . "/" . $q->idnumber, "longpageid" => $longpageid)))); 
+        }
+
+        return array('response' => json_encode(array("iframecode" => $iframecode, "log" => "Selected text: ". $selectedText), JSON_UNESCAPED_UNICODE));
+    }
+
+    protected static function save_question($q, $category, $qtype)
+    {
+        global $USER;
+        $q->questiontext = ['text' => "<p>" . $q->questiontext . "</p>"];
+        $q->category = $category->id;
+        $q->createdby = $USER->id;
+        $q->modifiedby = $USER->id;
+        $q->timecreated = time();
+        $q->timemodified = time();                
+        $q->questiontextformat = 1;                
+        $q->shownumcorrect = 1;
+        
+        $created = question_bank::get_qtype($qtype)->save_question($q, clone $q);
+        return $created;
+    }
+
+    public static function create_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'position' => new external_value(PARAM_INT, 'position of embed code in text'),
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_DEFAULT),
+                'existingQuestions' => new external_value(PARAM_RAW, 'existing questions', VALUE_DEFAULT),
+                'selectedText' => new external_value(PARAM_RAW, 'selected text', VALUE_DEFAULT),
+                'selectedParagraphs' => new external_value(PARAM_RAW, 'selected paragraphs', VALUE_DEFAULT),
+            )
+        );
+    }
+
+    public static function create_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to create_question'))
+        );
+    }
+
+    public static function lock_question($longpageid, $questionid)
+    {
+        global $DB, $USER;
+
+        $params = self::validate_parameters(
+            self::lock_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'questionid' => $questionid
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:modannotations', $context);
+
+        //TODO: for study
+        // $grade = new stdClass();
+        // $grade->userid = $USER->id;
+        // $gradepass = 0;
+        // $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
+        // if (empty($grades->items)) {            
+        //     $grade->rawgrade = 0;
+        // }
+        // else {
+        //     $gradepass = floatval($grades->items[0]->gradepass);
+        //     $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
+        // }
+
+       
+        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
+            \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
+            //$grade->rawgrade = $grade->rawgrade + 1;
+        } else {
+            \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
+            //$grade->rawgrade = $grade->rawgrade - 1;
+        }
+        
+        // longpage_update_grades($page, $grade);
+
+        return array('response' => json_encode("success"));    
+        //'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
+    }
+
+    public static function lock_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'questionid' => new external_value(PARAM_INT, 'question id')
+            )
+        );
+    }
+
+    public static function lock_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to lock_question'))
+                //'gradeInfo' => new external_value(PARAM_RAW))
+        );
+    }
+
+    public static function edit_question($longpageid, $questionid, $action, $qubaid, $useAI=true, $text="", $optionNumber=-1)
+    {
+        global $DB, $USER;
+
+        $now = new DateTime();
+
+        $params = self::validate_parameters(
+            self::edit_question_parameters(),
+            array(
+                'longpageid' => $longpageid,
+                'questionid' => $questionid,
+                'action' => $action,
+                'text' => $text,
+                'qubaid' => $qubaid,
+                'optionNumber' => $optionNumber
+            )
+        );
+
+        // Request and permission validation.
+        $page = $DB->get_record('longpage', array('id' => $longpageid), '*', MUST_EXIST);
+        list($course, $cm) = get_course_and_cm_from_instance($page, 'longpage');
+
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+
+        require_capability('mod/longpage:modannotations', $context);
+
+        $question = question_bank::load_question($questionid);
+        $question->qtype = $question->qtype->name();
+        $question->generalfeedback = ['text' => $question->generalfeedback, 'format' => $question->generalfeedbackformat];
+        get_question_options($question);
+        $question->questiontext = ['text' => $optionNumber != -1 || $action != "edit" ? $question->questiontext : $text, 'format' => $question->questiontextformat];
+        $question->fraction = [];
+        $question->feedback = [];
+        $question->answer = $question->answers;
+        $question->single = $question->options->single;
+
+        $quba = question_engine::load_questions_usage_by_activity($qubaid);
+        $qa = $quba->get_question_attempt(count($quba->get_slots()));
+        $order = $question->get_order($qa);
+        $positive = false;
+        $cntPositives = 0;
+
+        foreach ($question->answer as $key => $answer) {
+            if($action == "remove" && $key == $order[$optionNumber])
+            {
+                if($answer->fraction > 0) {
+                    if($question->single)
+                    {
+                        throw new Exception("Korrekte Antwort kann nicht entfernt werden.");
+                    }
+                    $positive = true;
+                }   
+                unset($question->answer[$key]);
+                continue;
+            }
+            if($answer->fraction > 0) {
+                $cntPositives++;
+            }
+            $question->fraction[$key] = $answer->fraction;
+            $question->feedback[$key] = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
+            $aw = ['text' => $action == "edit" && $optionNumber != -1 && $key == $order[$optionNumber] ? $text : $answer->answer, 'format' => $answer->answerformat];
+            $aw->feedback = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
+            $question->answer[$key] = $aw;
+    
+
+            if($positive) {
+                foreach ($question->fraction as $key => $fraction) {
+                    $question->fraction[$key] = $fraction / $cntPositives;
+                }
+            }
+        }
+
+        if($action == "add") {
+            $key = count($question->answer);
+            $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
+            if($useAI)
+            {
+                $result = self::chat($text, "Please write a new distractor in German language for the following question to the given text. Question: '". $question->questiontext['text'] . "' The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
+                $answer = $result->message->content;      
+            }
+            else
+            {
+                $answer = "Falsche Antwort";
+            } 
+            $question->answer[$key] = ['text' => $answer, 'format' => 1];
+            $question->fraction[$key] = 0;
+            $question->feedback[$key] = ['text' => "", 'format' => 1];
+        }
+        elseif($action == "rephrase")
+        {
+            if($optionNumber != -1)
+            {
+                $answers = implode(", ", array_map(function($answer) { return "'". $answer["text"] . "'"; }, $question->answer));
+                $result = self::chat($text, "Please rephrase the following answer for the following question in German language for the given text. Question: '" . $question->questiontext['text'] . "' Answer to rephrase: '" . $question->answer[$order[$optionNumber]]['text'] . "' The rephrased answer should be different from the following answers: " . $answers . ". Give only the rephrased answer text without any additional information. Keep it short."); 
+                $question->answer[$order[$optionNumber]] = ['text' => $result->message->content, 'format' => 1];
+            }
+            else
+            {
+                $result = self::chat($text, "Please rephrase the following question in German language for the given text with the following given answers. Question to rephrase: '" . $question->questiontext['text'] . "' Given answers: " . $answers . ". Give only the rephrased question text without any additional information. Keep it short."); 
+                $question->questiontext = ['text' => $result->message->content, 'format' => 1];
+            }
+        }
+    
+        $question->shuffleanswers = false;
+        $created = question_bank::get_qtype($question->qtype)->save_question($question, clone $question);
+
+        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
+            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");
+        } 
+
+        if ($created) {
+            $category = $DB->get_record('question_categories', ['id' => $question->category]);
+            $embedid = new embed_id($category->idnumber, $question->idnumber);
+            $embedlocation = embed_location::make_for_test($context, $context->get_url(), 'Embed location');
+            $options = new filter_embedquestion\question_options();
+            $options->set_from_request();
+            $qa = new attempt($embedid, $embedlocation, $USER, $options);
+            $qa->find_or_create_attempt();
+            $qa->discard_broken_attempt();
+            $qa->find_or_create_attempt();
+            $qubaid = $qa->get_question_usage()->get_id();
+
+            self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => $action, "questionid" => $created->id, "qtype" => $question->qtype, "useAI" => $useAI == true ? "true" : "false", "optionNumber" => $optionNumber, "embedid" => $category->idnumber . "/" . $question->idnumber, "elapsedTimeMs" => $now->diff(new DateTime())->f, "longpageid" => $longpageid)))); 
+
+            return array('response' => json_encode(array("questionid" => $created->id, "qubaid" => $qubaid, "text" => $text), JSON_UNESCAPED_UNICODE));
+        } else {
+            throw new Exception("Question not edited.");
+        }
+    }
+
+    public static function edit_question_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'longpageid' => new external_value(PARAM_INT, 'page instance id'),
+                'questionid' => new external_value(PARAM_INT, 'question id'),
+                'action' => new external_value(PARAM_TEXT, 'action'),
+                'qubaid' => new external_value(PARAM_INT, 'qubaid'),
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
+                'text' => new external_value(PARAM_RAW, 'question text', VALUE_OPTIONAL),
+                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
+            )
+        );
+    }
+
+    public static function edit_question_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to edit_question'))
+        );
+    }
+
+    public static function export_questions($format)
+    {
+        global $DB, $USER, $CFG, $PAGE, $COURSE;
+
+        $params = self::validate_parameters(
+            self::export_questions_parameters(),
+            array(
+                'format' => $format
+            )
+        );
+
+        $questions = $DB->get_records('question', ['createdby' => $USER->id]);
+
+        require_once($CFG->dirroot . '/question/format/xml/format.php');
+        require_once($CFG->dirroot . '/question/format/gift/format.php');
+        require_once($CFG->dirroot . '/question/format/aiken/format.php');
+        require_once($CFG->dirroot . '/report/embedquestion/lib.php');
+
+        $classname = 'qformat_' . $format;
+        if (!class_exists($classname)) {
+            throw new Exception("Format not found.");
+        }
+
+        $qformat = new $classname();
+        $qformat->exportpreprocess();
+        $PAGE = new \moodle_page();
+        $expout = "";
+        foreach ($questions as $question) {
+            try {
+                $qtype = $question->qtype;
+                if($qtype == "multichoice") {
+                    $question = question_bank::load_question($question->id);
+                    if(count($question->answers) > 0 && is_latest($question->version, $question->questionbankentryid) && report_embedquestion_questions_in_use(array($question->id))) {
+                        $context = context::instance_by_id($question->contextid);
+                        $PAGE->set_context($context);
+                        $course = $DB->get_record('course', ['id' => $context->instanceid]);
+                        $qformat->setCourse($course);
+                        $qformat->category = $question->category;
+                        $question->qtype = $qtype;
+                        get_question_options($question);
+                        $question = json_decode(json_encode($question), false);
+                        $expout .= $qformat->writequestion($question)."\n";
+                    }   
+                }             
+            } catch (Exception $e) {
+                continue;
+            }            
+        }
+
+        send_file($expout, 'questions.txt', 0, 0, true, true, $qformat->mime_type());
+    }
+
+    public static function export_questions_parameters()
+    {
+        return new external_function_parameters(
+            array(
+                'format' => new external_value(PARAM_TEXT, 'format')
+            )
+        );
+    }
+
+    public static function export_questions_returns()
+    {
+        return new external_single_structure(
+            array('response' => new external_value(PARAM_RAW, 'Server response to export_questions'))
+        );
+    }
+
+
 
     public static function autosave($data)
     {

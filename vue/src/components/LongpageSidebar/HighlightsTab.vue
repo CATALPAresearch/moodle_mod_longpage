@@ -16,7 +16,7 @@
           {{ $t(`sidebar.tabs.${areHighlights ? 'highlights' : 'bookmarks'}.message.showAll`) }}
         </a>
       </div>
-      <div v-show="this.$store.state.UserModule.userCanMod">Nutzer-ID: <input id="userid" type="text" v-model="userid" size="5" style="margin: 5px;"/><input type="submit" value="Anzeigen" @click="fetchAnnotations()"/></div>
+      <div v-if="this.$store.state.UserModule.userCanMod">Nutzer-ID: <input id="userid" type="text" v-model="userid" size="5" style="margin: 5px;"/><input type="submit" value="Anzeigen" @click="fetchAnnotations()"/></div>
     </template>
     <template #body>
       <div

@@ -41,6 +41,7 @@ function longpage_supports($feature) {
         case FEATURE_SHOW_DESCRIPTION:        return true;
 
         default: return null;
+    // Remove the original element as it has been split into multiple elements.
     }
 }
 
@@ -86,6 +87,156 @@ function longpage_get_post_actions() {
 }
 
 /**
+ * Sanitize the HTML content of a longpage by wrapping all tags on the top level with a p tag.
+ * @param string $content The HTML content to sanitize
+ * @return string The sanitized HTML content
+ */
+function longpage_sanitize_html($content, $maxWords = 250) {
+    // Use DOMDocument to parse and manipulate the HTML
+    $dom = new DOMDocument('UTF-8');
+    $dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS);
+
+    $xpath = new DOMXPath($dom);
+    $nodes = $xpath->query('//body/text()');
+
+    // Loop through all found texts
+    foreach ($nodes as $node) {
+        // Trim to remove unnecessary spaces or line breaks
+        $text = trim($node->nodeValue);
+        if (!empty($text)) {
+            // Create a new <p> element and add the text
+            $p = $dom->createElement('p', $text);
+
+            // Replace the text node with the new <p> element
+            $node->parentNode->replaceChild($p, $node);
+        }
+    }
+
+    // Get all top-level elements which are not h tags
+    $elements = $dom->getElementsByTagName('*');
+
+    $topLevelElements = [];
+    $toRemove = [];
+    foreach ($elements as $element) {
+        // Remove all non-visible whitespace characters including &nbsp;
+        $textContent = $element->textContent;
+        // Normalize whitespace characters, including &nbsp; and non-breaking spaces
+        $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);
+        // Check if the content is empty after normalization
+        if ($normalizedText === '') {
+            $toRemove[] = $element;
+        } else if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+            $topLevelElements[] = $element;
+        }
+    }
+
+    foreach ($toRemove as $emptyP) {
+        $emptyP->parentNode->removeChild($emptyP);
+    }
+
+    // If all top-level elements are p or h tags, return the content as is
+    $allPTags = true;
+    foreach ($topLevelElements as $element) {
+        if (!in_array($element->nodeName, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
+            $allPTags = false;
+            break;
+        }
+    }
+
+    if (!$allPTags) {
+        // Wrap each top-level element with a div tag
+        foreach ($topLevelElements as $element) {
+            if ($element->nodeName === 'div') {
+                continue;
+            }
+            $divTag = $dom->createElement('div');
+            $element->parentNode->insertBefore($divTag, $element);
+            $divTag->appendChild($element);
+        }
+
+        // If div has no attributes and no text node as a direct child, but only div children, attach the children to the parent div and remove the empty div
+        $divs = $dom->getElementsByTagName('div');
+        //also spans
+        $spans = $dom->getElementsByTagName('span');
+        $divs = array_merge(iterator_to_array($divs), iterator_to_array($spans));
+        $toRemove = [];
+        foreach ($divs as $div) {
+            if ($div->childNodes->length === 0) {
+                continue;
+            }
+            $hasText = false;
+            $hasOnlyDiv = true;
+            foreach ($div->childNodes as $child) {
+                if ($child->nodeType === XML_TEXT_NODE) {
+                    $hasText = true;
+                    break;
+                }
+                if ($child->nodeName !== 'div') {
+                    $hasOnlyDiv = false;
+                    break;
+                }
+            }
+            if (!$hasText && $hasOnlyDiv) {
+                $toRemove[] = $div;
+            }
+        }
+
+        foreach ($toRemove as $emptyDiv) {
+            while ($emptyDiv->childNodes->length > 0) {
+                $emptyDiv->parentNode->insertBefore($emptyDiv->childNodes->item(0), $emptyDiv);
+            }
+            $emptyDiv->parentNode->removeChild($emptyDiv);
+        }
+    }
+
+    // Split top-level elements with text longer than maxWords 
+    // at sentence boundaries (e.g., .) into multiple tags 
+    // of the same type
+    foreach ($topLevelElements as $element) {
+        $text = $element->textContent;
+        $words = preg_split('/\s+/u', $text);
+        if (count($words) > $maxWords) {
+            $currentElement = $element;
+            $currentText = '';
+            $wordCount = 0;
+            foreach ($words as $word) {
+                $currentText .= $word . ' ';
+                //if the current text has more than maxWords words and the current word is a sentence boundary, split the text
+                $wordCount += 1;
+                if ($wordCount > $maxWords && preg_match('/[.!?]/u', $word)) {
+                    $newElement = $currentElement->cloneNode();
+                    $newElement->removeAttribute('id');
+                    $newTextNode = $dom->createTextNode(trim($currentText));
+                    $newElement->appendChild($newTextNode);
+                    $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
+                    $currentText = '';
+                    $currentElement = $newElement;
+                    $wordCount = 0;
+                }
+            }
+            if (!empty($currentText)) {
+                $newElement = $currentElement->cloneNode();
+                $newElement->removeAttribute('id');
+                $newTextNode = $dom->createTextNode(trim($currentText));
+                $newElement->appendChild($newTextNode);
+                $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
+            }
+            if ($currentElement !== $element) {
+                if ($currentElement !== null && $currentElement !== $element) {
+                    $element->parentNode->removeChild($element);
+                }
+            }
+        }
+    }
+
+
+    // Save the modified HTML back to a string
+    $sanitizedContent = $dom->saveHTML($dom->documentElement);
+
+    return $sanitizedContent;
+}
+
+/**
  * Add page instance.
  * @param stdClass $data
  * @param mod_longpage_mod_form $mform
@@ -123,6 +274,7 @@ function longpage_add_instance($data, $mform = null) {
     if ($mform and !empty($data->longpage['itemid'])) {
         $draftitemid = $data->longpage['itemid'];
         $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
@@ -176,6 +328,7 @@ function longpage_update_instance($data, $mform) {
     $context = context_module::instance($cmid);
     if ($draftitemid) {
         $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
@@ -204,7 +357,7 @@ function longpage_delete_instance($id) {
 
     // note: all context files are deleted automatically
 
-    grade_update('mod/longpage', $page, 'mod', 'longpage', $page->id, 0, null, array('deleted'=>1));
+    grade_update('mod/longpage', $page->course, 'mod', 'longpage', $page->id, 0, null, array('deleted'=>1));
 
     $DB->delete_records('longpage', array('id'=>$page->id));
 
@@ -591,7 +744,7 @@ function longpage_grade_item_update($longpage, $grades=NULL) {
         require_once($CFG->libdir.'/gradelib.php');
     }
 
-    $params = array('itemname'=>$longpage->name, 'idnumber'=>$longpage->cmidnumber);
+    $params = array('itemname'=>$longpage->name);
 
     if($grades == NULL)
     {

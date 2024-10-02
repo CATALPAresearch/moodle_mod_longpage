@@ -31,17 +31,17 @@ class course_module_clicked extends \core\event\base {
 
     protected function init() {
         $this->data['objecttable'] = 'longpage';
-        $this->data['crud'] = 'r';
+        $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
     public function get_description() {
-        $x = $this->data["other"]["pageX"];
-        $y = $this->data["other"]["pageY"];
-        $questionid = $this->data["other"]["questionid"];
+        extract($this->data["other"]);
+        $target = explode(" ", $target);
+        $target = end($target);
         
-        return "The user with id '$this->userid' clicked on a question on the 'longpage activitiy' with course module id " .
-                "'$this->contextinstanceid' in course '$this->courseid' on question '$questionid' (x: $x, y: $y).";
+        return "The user with id '$this->userid' clicked on a question on the 'longpage activity' with course module id " .
+                "'$this->contextinstanceid' in course '$this->courseid' on question '$questionid' (x: $pageX, y: $pageY, target: $target, textContent: $textContent, embedid: $embedid).";
     }
 
     public static function get_objectid_mapping() {

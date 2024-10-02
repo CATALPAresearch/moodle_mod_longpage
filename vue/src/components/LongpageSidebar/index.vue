@@ -250,6 +250,7 @@ export default {
         var tab = this.tabs.find(obj => { return obj.key == params["type"] });
         tab.badgesCount = params["count"]; 
         tab.badgesTitle = params["title"];
+        $(".badge.badge-pill.badge-warning").tooltip("dispose").tooltip({ "placement": "auto", "html": true, "offset": -5 });
       }
       catch
       {
@@ -263,7 +264,10 @@ export default {
       var tab = localStorage.getItem("sidebar-tab");
       if(tab === "undefined" || tab == null)
       {
-        tab = undefined;
+        if(this.tabs.length == 1)
+        {
+          tab = this.tabs[0].key;
+        }
       } 
     }
     this.toggleTab(tab);
@@ -301,7 +305,7 @@ export default {
         }
         if(!width)
         {
-          if(this.tabs.length == 1 && $store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
+          if(this.tabs.length == 1 && this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
           {
             width = '50%';
           }

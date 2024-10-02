@@ -125,7 +125,8 @@ export default {
                   },
                   screenWidth: window.screen.width,
                   screenHeight: window.screen.height,
-                  devicePixelRatio: window.devicePixelRatio
+                  devicePixelRatio: window.devicePixelRatio,
+                  intersectionRatio: entry.intersectionRatio,
                 };
 
               ajax.call([
@@ -136,7 +137,8 @@ export default {
                       entry: JSON.stringify(logentry),
                       action: "scroll",
                       utc: Math.ceil(now.getTime() / 1000),
-                      courseid: _this.context.courseId
+                      courseid: _this.context.courseId,
+                      longpageid: _this.context.longpageid
                     },
                   },
                   done: function (reads) {
@@ -156,7 +158,7 @@ export default {
         var options = {
           root: null,
           rootMargin: "0px",
-          threshold: [1.0],
+          threshold: [0.0],
           trackVisibility: true,
           delay: 100,
         };
@@ -216,8 +218,8 @@ export default {
             if (_this.context.showreadingprogress) {
               $(span).attr(
                 "title",
-                "Der Abschnitt wurde bislang 0 mal gelesen"
-              );
+                "Der Abschnitt wurde <br>bislang 0 mal gelesen."
+              )
             }
             else {
               $(span).addClass("progress-3");
@@ -323,17 +325,17 @@ export default {
               let max = max_arr.reduce((a, b) => Math.max(a, b), -Infinity);
               for (var i = 0; i < data.length; i++) {
                 if ($("#" + data[i].section)) {
-                  $("#" + data[i].section).next(".reading-progress") 
-                      .attr(
-                        "title",
-                        "Der Abschnitt wurde bislang " +
-                          data[i].count +
-                          " mal gelesen"
-                      )                 
-                      .addClass(
-                        "reading-progress progress-" +
-                          Math.ceil((data[i].count / max) * 5)
-                      )
+                  $("#" + data[i].section).next(".reading-progress")
+                    .attr(
+                      "title",
+                      "Der Abschnitt wurde <br>bislang " +
+                      data[i].count +
+                      " mal gelesen."
+                    )
+                    .addClass(
+                      "progress-" +
+                      Math.ceil((data[i].count / max) * 5)
+                    );
                   
                   if (_this.debug) {
                     $("#" + data[i].section).append(

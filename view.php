@@ -27,7 +27,7 @@ require('../../config.php');
 require_once($CFG->dirroot.'/mod/longpage/lib.php');
 require_once($CFG->dirroot.'/mod/longpage/locallib.php');
 require_once($CFG->libdir.'/completionlib.php');
-require_once($CFG->dirroot.'/mod/longpage/classes/external.php');
+require_once("$CFG->libdir/formslib.php");
 //header("Access-Control-Allow-Origin: *");
 
 $id      = optional_param('id', 0, PARAM_INT); // Course Module ID
@@ -75,6 +75,12 @@ if ($inpopup and $page->display == RESOURCELIB_DISPLAY_POPUP) {
     //$PAGE->set_activity_record($page);
 }
 
+$PAGE->set_secondary_navigation(false);
+$PAGE->activityheader->disable();
+set_user_preference('drawer-open-index', false);
+set_user_preference('drawer-open-block', false);
+set_user_preference('drawer-open-nav', false);
+
 echo $OUTPUT->header();
 
 /**
@@ -117,10 +123,25 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             
     echo    '</div>
         </div>';
-    echo '<div id="longpage-app-container" class="border-top border-bottom">';
+    //hidden form needed for embedding questions
+    $embedform = new MoodleQuickForm("embedform", 'POST', "", "", array("style" => "width: 0; height: 0; overflow: hidden"));
+    $embedform->addElement('editor', 'embedform', "embedform", null, longpage_get_editor_options($context));
+    $embedform->display();
+
+    //get tags
+    $tags = \core_tag_tag::get_item_tags('core', 'course_modules', $id);
+    $tagstr = array();
+    foreach ($tags as $tag) {
+        $tagstr[] = $tag->rawname;
+    }
+
+    echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
     echo '<div class="row no-gutters vh-50">';
     echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
     echo '</div></div>';
+    echo '<div id="longpage-tmp" style="display:none;" lang="de">';
+    echo $page->content;
+    echo '</div>';
 
     $PAGE->requires->js_call_amd(
         'mod_longpage/app-lazy',
@@ -139,6 +160,8 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             !empty($page->showposts),
             !empty($page->showhighlights),
             !empty($page->showbookmarks),
+            $tagstr,
+            is_siteadmin()
         ]
     );
 } else {
@@ -146,6 +169,8 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     $url = new moodle_url('/mod/longpage/blocking-redirect.php');
     redirect($url);
 }
+
+// echo '<p class="mt-3 text-center text-xs" lang="de">'.get_string('lastmodified').': '.userdate($page->timemodified).'</p>';
 
 echo $OUTPUT->footer();
 

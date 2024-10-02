@@ -31,15 +31,14 @@ class course_module_scroll extends \core\event\base {
 
     protected function init() {
         $this->data['objecttable'] = 'longpage';
-        $this->data['crud'] = 'r';
+        $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
     public function get_description() {
-        $targetID = $this->data["other"]["targetID"];
-        $scrollTop = $this->data["other"]["scrollTop"];
+        extract($this->data["other"]);
         
-        return "The user with id '$this->userid' scrolled on the 'longpage activitiy' with course module id " .
+        return "The user with id '$this->userid' scrolled on the 'longpage activity' with course module id " .
                 "'$this->contextinstanceid' in course '$this->courseid' to section '$targetID' ($scrollTop px from top).";
     }
 

@@ -18,15 +18,15 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
- import $ from 'jquery';
+import $ from 'jquery';
  
  $(() => {
  
-     $('.longpage-footnote button').popover({
-         html: true,
-         trigger: 'focus',
-         sanitize: false
-     });
+    //  $('.longpage-footnote button').popover({
+    //      html: true,
+    //      trigger: 'focus',
+    //      sanitize: false
+    //  });
  
      const popovers = document.querySelectorAll('.longpage-footnote button[data-toggle="popover"]');
      for (let popover of popovers)
