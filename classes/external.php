@@ -2088,7 +2088,7 @@ class mod_longpage_external extends external_api
     protected static function chat($systemContent, $userContent)
     {
         $token = "sk-e9cd0f26c3ab4a778ae4bf42199d4e85";
-        $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
+        $url = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
         $model = "mixtral:latest";
         $authorization = "Authorization: Bearer " . $token;
 

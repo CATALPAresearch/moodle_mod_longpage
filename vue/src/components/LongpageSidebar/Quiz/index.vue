@@ -936,9 +936,9 @@ export default {
         clearInterval(modalInterval);
       }
 
-      function addToast(message) {
+      function addToast(message, delayInMS=1500, isError=false) {
         var toast =
-          `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500" style="position: absolute; top: 10%; left: 50%">
+          `<div class="toast ${isError ? "bg-danger" : "bg-dark"} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-delay="${delayInMS}" style="position: absolute; top: 10%; left: 50%">
         <div class="toast-body">
           ${message}
           <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
@@ -1022,10 +1022,10 @@ export default {
             fail: function (e) {
               removeModalWait(__this);
               if(_this.context.isAdmin) {
-                alert(e.message);
+                addToast(e.message, 10000, true);
               }
               else {
-                alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+                addToast("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.", 5000, true);
               }
             }
           },
