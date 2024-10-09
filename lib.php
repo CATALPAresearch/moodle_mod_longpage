@@ -123,7 +123,7 @@ function longpage_sanitize_html($content, $maxWords = 250) {
         // Normalize whitespace characters, including &nbsp; and non-breaking spaces
         $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);
         // Check if the content is empty after normalization
-        if ($normalizedText === '') {
+        if ($normalizedText === ''&& !in_array(strtolower($element->nodeName), ['br', 'img', 'hr'])) {
             $toRemove[] = $element;
         } else if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
             $topLevelElements[] = $element;
@@ -188,47 +188,6 @@ function longpage_sanitize_html($content, $maxWords = 250) {
             $emptyDiv->parentNode->removeChild($emptyDiv);
         }
     }
-
-    // Split top-level elements with text longer than maxWords 
-    // at sentence boundaries (e.g., .) into multiple tags 
-    // of the same type
-    foreach ($topLevelElements as $element) {
-        $text = $element->textContent;
-        $words = preg_split('/\s+/u', $text);
-        if (count($words) > $maxWords) {
-            $currentElement = $element;
-            $currentText = '';
-            $wordCount = 0;
-            foreach ($words as $word) {
-                $currentText .= $word . ' ';
-                //if the current text has more than maxWords words and the current word is a sentence boundary, split the text
-                $wordCount += 1;
-                if ($wordCount > $maxWords && preg_match('/[.!?]/u', $word)) {
-                    $newElement = $currentElement->cloneNode();
-                    $newElement->removeAttribute('id');
-                    $newTextNode = $dom->createTextNode(trim($currentText));
-                    $newElement->appendChild($newTextNode);
-                    $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
-                    $currentText = '';
-                    $currentElement = $newElement;
-                    $wordCount = 0;
-                }
-            }
-            if (!empty($currentText)) {
-                $newElement = $currentElement->cloneNode();
-                $newElement->removeAttribute('id');
-                $newTextNode = $dom->createTextNode(trim($currentText));
-                $newElement->appendChild($newTextNode);
-                $currentElement->parentNode->insertBefore($newElement, $currentElement->nextSibling);
-            }
-            if ($currentElement !== $element) {
-                if ($currentElement !== null && $currentElement !== $element) {
-                    $element->parentNode->removeChild($element);
-                }
-            }
-        }
-    }
-
 
     // Save the modified HTML back to a string
     $sanitizedContent = $dom->saveHTML($dom->documentElement);

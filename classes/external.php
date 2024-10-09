@@ -2639,9 +2639,9 @@ class mod_longpage_external extends external_api
                 'questionid' => new external_value(PARAM_INT, 'question id'),
                 'action' => new external_value(PARAM_TEXT, 'action'),
                 'qubaid' => new external_value(PARAM_INT, 'qubaid'),
-                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
-                'text' => new external_value(PARAM_RAW, 'question text', VALUE_OPTIONAL),
-                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_DEFAULT),
+                'text' => new external_value(PARAM_RAW, 'question text', VALUE_DEFAULT),
+                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_DEFAULT)
             )
         );
     }
