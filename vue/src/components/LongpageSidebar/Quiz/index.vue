@@ -18,7 +18,9 @@
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
         </div> -->
-      
+      <div class="col-auto px-0 offset-md-1">
+        <a href="javascript:void(0)" id="showTour" title="Tour starten" data-toggle="tooltip"><i class="fa fa-question-circle fa-fw fa-lg" /></a>
+      </div>
       <div class="col-auto px-0 offset-md-1">
         <a href="javascript:void(0)" id="total-reading-comprehension" title="Aufgabe oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
       </div>
@@ -293,6 +295,17 @@ export default {
   mounted() {
     let _this = this;
     const _ = require('lodash');
+
+    //TODO: only for study, remove afterwards
+    $("#region-main h2").next(".dropdown").remove(); $(".drawer-toggles").remove(); $("nav.navbar").remove(); $("#page.drawers").css("margin-top", "0px");
+    //wait until #paragraph-0 present
+    let interval = setInterval(function () {
+      if ($("#paragraph-0").length > 0) {
+        clearInterval(interval);
+        $("#paragraph-0").insertAfter("#region-main > div > h2");
+      }
+    }, 500);
+    
 
     $("#page").attr("style", ($("#page").attr("style") ? $("#page").attr("style") + " " : "") + "overflow: clip !important;");
 
@@ -1568,6 +1581,7 @@ export default {
         var processedElements = new Map();
 
         function addStep(steps, element, title, description, nextElementSelectorOrElement, afterOnNextClick, popoverSide, popoverAlign) {
+          nextElementSelectorOrElement = null;
           var l = steps.length;
           steps.push({
             element: element,
@@ -1601,21 +1615,21 @@ export default {
         var steps = [];
         if (_this.context.tags.includes("noAI"))
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br><br>  Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten.<br><br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Klicken Sie nun rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
           addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
-          addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
+          // addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
           addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.', ".toast-body:contains('Aufgabe wurde entfernt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }
         else if (_this.context.tags.includes("AI"))
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz.', ".selected-paragraph", null, 'right', 'center');
-          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie nun, anders als zuvor, mit der Maus einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen. Das können einzelne Wörter oder ein oder mehrere Sätze sein.', () => window.getSelection().toString() !== "", null, 'right', 'center');
+          addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz, und erneut, um die Auswahl wieder rückgängig zu machen.', ".selected-paragraph", null, 'right', 'center');
+          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie nun, anders als zuvor, mit der Maus einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen. Das können einzelne Wörter oder ein oder mehrere Sätze sein.<br><br>Um die Markierung zu entfernen, klicken Sie einfach einmal irgendwo in den Text.', () => window.getSelection().toString() !== "", null, 'right', 'center');
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.<br><br>Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren.<br><br>Klicken Sie auf den Button "Aufgabe direkt bearbeiten", um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
           addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
@@ -1625,8 +1639,8 @@ export default {
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }        
 
-        var showButtons = ["next"];
-        var allowClose = _this.context.isAdmin || window.location.search.includes("admin=1");
+        var showButtons = ["previous", "next"];
+        var allowClose = true;  //_this.context.isAdmin || window.location.search.includes("admin=1");
         if (allowClose) {
           showButtons.push("close");
         }
@@ -1635,6 +1649,7 @@ export default {
           allowClose: allowClose,
           overlayOpacity: 0.4,
           doneBtnText: "Fertig",
+          prevBtnText: "Zurück",
           nextBtnText: "Weiter",
           showButtons: showButtons,
           steps: steps,
@@ -1643,6 +1658,10 @@ export default {
         });
       
         driverObj.drive();
+
+        $("#showTour").on("click", function () {
+          driverObj.drive();
+        });
       }
     });
   }

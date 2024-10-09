@@ -16,9 +16,9 @@ const SECONDSTEP_CM_ID = 6007;
 const THIRDSTEP_CM_ID = 6008;
 const MOODLE_URL = "https://aple.moodle.staging.fernuni-hagen.de/";
 
-$longpagetext1 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
-$longpagetext2 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
-$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>
+$longpagetext1 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>";
+$longpagetext2 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>";
+$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>
 ";
 
 list($cm, $course, $questionnaire) = questionnaire_get_standard_page_items(PRESURVEY_CM_ID);

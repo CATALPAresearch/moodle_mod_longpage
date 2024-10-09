@@ -2388,7 +2388,7 @@ class mod_longpage_external extends external_api
             $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "", "");
             $iframecode  = self::embed_question($longpageid, $embedcode, $position);
             $iframecode = $iframecode['response'];    
-            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
+            //\core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
             self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => "create", "questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
             "existingQuestions" => $existingQuestions, "position" => $position, "elapsedTimeMs" => $now->diff(new DateTime())->f,"embedid" => $category->idnumber . "/" . $q->idnumber, "longpageid" => $longpageid)))); 
         }
