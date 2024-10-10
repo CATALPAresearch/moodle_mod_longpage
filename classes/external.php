@@ -1863,7 +1863,7 @@ class mod_longpage_external extends external_api
 
         $grade = new stdClass();
         $grade->userid = $USER->id;
-        $grade->rawgrade = $cntUnlocked;
+        $grade->rawgrade = $len;
             //$grade->rawgrade = 100*$sum/$len;
         $gradepass = 0;
         $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
