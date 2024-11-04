@@ -2088,7 +2088,8 @@ class mod_longpage_external extends external_api
     protected static function chat($systemContent, $userContent)
     {
         $token = "sk-e9cd0f26c3ab4a778ae4bf42199d4e85";
-        $url = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
+        $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
+        $backupUrl = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
         $model = "mixtral:latest";
         $authorization = "Authorization: Bearer " . $token;
 
@@ -2107,8 +2108,8 @@ class mod_longpage_external extends external_api
         $data = '{
             "model": "' . $model . '",
             "messages": [
-                {"role": "system", "content": "' . $systemContent . '"},
-                {"role": "user", "content": "' . $userContent. '"}
+            {"role": "system", "content": "' . $systemContent . '"},
+            {"role": "user", "content": "' . $userContent. '"}
             ],
             "stream": false
         }';
@@ -2123,7 +2124,12 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_TIMEOUT, 180);
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
-            throw new Exception(curl_error($ch));
+            // Use backup URL if the primary URL fails
+            curl_setopt($ch, CURLOPT_URL, $backupUrl);
+            $res = curl_exec($ch);
+            if (curl_errno($ch)) {
+                throw new Exception(curl_error($ch));
+            }
         }
         $result = json_decode($res);
         curl_close($ch);        
