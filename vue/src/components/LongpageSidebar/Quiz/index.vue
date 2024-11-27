@@ -12,7 +12,7 @@
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-          <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> --> -->
+          <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
