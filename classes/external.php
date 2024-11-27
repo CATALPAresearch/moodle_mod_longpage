@@ -2460,6 +2460,12 @@ class mod_longpage_external extends external_api
 
         require_capability('mod/longpage:modannotations', $context);
        
+        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
+            \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
+        } else {
+            \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
+        }
+           
         return array('response' => json_encode("success"));
     }
 
