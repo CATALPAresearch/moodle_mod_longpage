@@ -1863,7 +1863,7 @@ class mod_longpage_external extends external_api
 
         $grade = new stdClass();
         $grade->userid = $USER->id;
-        $grade->rawgrade = $cntUnlocked;
+        $grade->rawgrade = $len;
             //$grade->rawgrade = 100*$sum/$len;
         $gradepass = 0;
         $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
@@ -2089,6 +2089,7 @@ class mod_longpage_external extends external_api
     {
         $token = "sk-e9cd0f26c3ab4a778ae4bf42199d4e85";
         $url = "https://chat-impact.fernuni-hagen.de/ollama/api/chat";
+        $backupUrl = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
         $model = "mixtral:latest";
         $authorization = "Authorization: Bearer " . $token;
 
@@ -2107,8 +2108,8 @@ class mod_longpage_external extends external_api
         $data = '{
             "model": "' . $model . '",
             "messages": [
-                {"role": "system", "content": "' . $systemContent . '"},
-                {"role": "user", "content": "' . $userContent. '"}
+            {"role": "system", "content": "' . $systemContent . '"},
+            {"role": "user", "content": "' . $userContent. '"}
             ],
             "stream": false
         }';
@@ -2123,7 +2124,12 @@ class mod_longpage_external extends external_api
         curl_setopt($ch, CURLOPT_TIMEOUT, 180);
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
-            throw new Exception(curl_error($ch));
+            // Use backup URL if the primary URL fails
+            curl_setopt($ch, CURLOPT_URL, $backupUrl);
+            $res = curl_exec($ch);
+            if (curl_errno($ch)) {
+                throw new Exception(curl_error($ch));
+            }
         }
         $result = json_decode($res);
         curl_close($ch);        
@@ -2453,33 +2459,8 @@ class mod_longpage_external extends external_api
         self::validate_context($context);
 
         require_capability('mod/longpage:modannotations', $context);
-
-        //TODO: for study
-        // $grade = new stdClass();
-        // $grade->userid = $USER->id;
-        // $gradepass = 0;
-        // $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
-        // if (empty($grades->items)) {            
-        //     $grade->rawgrade = 0;
-        // }
-        // else {
-        //     $gradepass = floatval($grades->items[0]->gradepass);
-        //     $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
-        // }
-
        
-        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
-            \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
-            //$grade->rawgrade = $grade->rawgrade + 1;
-        } else {
-            \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
-            //$grade->rawgrade = $grade->rawgrade - 1;
-        }
-        
-        // longpage_update_grades($page, $grade);
-
-        return array('response' => json_encode("success"));    
-        //'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
+        return array('response' => json_encode("success"));
     }
 
     public static function lock_question_parameters()
@@ -2639,9 +2620,9 @@ class mod_longpage_external extends external_api
                 'questionid' => new external_value(PARAM_INT, 'question id'),
                 'action' => new external_value(PARAM_TEXT, 'action'),
                 'qubaid' => new external_value(PARAM_INT, 'qubaid'),
-                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_OPTIONAL),
-                'text' => new external_value(PARAM_RAW, 'question text', VALUE_OPTIONAL),
-                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_OPTIONAL)
+                'useAI' => new external_value(PARAM_BOOL, 'use AI, otherwise empty', VALUE_DEFAULT),
+                'text' => new external_value(PARAM_RAW, 'question text', VALUE_DEFAULT),
+                'optionNumber' => new external_value(PARAM_INT, 'option number', VALUE_DEFAULT)
             )
         );
     }

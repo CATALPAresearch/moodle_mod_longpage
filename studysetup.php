@@ -6,19 +6,19 @@ require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
 require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
 require_once($CFG->libdir.'/filelib.php');
 
-const COURSE_ID = 4;
-const ENROL_ID = 7;
-const MODULE_ID = 21;
-const PRESURVEY_CM_ID = 573;//317;//296; // 86;
+const COURSE_ID = 60;
+const ENROL_ID = 136;
+const MODULE_ID = 35;
+const PRESURVEY_CM_ID = 6006; //573;//317;//296; // 86;
 const ANSWER1_ID = 0;
 const ANSWER2_ID = 2;
-const SECONDSTEP_CM_ID = 574;
-const THIRDSTEP_CM_ID = 575;
+const SECONDSTEP_CM_ID = 6007;
+const THIRDSTEP_CM_ID = 6008;
 const MOODLE_URL = "https://aple.moodle.staging.fernuni-hagen.de/";
 
-$longpagetext1 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
-$longpagetext2 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>";
-$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an und geben Sie diese frei, wenn Sie mit ihnen zufrieden sind. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=4\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>, um mit der Studie fortzufahren.<br></em></p>
+$longpagetext1 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>";
+$longpagetext2 = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>";
+$trainingtext = "<p><em>Bitte legen Sie mindestens drei Aufgaben an. Wenn Sie fertig sind, klicken Sie <a href=\"https://aple.moodle.staging.fernuni-hagen.de/course/view.php?id=".COURSE_ID."\" class=\"btn btn-primary disabled\" id=btnContinueStudy>hier</a>.<br></em></p>
 ";
 
 list($cm, $course, $questionnaire) = questionnaire_get_standard_page_items(PRESURVEY_CM_ID);

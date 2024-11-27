@@ -160,6 +160,8 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             !empty($page->showposts),
             !empty($page->showhighlights),
             !empty($page->showbookmarks),
+            !empty($page->showeditquestionsnoai),
+            !empty($page->showeditquestionsai),   
             $tagstr,
             is_siteadmin()
         ]

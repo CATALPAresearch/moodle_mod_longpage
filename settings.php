@@ -66,4 +66,8 @@ if ($ADMIN->fulltree) {
     get_string('showhighlights', 'longpage'), get_string('showhighlights', 'longpage'), 1)); 
     $settings->add(new admin_setting_configcheckbox('longpage/showbookmarks',
     get_string('showbookmarks', 'longpage'), get_string('showbookmarks', 'longpage'), 1)); 
+    $settings->add(new admin_setting_configcheckbox('longpage/showeditquestionsnoai',
+    get_string('showeditquestionsnoai', 'longpage'), get_string('showeditquestionsnoai_desc', 'longpage'), 1));
+    $settings->add(new admin_setting_configcheckbox('longpage/showeditquestionsai',
+    get_string('showeditquestionsai', 'longpage'), get_string('showeditquestionsai_desc', 'longpage'), 1));
 }

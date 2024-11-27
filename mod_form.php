@@ -121,6 +121,14 @@ class mod_longpage_mod_form extends moodleform_mod {
         $mform->setType('showbookmarks', PARAM_BOOL);
         $mform->setDefault('showbookmarks', $config->showbookmarks);
 
+        $mform->addElement('advcheckbox', 'showeditquestionsnoai', get_string('showeditquestionsnoai', 'longpage'));
+        $mform->setType('showeditquestionsnoai', PARAM_BOOL);
+        $mform->setDefault('showeditquestionsnoai', $config->showeditquestionsnoai);
+
+        $mform->addElement('advcheckbox', 'showeditquestionsai', get_string('showeditquestionsai', 'longpage'));
+        $mform->setType('showeditquestionsai', PARAM_BOOL);
+        $mform->setDefault('showeditquestionsai', $config->showeditquestionsai);
+
         // add legacy files flag only if used
         if (isset($this->current->legacyfiles) and $this->current->legacyfiles != RESOURCELIB_LEGACYFILES_NO) {
             $options = array(RESOURCELIB_LEGACYFILES_DONE   => get_string('legacyfilesdone', 'longpage'),

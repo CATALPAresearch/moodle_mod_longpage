@@ -145,5 +145,25 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true,  $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2024112700;
+    if ($oldversion < $newversion) {
+
+        // Define field id to be added to longpage.
+        $table = new xmldb_table('longpage');
+        $field1 = new xmldb_field('showeditquestionsnoai', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 1, null);
+        $field2 = new xmldb_field('showeditquestionsai', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, 1, null);
+
+        // Conditionally launch add fields
+        if (!$dbman->field_exists($table, $field1)) {
+            $dbman->add_field($table, $field1);
+        }
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+
+        // Longpage savepoint reached
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }

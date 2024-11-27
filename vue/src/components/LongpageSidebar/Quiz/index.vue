@@ -8,17 +8,18 @@
           {{$t('sidebar.tabs.quiz.heading')}}
         </h3>
       
-        <!-- TODO: removed for study, add back in for production -->
         <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-if="this.$store.state.UserModule.userCanMod">
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-          <!--<a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
+          <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> --> -->
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
-        </div> 
-      
+        </div>
+      <div class="col-auto px-0 offset-md-1">
+        <a href="javascript:void(0)" id="showTour" title="Tour starten" data-toggle="tooltip"><i class="fa fa-question-circle fa-fw fa-lg" /></a>
+      </div>
       <div class="col-auto px-0 offset-md-1">
         <a href="javascript:void(0)" id="total-reading-comprehension" title="Aufgabe oben halten" data-toggle="tooltip"><i class="fa fa-battery-0 fa-fw fa-lg" /></a>
       </div>
@@ -53,15 +54,12 @@
       </a>
     </div>
     <div id="embedQuestion">    
-      <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.tags.includes('AI')">
+      <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.context.showEditQuestionsAI">
         <i class="fa fa-plus fa-fw" title="Neue KI-generierte Aufgabe einbetten (Mit Markierung Aufgabe eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
-      <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.tags.includes('noAI')">
+      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.context.showEditQuestionsNoAI">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
-      <!-- TODO: removed for study, add back in for production  -->
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-circle fa-fw" title="Vorhandene Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
@@ -292,7 +290,7 @@ export default {
   },
   mounted() {
     let _this = this;
-    const _ = require('lodash');
+    const _ = require('lodash');   
 
     $("#page").attr("style", ($("#page").attr("style") ? $("#page").attr("style") + " " : "") + "overflow: clip !important;");
 
@@ -308,6 +306,7 @@ export default {
           },
           done: function (reads) {
             try {
+
               let data = JSON.parse(reads.response);
 
               for (const [id, entry] of Object.entries(data)) {
@@ -931,9 +930,9 @@ export default {
         clearInterval(modalInterval);
       }
 
-      function addToast(message) {
+      function addToast(message, delayInMS=1500, isError=false) {
         var toast =
-          `<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500" style="position: absolute; top: 10%; left: 50%">
+          `<div class="toast ${isError ? "bg-danger" : "bg-dark"} text-white" role="alert" aria-live="assertive" aria-atomic="true" data-delay="${delayInMS}" style="position: absolute; top: 10%; left: 50%">
         <div class="toast-body">
           ${message}
           <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
@@ -1010,17 +1009,17 @@ export default {
               let result = JSON.parse(data.response);
               removePin();
               removeModalWait(__this);
-              embedIframeCode(result["iframecode"], btn, !useAI);
+              embedIframeCode(result["iframecode"], btn);
               console.log(result["log"]);
               addToast("Aufgabe wurde erstellt.");
             },
             fail: function (e) {
               removeModalWait(__this);
               if(_this.context.isAdmin) {
-                alert(e.message);
+                addToast(e.message, 10000, true);
               }
               else {
-                alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
+                addToast("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.", 5000, true);
               }
             }
           },
@@ -1368,10 +1367,10 @@ export default {
           return false;
         });
         var buttons = $("<div class='mt-3 mb-2 float-right'></div>");
-        if (_this.context.tags.includes("noAI")) {
+        if (_this.context.showEditQuestionsNoAI) {
           $(plusBlank).appendTo($(buttons));
         }
-        if (_this.context.tags.includes("AI")) {
+        if (_this.context.tags.showEditQuestionsAI) {
           $(plusAI).appendTo($(buttons));
         }
         $(buttons).insertAfter($(options).last().parent().parent()); 
@@ -1422,16 +1421,16 @@ export default {
           return false;
         });
         
-        $(editable).each(function (idx, el) {
+          $(editable).each(function (idx, el) {
           if (!_this.context.tags.includes("AI"))
             return;
-          if ($(el).find("p").length > 0) {
-            $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
+            if ($(el).find("p").length > 0) {
+              $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
           }
           else {
-            $(rephraseButton).clone(true, true).appendTo($(el));
-          }
-        });
+              $(rephraseButton).clone(true, true).appendTo($(el));
+            }
+          });
 
         var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
         $(quitButton).on("click", function (e) {
@@ -1563,6 +1562,7 @@ export default {
         var processedElements = new Map();
 
         function addStep(steps, element, title, description, nextElementSelectorOrElement, afterOnNextClick, popoverSide, popoverAlign) {
+          nextElementSelectorOrElement = null;
           var l = steps.length;
           steps.push({
             element: element,
@@ -1594,23 +1594,23 @@ export default {
         }
 
         var steps = [];
-        if (_this.context.tags.includes("noAI"))
+        if (_this.context.showEditQuestionsNoAI)
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten und muss bis zum Ende durchgeführt werden.<br><br>  Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten.<br><br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
-          addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Eine neue Blanko-Aufgabe wechselt direkt in den Bearbeitungsmodus. Falls nicht, dann drücken Sie rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
+          addStep(steps, "#longpage-sidebar", 'Aufgabe bearbeiten', 'Klicken Sie nun rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.', ".toast-body:contains('Änderungen wurden gespeichert.')");
           addStep(steps, "#longpage-sidebar", 'Distraktor hinzufügen', 'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.', ".toast-body:contains('Distraktor wurde hinzugefügt.')");
           addStep(steps, "#longpage-sidebar", 'Option löschen', 'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.', ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)");
           addStep(steps, "#longpage-sidebar", 'Bearbeitung beenden', 'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.', ".toast-body:contains('Bearbeitung beendet.')");
-          addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
+          // addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
           addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.', ".toast-body:contains('Aufgabe wurde entfernt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }
-        else if (_this.context.tags.includes("AI"))
+        else if (_this.context.showEditQuestionsAI)
         {
-          addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
-          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz.', ".selected-paragraph", null, 'right', 'center');
-          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie nun, anders als zuvor, mit der Maus einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen. Das können einzelne Wörter oder ein oder mehrere Sätze sein.', () => window.getSelection().toString() !== "", null, 'right', 'center');
+          addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
+          addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz, und erneut, um die Auswahl wieder rückgängig zu machen.', ".selected-paragraph", null, 'right', 'center');
+          addStep(steps, '#longpage-main', 'Text markieren', 'Markieren Sie nun, anders als zuvor, mit der Maus einen Teil des Textes, um für die KI den Fokus der zu generierenden Aufgabe festzulegen. Das können einzelne Wörter oder ein oder mehrere Sätze sein.<br><br>Um die Markierung zu entfernen, klicken Sie einfach einmal irgendwo in den Text.', () => window.getSelection().toString() !== "", null, 'right', 'center');
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.<br><br>Das kann einen Moment dauern. Eine Fehlermeldung kann bedeuten, dass die KI keine Aufgabe generieren konnte. Probieren Sie es in diesem Fall mit einer anderen Markierung oder einem anderen Abschnitt.', "#quickEditQuestion:visible", null, 'right', 'center');
           addStep(steps, '#quickEditQuestion', 'Aufgabe bearbeiten', 'Geschafft! Das Auswählen und Markieren von Text ist übrigens optional, um eine Aufgabe mit KI zu generieren.<br><br>Klicken Sie auf den Button "Aufgabe direkt bearbeiten", um eine Aufgabe zu bearbeiten.', () => $("#question .carousel-item.active iframe").contents().find(".qtext[contenteditable=true]"));
           addStep(steps, "#longpage-sidebar", 'Text umformulieren', 'Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.', ".toast-body:contains('Text wurde umformuliert.')");
@@ -1620,8 +1620,8 @@ export default {
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }        
 
-        var showButtons = ["next"];
-        var allowClose = _this.context.isAdmin || window.location.search.includes("admin=1");
+        var showButtons = ["previous", "next"];
+        var allowClose = true;  //_this.context.isAdmin || window.location.search.includes("admin=1");
         if (allowClose) {
           showButtons.push("close");
         }
@@ -1630,6 +1630,7 @@ export default {
           allowClose: allowClose,
           overlayOpacity: 0.4,
           doneBtnText: "Fertig",
+          prevBtnText: "Zurück",
           nextBtnText: "Weiter",
           showButtons: showButtons,
           steps: steps,
@@ -1638,6 +1639,10 @@ export default {
         });
       
         driverObj.drive();
+
+        $("#showTour").on("click", function () {
+          driverObj.drive();
+        });
       }
     });
   }
