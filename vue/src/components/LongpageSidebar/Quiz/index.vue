@@ -8,16 +8,15 @@
           {{$t('sidebar.tabs.quiz.heading')}}
         </h3>
       
-        <!-- TODO: removed for study, add back in for production 
         <button class="btn dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-if="this.$store.state.UserModule.userCanMod">
           <i class="fa fa-cog fa-fw fa-lg" /> 
         </button>
         <div class="dropdown-menu dropdown-menu-right" style="min-width: 15rem;" v-show="this.$store.state.UserModule.userCanMod">
-            <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> 
+            <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a>  -->
           <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"><i class="fa fa-trash fa-fw" />Aufgabe löschen <i class="fa fa-external-link fa-fw small" /> </a>
           <a class="dropdown-item" id="openQuestionBank" href="javascript:void(0)"><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen <i class="fa fa-external-link fa-fw small" /> </a>
-        </div> -->
+        </div>
       <div class="col-auto px-0 offset-md-1">
         <a href="javascript:void(0)" id="showTour" title="Tour starten" data-toggle="tooltip"><i class="fa fa-question-circle fa-fw fa-lg" /></a>
       </div>
@@ -55,18 +54,15 @@
       </a>
     </div>
     <div id="embedQuestion">    
-      <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.showEditQuestionsAI">
+      <a href="javascript:void(0)" class="embedNewAIQuestion" v-show="this.context.showEditQuestionsAI">
         <i class="fa fa-plus fa-fw" title="Neue KI-generierte Aufgabe einbetten (Mit Markierung Aufgabe eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
-      <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.showEditQuestionsNoAI">
+      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-show="this.context.showEditQuestionsNoAI">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
-      <!-- TODO: removed for study, add back in for production 
       <a href="javascript:void(0)" class="embedExistingQuestion" v-show="this.$store.state.UserModule.userCanMod">
         <i class="fa fa-plus-circle fa-fw" title="Vorhandene Aufgabe einbetten" data-toggle="tooltip"/>
-      </a> -->
+      </a>
     </div>
     </template>
   </sidebar-tab>
@@ -294,18 +290,7 @@ export default {
   },
   mounted() {
     let _this = this;
-    const _ = require('lodash');
-
-    //TODO: only for study, remove afterwards
-    $("#region-main h2").next(".dropdown").remove(); $(".drawer-toggles").remove(); $("nav.navbar").remove(); $("#page.drawers").css("margin-top", "0px");
-    //wait until #paragraph-0 present
-    let interval = setInterval(function () {
-      if ($("#paragraph-0").length > 0) {
-        clearInterval(interval);
-        $("#paragraph-0").insertAfter("#region-main > div > h2");
-      }
-    }, 500);
-    
+    const _ = require('lodash');   
 
     $("#page").attr("style", ($("#page").attr("style") ? $("#page").attr("style") + " " : "") + "overflow: clip !important;");
 
@@ -321,10 +306,6 @@ export default {
           },
           done: function (reads) {
             try {
-
-              //TODO: for study
-              let gradeInfo = JSON.parse(reads.gradeInfo);
-              $("#btnContinueStudy").toggleClass("disabled", gradeInfo.grade < gradeInfo.gradepass);
 
               let data = JSON.parse(reads.response);
 

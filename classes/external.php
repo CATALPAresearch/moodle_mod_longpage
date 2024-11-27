@@ -2394,7 +2394,7 @@ class mod_longpage_external extends external_api
             $embedcode = external::get_embed_code($course->id, $category->idnumber, $q->idnumber, "", "", "", "", "", "", "", "", "", "", "", "");
             $iframecode  = self::embed_question($longpageid, $embedcode, $position);
             $iframecode = $iframecode['response'];    
-            //\core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
+            \core_tag_tag::add_item_tag('core_question', 'question', $created->id, $context, "neu");   
             self::log(array("longpageid" => $longpageid, "courseid" => $course->id, "utc" => time(), "action" => "question", "entry" => json_encode(array("type" => "create", "questionid" => $created->id, "qtype" => $qtype, "selectedText" => $selectedText, "selectedParagraphs" => $selectedParagraphs, "useAI" => $useAI == true ? "true" : "false", 
             "existingQuestions" => $existingQuestions, "position" => $position, "elapsedTimeMs" => $now->diff(new DateTime())->f,"embedid" => $category->idnumber . "/" . $q->idnumber, "longpageid" => $longpageid)))); 
         }
@@ -2459,33 +2459,8 @@ class mod_longpage_external extends external_api
         self::validate_context($context);
 
         require_capability('mod/longpage:modannotations', $context);
-
-        //TODO: for study
-        // $grade = new stdClass();
-        // $grade->userid = $USER->id;
-        // $gradepass = 0;
-        // $grades = grade_get_grades($course->id, 'mod', 'longpage', $page->id, $USER->id);
-        // if (empty($grades->items)) {            
-        //     $grade->rawgrade = 0;
-        // }
-        // else {
-        //     $gradepass = floatval($grades->items[0]->gradepass);
-        //     $grade->rawgrade = floatval($grades->items[0]->grades[$USER->id]->grade);
-        // }
-
        
-        if (\core_tag_tag::is_item_tagged_with('core_question', 'question', $questionid, "neu")) {
-            \core_tag_tag::remove_item_tag('core_question', 'question', $questionid, "neu");
-            //$grade->rawgrade = $grade->rawgrade + 1;
-        } else {
-            \core_tag_tag::add_item_tag('core_question', 'question', $questionid, $context, "neu");
-            //$grade->rawgrade = $grade->rawgrade - 1;
-        }
-        
-        // longpage_update_grades($page, $grade);
-
-        return array('response' => json_encode("success"));    
-        //'gradeInfo' => json_encode(array("grade" => $grade->rawgrade, "gradepass" => $gradepass)));
+        return array('response' => json_encode("success"));
     }
 
     public static function lock_question_parameters()
