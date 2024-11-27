@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2024061801;       // The current module version (Date: YYYYMMDDXX)
+$plugin->version   = 2024112700;       // The current module version (Date: YYYYMMDDXX)
 $plugin->requires  = 2018050800;       // Requires this Moodle version
 $plugin->component = 'mod_longpage';       // Full name of the plugin (used for diagnostics)
 $plugin->cron      = 0;

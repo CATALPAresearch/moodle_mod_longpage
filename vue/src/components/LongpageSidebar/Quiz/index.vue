@@ -56,11 +56,11 @@
     </div>
     <div id="embedQuestion">    
       <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.tags.includes('AI')">
+      <a href="javascript:void(0)" class="embedNewAIQuestion" v-if="this.context.showEditQuestionsAI">
         <i class="fa fa-plus fa-fw" title="Neue KI-generierte Aufgabe einbetten (Mit Markierung Aufgabe eingrenzen, mit Strg oder Umschalt plus Klick auf Absätze Kontext erweitern)" data-toggle="tooltip"/>
       </a>
       <!-- TODO: v-if added for study, remove for production -->
-      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.tags.includes('noAI')">
+      <a href="javascript:void(0)" class="embedNewEmptyQuestion" v-if="this.context.showEditQuestionsNoAI">
         <i class="fa fa-plus-square fa-fw" title="Neue Blanko-Aufgabe einbetten" data-toggle="tooltip"/>
       </a>
       <!-- TODO: removed for study, add back in for production 
@@ -1386,10 +1386,10 @@ export default {
           return false;
         });
         var buttons = $("<div class='mt-3 mb-2 float-right'></div>");
-        if (_this.context.tags.includes("noAI")) {
+        if (_this.context.showEditQuestionsNoAI) {
           $(plusBlank).appendTo($(buttons));
         }
-        if (_this.context.tags.includes("AI")) {
+        if (_this.context.tags.showEditQuestionsAI) {
           $(plusAI).appendTo($(buttons));
         }
         $(buttons).insertAfter($(options).last().parent().parent()); 
@@ -1440,16 +1440,16 @@ export default {
           return false;
         });
         
-        $(editable).each(function (idx, el) {
+          $(editable).each(function (idx, el) {
           if (!_this.context.tags.includes("AI"))
             return;
-          if ($(el).find("p").length > 0) {
-            $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
+            if ($(el).find("p").length > 0) {
+              $(rephraseButton).clone(true, true).appendTo($(el).find("p"));
           }
           else {
-            $(rephraseButton).clone(true, true).appendTo($(el));
-          }
-        });
+              $(rephraseButton).clone(true, true).appendTo($(el));
+            }
+          });
 
         var quitButton = $("<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>");
         $(quitButton).on("click", function (e) {
@@ -1613,7 +1613,7 @@ export default {
         }
 
         var steps = [];
-        if (_this.context.tags.includes("noAI"))
+        if (_this.context.showEditQuestionsNoAI)
         {
           addStep(steps, null, 'Willkommen zur Tour!', 'Diese geführte Tour dient zum Kennenlernen der Funktionalitäten.<br><br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-main', 'Plus-Button', 'Fahren Sie mit der Maus über einen Absatz. Rechts oberhalb des Absatzes erscheint ein Plus-Button. Klicken Sie auf den Plus-Button, um eine Aufgabe hinzuzufügen.', "#quickEditQuestion:visible", null, 'right', 'center');
@@ -1625,7 +1625,7 @@ export default {
           addStep(steps, "#removeQuestion", 'Einbettung entfernen', 'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.', ".toast-body:contains('Aufgabe wurde entfernt.')");
           addStep(steps, null, 'Fertig!', 'Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.');
         }
-        else if (_this.context.tags.includes("AI"))
+        else if (_this.context.showEditQuestionsAI)
         {
           addStep(steps, null, 'Willkommen zur Tour!', 'Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.', "#longpage-content #paragraph-0:visible", () => $("#longpage-main").scrollTop(0));
           addStep(steps, '#longpage-main', 'Absätze auswählen', 'Wählen Sie vor dem Absatz, zu dem Sie eine Aufgabe generieren wollen, andere Absätze aus, die der KI als Kontext dienen. Klicken Sie dazu mit gedrückter <b>Strg</b>- oder <b>Umschalt</b>-Taste auf den jeweiligen Absatz, und erneut, um die Auswahl wieder rückgängig zu machen.', ".selected-paragraph", null, 'right', 'center');

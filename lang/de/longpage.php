@@ -100,3 +100,7 @@ $string['showhighlights'] = 'Markierungen aktivieren';
 $string['showhighlightsexplain'] = 'Funktionalität zum Erstellen und Lesen von Markierungen aktivieren';
 $string['showbookmarks'] = 'Lesezeichen aktivieren';
 $string['showbookmarksexplain'] = 'Funktionalität zum Erstellen und Verwenden von Lesezeichen aktivieren';
+$string['showeditquestionsnoai'] = 'Manuelle Fragenerstellung aktivieren';
+$string['showeditquestionsnoai_desc'] = 'Wenn aktiviert, können Lehrende Fragen manuell erstellen und bearbeiten';
+$string['showeditquestionsai'] = 'KI-gestützte Fragenerstellung aktivieren'; 
+$string['showeditquestionsai_desc'] = 'Wenn aktiviert, können Lehrende KI-Funktionen zum Erstellen und Bearbeiten von Fragen nutzen';

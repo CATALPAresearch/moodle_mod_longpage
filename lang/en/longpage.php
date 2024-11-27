@@ -108,3 +108,7 @@ $string['showhighlights'] = 'Enable highlights';
 $string['showhighlightsexplain'] = 'Enable functionality to create and read highlights';
 $string['showbookmarks'] = 'Enable bookmarks';
 $string['showbookmarksexplain'] = 'Enable functionality to create and use bookmarks';
+$string['showeditquestionsnoai'] = 'Enable manual question creation';
+$string['showeditquestionsnoai_desc'] = 'If enabled, teachers can use manual question creation features';
+$string['showeditquestionsai'] = 'Enable AI question creation';
+$string['showeditquestionsai_desc'] = 'If enabled, teachers can use AI question creation features';

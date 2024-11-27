@@ -281,6 +281,8 @@ function longpage_update_instance($data, $mform) {
     $data->showposts = !empty($data->showposts);
     $data->showhighlights = !empty($data->showhighlights);
     $data->showbookmarks = !empty($data->showbookmarks);
+    $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai);
+    $data->showeditquestionsai = !empty($data->showeditquestionsai);
 
     $DB->update_record('longpage', $data);
 
