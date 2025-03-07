@@ -2088,10 +2088,12 @@ class mod_longpage_external extends external_api
     protected static function chat($systemContent, $userContent)
     {
         $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczYmUyMGFiLWI4YjYtNDNmNS05YmZjLWIzMDU1OGZkODZiYyJ9.7QCdTgHAPVvTJgkbr7NLxYcO4iUTwlL4ai6rfw_neXE";
-        $url = "https://catalpa-llm.fernuni-hagen.de/ollama/api/chat";
-        $backupUrl = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
-        $model = "mixtral:latest";
-        $authorization = "Authorization: Bearer " . $token;
+        $url = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat";
+        $backupUrl = "http://catalpa-llm.fernuni-hagen.de:11434/api/chat"; // same as url
+        // $model = "mixtral:latest"; // not available on server
+        $model = "llama3.1:latest";
+        // $authorization = "Authorization: Bearer " . $token; // currently not required
+        $authorization = "";
 
         // Remove new lines and carriage returns.
         $systemContent = str_replace("\n", "", $systemContent);
