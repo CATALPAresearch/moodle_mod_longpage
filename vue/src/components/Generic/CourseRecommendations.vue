@@ -43,7 +43,7 @@ export default {
   data: () => {
     return {
       serverPath: "http://127.0.0.1:8080/course-recommender",
-      parantSelector: "#"+LONGPAGE_CONTENT_ID,
+      parantSelector: "#" + LONGPAGE_CONTENT_ID,
       courses: [],
       recommendations: [],
       blacklist: [
@@ -373,27 +373,30 @@ export default {
     renderRecommendations: function () {
       const parentEl = document.querySelector(this.parantSelector);
       if (!parentEl) return;
-      
+
       let numerOfHeadings = parentEl.querySelectorAll("h3").length;
-      
+
       // add a dummy heading at the end.
-      const dummyHeading = document.createElement('h3');
-      dummyHeading.style.cssText = 'display:inline; color:#fff; font-size:7;';
-      dummyHeading.className = 'dummy-heading';
-      dummyHeading.textContent = '.';
+      const dummyHeading = document.createElement("h3");
+      dummyHeading.style.cssText = "display:inline; color:#fff; font-size:7;";
+      dummyHeading.className = "dummy-heading";
+      dummyHeading.textContent = ".";
       parentEl.appendChild(dummyHeading);
-      
+
       // iterate over all headings and determine the text length and number of images
       for (var j = 0; j < numerOfHeadings; j++) {
         var data = this.recommendations["ke1"][j];
         if (data === undefined) {
           break;
         }
-        
-        const courseRecommendationList = document.createElement('span');
-        courseRecommendationList.className = 'dropdown-menu p-1';
-        courseRecommendationList.setAttribute('aria-labelledby', 'dropdownMenuLink' + j);
-        
+
+        const courseRecommendationList = document.createElement("span");
+        courseRecommendationList.className = "dropdown-menu p-1";
+        courseRecommendationList.setAttribute(
+          "aria-labelledby",
+          "dropdownMenuLink" + j,
+        );
+
         var course = "";
         for (var i = 0; i < data.length; i++) {
           course = data[i][0].replace("_t.pickle", "").split("/");
@@ -404,43 +407,45 @@ export default {
             if (this.modulesbyCourse[course[2].substr(0, 4)] !== undefined) {
               url = this.modulesbyCourse[course[2].substr(0, 4)].url;
             }
-            
-            const link = document.createElement('a');
-            link.className = 'dropdown-item px-0 py-1';
+
+            const link = document.createElement("a");
+            link.className = "dropdown-item px-0 py-1";
             link.href = url;
-            link.textContent = course[2] + ": " + course[3] + " (" + data[i][1].toFixed(2) + ")";
+            link.textContent =
+              course[2] + ": " + course[3] + " (" + data[i][1].toFixed(2) + ")";
             courseRecommendationList.appendChild(link);
           }
         }
 
-        const courseRecommendations = document.createElement('a');
-        courseRecommendations.href = '#';
-        courseRecommendations.className = 'badge dropdown-toggle p-0';
-        courseRecommendations.id = 'dropdownMenuLink' + j;
-        courseRecommendations.setAttribute('role', 'button');
-        courseRecommendations.setAttribute('data-toggle', 'dropdown');
-        courseRecommendations.setAttribute('aria-haspopup', 'true');
-        courseRecommendations.setAttribute('aria-expanded', 'false');
-        courseRecommendations.style.cssText = 'background-color: transparent; font-size: 0.8em; color: #333333; font-weight:100;';
-        courseRecommendations.textContent = 'Semantisch ähnliche Kurseinheiten';
+        const courseRecommendations = document.createElement("a");
+        courseRecommendations.href = "#";
+        courseRecommendations.className = "badge dropdown-toggle p-0";
+        courseRecommendations.id = "dropdownMenuLink" + j;
+        courseRecommendations.setAttribute("role", "button");
+        courseRecommendations.setAttribute("data-toggle", "dropdown");
+        courseRecommendations.setAttribute("aria-haspopup", "true");
+        courseRecommendations.setAttribute("aria-expanded", "false");
+        courseRecommendations.style.cssText =
+          "background-color: transparent; font-size: 0.8em; color: #333333; font-weight:100;";
+        courseRecommendations.textContent = "Semantisch ähnliche Kurseinheiten";
 
-        const wrapper = document.createElement('span');
-        wrapper.className = 'dropdown d-inline show';
+        const wrapper = document.createElement("span");
+        wrapper.className = "dropdown d-inline show";
         wrapper.appendChild(courseRecommendations);
         wrapper.appendChild(courseRecommendationList);
-        
+
         const heading = parentEl.querySelectorAll("h3")[j];
-        heading.style.position = 'relative';
-        const wrapperParent = heading.closest('.wrapper');
+        heading.style.position = "relative";
+        const wrapperParent = heading.closest(".wrapper");
         if (wrapperParent && wrapperParent.nextElementSibling) {
           const nextSpan = wrapperParent.nextElementSibling;
-          const br = document.createElement('br');
+          const br = document.createElement("br");
           nextSpan.after(br);
           br.after(wrapper);
-          
-          const separator = document.createElement('span');
-          separator.className = 'mx-3 d-inline';
-          separator.textContent = '|';
+
+          const separator = document.createElement("span");
+          separator.className = "mx-3 d-inline";
+          separator.textContent = "|";
           wrapper.after(separator);
         }
       }
@@ -505,5 +510,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

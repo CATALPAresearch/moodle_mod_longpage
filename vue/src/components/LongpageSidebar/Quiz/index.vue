@@ -390,7 +390,7 @@ export default {
     $("#page").attr(
       "style",
       ($("#page").attr("style") ? $("#page").attr("style") + " " : "") +
-        "overflow: clip !important;"
+        "overflow: clip !important;",
     );
 
     let moodleRelease = $("#longpage-app-container")
@@ -425,27 +425,27 @@ export default {
                     $(p).attr(
                       "data-reading-comprehension-count",
                       parseInt($(p).attr("data-reading-comprehension-count")) +
-                        level
+                        level,
                     );
                     $(p).attr(
                       "data-reading-comprehension-sum",
                       parseFloat($(p).attr("data-reading-comprehension-sum")) +
-                        level * value
+                        level * value,
                     );
                   }
                 });
 
                 $(iframe, "#question iframe#" + idFixed).attr(
                   "data-embedid",
-                  idFixed
+                  idFixed,
                 );
                 $(iframe, "#question iframe#" + idFixed).attr(
                   "data-questionid",
-                  entry["id"]
+                  entry["id"],
                 );
                 $(iframe, "#question iframe#" + idFixed).attr(
                   "data-tags",
-                  tags
+                  tags,
                 );
               }
 
@@ -454,44 +454,43 @@ export default {
               var repeat = 0;
 
               $(".reading-progress").tooltip("dispose");
-              $(".wrapper[data-reading-comprehension-count]").each(function (
-                index,
-                paragraph
-              ) {
-                var progress = $(paragraph).find(".reading-progress");
-                var value =
-                  parseFloat(
-                    $(paragraph).attr("data-reading-comprehension-sum")
-                  ) /
-                  parseInt(
-                    $(paragraph).attr("data-reading-comprehension-count")
-                  );
-                repeat += value < 0.5 ? 1 : 0;
-                sum += value;
-                len += 1;
-                $(progress).attr(
-                  "title",
-                  $(progress).attr("data-bs-original-title")
-                );
-                $(progress)
-                  .attr(
+              $(".wrapper[data-reading-comprehension-count]").each(
+                function (index, paragraph) {
+                  var progress = $(paragraph).find(".reading-progress");
+                  var value =
+                    parseFloat(
+                      $(paragraph).attr("data-reading-comprehension-sum"),
+                    ) /
+                    parseInt(
+                      $(paragraph).attr("data-reading-comprehension-count"),
+                    );
+                  repeat += value < 0.5 ? 1 : 0;
+                  sum += value;
+                  len += 1;
+                  $(progress).attr(
                     "title",
-                    (_this.context.showreadingprogress
-                      ? $(progress)
-                          .attr("title")
-                          .substr(
-                            0,
-                            $(progress).attr("title").indexOf("gelesen.") + 8
-                          ) + "<br>"
-                      : "") +
-                      "Ihr geschätztes Leseverständnis beträgt " +
-                      (100 * value).toFixed(2) +
-                      "%."
-                  )
-                  .css("opacity", Math.max(0.1, value))
-                  .addClass("reading-comprehension");
-                $(paragraph).attr("data-reading-comprehension-count", "");
-              });
+                    $(progress).attr("data-bs-original-title"),
+                  );
+                  $(progress)
+                    .attr(
+                      "title",
+                      (_this.context.showreadingprogress
+                        ? $(progress)
+                            .attr("title")
+                            .substr(
+                              0,
+                              $(progress).attr("title").indexOf("gelesen.") + 8,
+                            ) + "<br>"
+                        : "") +
+                        "Ihr geschätztes Leseverständnis beträgt " +
+                        (100 * value).toFixed(2) +
+                        "%.",
+                    )
+                    .css("opacity", Math.max(0.1, value))
+                    .addClass("reading-comprehension");
+                  $(paragraph).attr("data-reading-comprehension-count", "");
+                },
+              );
               $(".reading-progress").tooltip({ placement: "auto", html: true });
 
               var rc = 0;
@@ -515,14 +514,14 @@ export default {
                   "title",
                   "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " +
                     rc +
-                    " %.<br>Klicken Sie für eine Übersicht der Aufgaben."
+                    " %.<br>Klicken Sie für eine Übersicht der Aufgaben.",
                 )
                 .tooltip("dispose")
                 .tooltip({ placement: "top", html: true, title: "" })
                 .attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr(
                 "class",
-                "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25)
+                "fa fa-fw fa-lg fa-battery-" + Math.floor(rc / 25),
               );
               $("#sidebar-tab-quiz #total-reading-comprehension").show();
               if (successFunction) successFunction();
@@ -605,7 +604,7 @@ export default {
           get_reading_comprehension();
         },
         2000,
-        { leading: false }
+        { leading: false },
       );
 
       get_reading_comprehension();
@@ -614,14 +613,17 @@ export default {
         .not(
           $("h1, h2, h3, h4, h5, h6")
             .next()
-            .add($(".filter_embedquestion-iframe").parent().next())
+            .add($(".filter_embedquestion-iframe").parent().next()),
         )
         .parent()
         .append(
-          $("#embedQuestion").clone().removeAttr("id").addClass("embedQuestion")
+          $("#embedQuestion")
+            .clone()
+            .removeAttr("id")
+            .addClass("embedQuestion"),
         );
       $(
-        ".embedNewAIQuestion, .embedNewEmptyQuestion, .embedExistingQuestion"
+        ".embedNewAIQuestion, .embedNewEmptyQuestion, .embedExistingQuestion",
       ).show();
 
       //let previousY = 0;
@@ -638,7 +640,7 @@ export default {
                 entry: JSON.stringify(logentry),
                 action: action,
                 utc: Math.ceil(new Date().getTime() / 1000),
-                courseid: _this.context.courseId
+                courseid: _this.context.courseId,
               },
             },
             done: function (reads) {},
@@ -675,10 +677,10 @@ export default {
             args: {
               data: {
                 qubaid: new URLSearchParams(
-                  $(this).find("form").attr("action")
+                  $(this).find("form").attr("action"),
                 ).get("qubaid"),
                 form: JSON.stringify(
-                  Object.fromEntries(new FormData($(this).find("form")[0]))
+                  Object.fromEntries(new FormData($(this).find("form")[0])),
                 ),
               },
             },
@@ -723,7 +725,7 @@ export default {
             .each(function (idx, target) {
               if (entry.isIntersecting === true) {
                 $("#longpage-main .filter_embedquestion-iframe").removeClass(
-                  "last-visible"
+                  "last-visible",
                 );
                 var idFixed = "#" + target.id.replace("/", "\\/");
 
@@ -740,7 +742,7 @@ export default {
 
                 var div = $(`<div class="carousel-item"></div>`);
                 var iframeCloned = $($("#longpage-main " + idFixed)[0]).clone(
-                  true
+                  true,
                 );
                 var src = $(iframeCloned).attr("src");
                 $(iframeCloned).attr("src", "");
@@ -776,11 +778,11 @@ export default {
                   if (_this.$store.state.UserModule.userCanMod) {
                     $(this).attr(
                       "data-questionid",
-                      $("#longpage-main " + idFixed).attr("data-questionid")
+                      $("#longpage-main " + idFixed).attr("data-questionid"),
                     );
                     $(this).attr(
                       "data-tags",
-                      $("#longpage-main " + idFixed).attr("data-tags")
+                      $("#longpage-main " + idFixed).attr("data-tags"),
                     );
                     $("#editButtons").show();
                     $("#question iframe" + idFixed)
@@ -793,7 +795,7 @@ export default {
                   cssLink.href =
                     window.location.pathname.substring(
                       0,
-                      window.location.pathname.lastIndexOf("/")
+                      window.location.pathname.lastIndexOf("/"),
                     ) + "/vue/src/styles/tasks.css";
                   cssLink.rel = "stylesheet";
                   cssLink.type = "text/css";
@@ -806,7 +808,7 @@ export default {
                   jsLink.src =
                     window.location.pathname.substring(
                       0,
-                      window.location.pathname.lastIndexOf("/")
+                      window.location.pathname.lastIndexOf("/"),
                     ) + "/vue/src/components/LongpageSidebar/Quiz/tasks.js";
                   jsLink.type = "text/javascript";
                   $("#question iframe" + idFixed)
@@ -854,7 +856,9 @@ export default {
                     .on("dblclick", function () {
                       var el = $(
                         "#" +
-                          $("#question iframe" + idFixed).attr("data-paragraph")
+                          $("#question iframe" + idFixed).attr(
+                            "data-paragraph",
+                          ),
                       );
                       $(el)[0].scrollIntoView({
                         behavior: "smooth",
@@ -906,7 +910,7 @@ export default {
             $("#question .carousel-item.active iframe").attr("data-tags") &&
               $("#question .carousel-item.active iframe")
                 .attr("data-tags")
-                .includes("neu")
+                .includes("neu"),
           );
 
           if ($("#question").children().length > 1) {
@@ -938,7 +942,7 @@ export default {
         if (paragraph.length == 0) return;
         $(el).attr(
           "data-paragraph",
-          $(paragraph).children().first().attr("id")
+          $(paragraph).children().first().attr("id"),
         );
         $(el).attr("data-embedid", el.id);
         $(el).attr("data-questionid", $(el).attr("data-questionid"));
@@ -999,7 +1003,7 @@ export default {
           if (el.offsetTop > t + 500) {
             $("#longpage-main").animate(
               { scrollTop: el.offsetTop - 500 },
-              "fast"
+              "fast",
             );
             return false;
           }
@@ -1009,12 +1013,12 @@ export default {
       $("#prevQuestion").on("click", function () {
         var t = $("#longpage-main").scrollTop();
         $(
-          $("#longpage-main .filter_embedquestion-iframe").get().reverse()
+          $("#longpage-main .filter_embedquestion-iframe").get().reverse(),
         ).each(function (i, el) {
           if (el.offsetTop < t) {
             $("#longpage-main").animate(
               { scrollTop: el.offsetTop - 500 },
-              "fast"
+              "fast",
             );
             return false;
           }
@@ -1035,7 +1039,7 @@ export default {
       function embedIframeCode(iframecode, btn, openEditMode = false) {
         if (iframecode == "error") {
           alert(
-            "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+            "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
           );
           return;
         }
@@ -1044,7 +1048,7 @@ export default {
         $(iframecode)
           .attr(
             "data-paragraph",
-            $(btn).parent(".wrapper").children().first().attr("id")
+            $(btn).parent(".wrapper").children().first().attr("id"),
           )
           .prop("outerHTML");
         iframecode = $(iframecode).prop("outerHTML");
@@ -1058,7 +1062,7 @@ export default {
             .append(iframecode);
         } else {
           var wrapper = $(
-            "<div class='wrapper'><p>" + iframecode + "</p></div>"
+            "<div class='wrapper'><p>" + iframecode + "</p></div>",
           );
           $(wrapper).height("0px");
           $(wrapper).css("padding", "0px");
@@ -1108,8 +1112,8 @@ export default {
               embedIframeCode(
                 data.response,
                 $(".embedQuestion").eq(
-                  $("#id_embedformeditable").data("position")
-                )
+                  $("#id_embedformeditable").data("position"),
+                ),
               );
             },
             fail: function (e) {
@@ -1132,7 +1136,7 @@ export default {
         function () {
           if (!_this.$store.state.UserModule.userCanMod) return;
           $(this).css("opacity", event.type === "mouseenter" ? "1" : "0");
-        }
+        },
       );
 
       var hasPin = function (onlyIfAutoPin = false) {
@@ -1160,7 +1164,7 @@ export default {
         $("#id_embedformeditable").text("");
         $("#id_embedformeditable").data(
           "position",
-          $(this).parent().index(".embedQuestion")
+          $(this).parent().index(".embedQuestion"),
         );
         $(".atto_embedquestion_button").trigger("click");
       });
@@ -1331,7 +1335,7 @@ export default {
                 addToast(
                   "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.",
                   5000,
-                  true
+                  true,
                 );
               }
             },
@@ -1342,7 +1346,7 @@ export default {
       $(document).on("click", "#removeQuestion", function () {
         var btn = $(
           "#" +
-            $("#question .carousel-item.active iframe").attr("data-paragraph")
+            $("#question .carousel-item.active iframe").attr("data-paragraph"),
         )
           .next()
           .next(".embedQuestion");
@@ -1444,7 +1448,7 @@ export default {
                   "data-tags",
                   $(iframe).attr("data-tags") +
                     ($(iframe).attr("data-tags") != "" ? "," : "") +
-                    "neu"
+                    "neu",
                 );
                 changeLockButton(true);
                 addToast("Aufgabe wurde gesperrt.");
@@ -1454,7 +1458,7 @@ export default {
                   $(iframe)
                     .attr("data-tags")
                     .replace("neu", "")
-                    .replace(/,$/, "")
+                    .replace(/,$/, ""),
                 );
                 changeLockButton(false);
                 addToast("Aufgabe wurde freigegeben.");
@@ -1464,7 +1468,7 @@ export default {
                 "#longpage-content iframe#" +
                   embedid +
                   ", #question iframe#" +
-                  embedid
+                  embedid,
               ).each(function (idx, ifr) {
                 $(ifr).attr("data-tags", $(iframe).attr("data-tags"));
               });
@@ -1485,13 +1489,13 @@ export default {
         var questionid = result["questionid"];
         $("#question .carousel-item.active iframe").attr(
           "data-questionid",
-          questionid
+          questionid,
         );
         $(
           "#longpage-content iframe#" +
             $("#question .carousel-item.active iframe")
               .attr("id")
-              .replace("/", "\\/")
+              .replace("/", "\\/"),
         ).attr("data-questionid", questionid);
         var qubaid = result["qubaid"];
         $("#question .carousel-item.active iframe")
@@ -1503,7 +1507,7 @@ export default {
               .contents()
               .find("form")
               .attr("action")
-              .replace(/qubaid=\d+/, "qubaid=" + qubaid)
+              .replace(/qubaid=\d+/, "qubaid=" + qubaid),
           );
         addToast("Änderungen wurden gespeichert.");
         return result;
@@ -1543,7 +1547,7 @@ export default {
               .contents()
               .find("input[type=radio][value='" + $(checked).val() + "']")
               .replaceWith(
-                '<span class="ml-2"><i class="icon fa fa-check text-success fa-fw " title="Correct" role="img" aria-label="Correct"></i></span>'
+                '<span class="ml-2"><i class="icon fa fa-check text-success fa-fw " title="Correct" role="img" aria-label="Correct"></i></span>',
               );
             var sequencecheck = $(data)
               .find("input[name$='sequencecheck']")
@@ -1575,7 +1579,7 @@ export default {
         $(activeIframe)
           .contents()
           .find(
-            ".im-controls, .qtype_multichoice_clearchoice, .validationerror"
+            ".im-controls, .qtype_multichoice_clearchoice, .validationerror",
           )
           .hide();
         $(activeIframe).contents().find("body").removeAttr("data-tags");
@@ -1657,7 +1661,7 @@ export default {
             .index($(this).parents(".r0, .r1"));
           questionid = $(activeIframe).attr("data-questionid");
           var qubaid = new URLSearchParams(
-            $(activeIframe).contents().find("form").attr("action")
+            $(activeIframe).contents().find("form").attr("action"),
           ).get("qubaid");
 
           ajax.call([
@@ -1693,7 +1697,7 @@ export default {
         $(options).parent().removeClass("w-auto").addClass("w-100");
         $(options).each(function (idx, option) {
           var removeOption = $(
-            "<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>"
+            "<button class='btn btn-danger' title='Option löschen'><i class='fa fa-trash' style='cursor:pointer;'></i></button>",
           );
           $(removeOption).on("click", function () {
             try {
@@ -1704,7 +1708,7 @@ export default {
             }
             var __this = this;
             var qubaid = new URLSearchParams(
-              $(activeIframe).contents().find("form").attr("action")
+              $(activeIframe).contents().find("form").attr("action"),
             ).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
             ajax.call([
@@ -1736,10 +1740,10 @@ export default {
         });
 
         var plusBlank = $(
-          "<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>"
+          "<button class='btn btn-success addBlankDistractor ml-2' title='Leeren Distraktor hinzufügen'><i class='fa fa-plus-circle fa-fw' style='cursor:pointer;'></i>Distraktor hinzufügen</button>",
         );
         var plusAI = $(
-          "<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>"
+          "<button class='btn btn-success addAIDistractor' title='Neuen Distraktor mit KI generieren'><i class='fa fa-plus-square fa-fw' style='cursor:pointer;'></i>Distraktor mit KI generieren</button>",
         );
         $(plusBlank)
           .add(plusAI)
@@ -1751,7 +1755,7 @@ export default {
               return;
             }
             var qubaid = new URLSearchParams(
-              $(activeIframe).contents().find("form").attr("action")
+              $(activeIframe).contents().find("form").attr("action"),
             ).get("qubaid");
             questionid = $(activeIframe).attr("data-questionid");
             var paragraph = $(activeIframe).attr("data-paragraph");
@@ -1797,7 +1801,7 @@ export default {
         $(buttons).insertAfter($(options).last().parent().parent());
 
         var rephraseButton = $(
-          "<button class='btn btn-success btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>"
+          "<button class='btn btn-success btn-sm rephrase float-right' contenteditable='false' title='Text mit KI umformulieren'><i class='fa fa-refresh' style='cursor:pointer;'></i></button>",
         );
         $(rephraseButton).on("click", function () {
           try {
@@ -1813,7 +1817,7 @@ export default {
             .find(".que .answer > div")
             .index($(this).parents(".r0, .r1"));
           var qubaid = new URLSearchParams(
-            $(activeIframe).contents().find("form").attr("action")
+            $(activeIframe).contents().find("form").attr("action"),
           ).get("qubaid");
           questionid = $(activeIframe).attr("data-questionid");
           var __this = this;
@@ -1849,7 +1853,11 @@ export default {
         });
 
         $(editable).each(function (idx, el) {
-          console.log('refresh ? ', _this.context.tags.includes("AI"), rephraseButton)
+          console.log(
+            "refresh ? ",
+            _this.context.tags.includes("AI"),
+            rephraseButton,
+          );
           if (!_this.context.tags.includes("AI"))
             if ($(el).find("p").length > 0) {
               return;
@@ -1860,7 +1868,7 @@ export default {
         });
 
         var quitButton = $(
-          "<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>"
+          "<button class='btn btn-primary mt-4' title='Bearbeitung beenden'><i class='fa fa-close fa-fw' style='cursor:pointer;'></i>Fertig</button>",
         );
         $(quitButton).on("click", function (e) {
           e.preventDefault();
@@ -1878,7 +1886,7 @@ export default {
 
       $("#editQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr(
-          "data-questionid"
+          "data-questionid",
         );
         if (questionid == undefined) {
           return;
@@ -1893,13 +1901,13 @@ export default {
             .replace("id", "cmid") +
             "&id=" +
             questionid,
-          "_blank"
+          "_blank",
         );
       });
 
       $("#deleteQuestion").on("click", function () {
         let questionid = $("#question .carousel-item.active iframe").attr(
-          "data-questionid"
+          "data-questionid",
         );
         if (questionid == undefined) {
           return;
@@ -1919,7 +1927,7 @@ export default {
             questionid +
             "=1&returnurl=" +
             encodeURIComponent(window.location.href),
-          "_blank"
+          "_blank",
         );
       });
 
@@ -1935,7 +1943,7 @@ export default {
             window.location.href
               .replace("mod/longpage/view.php", "question/edit.php")
               .replace("id", "cmid"),
-            "_blank"
+            "_blank",
           );
         }
       });
@@ -1949,7 +1957,7 @@ export default {
         var iframe = $(ev.relatedTarget).find("iframe");
         changeLockButton(
           $(iframe).attr("data-tags") &&
-            $(iframe).attr("data-tags").includes("neu")
+            $(iframe).attr("data-tags").includes("neu"),
         );
         //wenn im Editiermodus
         if (
@@ -1978,10 +1986,10 @@ export default {
                   .next()
                   .find("iframe")
                   .attr("id")
-                  .replace("/", "\\/")
+                  .replace("/", "\\/"),
             )
             .parent(".carousel-item")
-            .index()
+            .index(),
         );
       });
 
@@ -1990,10 +1998,10 @@ export default {
           window.location.href
             .replace(
               "mod/longpage/view.php",
-              "report/embedquestion/activity.php"
+              "report/embedquestion/activity.php",
             )
             .replace("id", "cmid"),
-          "_blank"
+          "_blank",
         );
       });
 
@@ -2008,7 +2016,7 @@ export default {
             type: ev.type,
           };
           log("moved", logentry);
-        }
+        },
       );
 
       $('[data-toggle="tooltip"]').on("show.bs.tooltip", function () {
@@ -2050,7 +2058,7 @@ export default {
         var moveNextWhenReady = function (
           nextElementSelectorOrElementOrFunction,
           driverObj,
-          afterOnNextClick
+          afterOnNextClick,
         ) {
           var nextElementSelectorOrElement =
             typeof nextElementSelectorOrElementOrFunction === "function"
@@ -2067,7 +2075,7 @@ export default {
               moveNextWhenReady(
                 nextElementSelectorOrElementOrFunction,
                 driverObj,
-                afterOnNextClick
+                afterOnNextClick,
               );
             }, 1000);
           }
@@ -2083,7 +2091,7 @@ export default {
           nextElementSelectorOrElement,
           afterOnNextClick,
           popoverSide,
-          popoverAlign
+          popoverAlign,
         ) {
           nextElementSelectorOrElement = null;
           var l = steps.length;
@@ -2110,7 +2118,7 @@ export default {
                 moveNextWhenReady(
                   nextElementSelectorOrElement,
                   driverObj,
-                  afterOnNextClick
+                  afterOnNextClick,
                 );
                 processedElements.set(l, true);
               },
@@ -2127,7 +2135,7 @@ export default {
             "Willkommen zur Tour!",
             "Diese geführte Tour dient zum Kennenlernen der Funktionalitäten.<br><br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br> Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.",
             "#longpage-content #paragraph-0:visible",
-            () => $("#longpage-main").scrollTop(0)
+            () => $("#longpage-main").scrollTop(0),
           );
           addStep(
             steps,
@@ -2137,35 +2145,35 @@ export default {
             "#quickEditQuestion:visible",
             null,
             "right",
-            "center"
+            "center",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Aufgabe bearbeiten",
             'Klicken Sie nun rechts oben auf den ersten Button "Aufgabe direkt bearbeiten".<br><br>Ändern Sie nun den Text einer Aufgabe, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.',
-            ".toast-body:contains('Änderungen wurden gespeichert.')"
+            ".toast-body:contains('Änderungen wurden gespeichert.')",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Distraktor hinzufügen",
             'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor hinzufügen" klicken.',
-            ".toast-body:contains('Distraktor wurde hinzugefügt.')"
+            ".toast-body:contains('Distraktor wurde hinzugefügt.')",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Option löschen",
             'Löschen Sie eine Antwortmöglichkeit, indem Sie auf den Button "Option löschen" klicken. Nur möglich, wenn mehr als zwei Antwortmöglichkeiten vorhanden sind. Nur falsche Antwortmöglichkeiten können gelöscht werden.',
-            ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)"
+            ".toast-body:contains('Änderungen wurden gespeichert.'):nth(1)",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Bearbeitung beenden",
             'Klicken Sie auf den Button "Fertig", um die Bearbeitung zu beenden.',
-            ".toast-body:contains('Bearbeitung beendet.')"
+            ".toast-body:contains('Bearbeitung beendet.')",
           );
           // addStep(steps, "#lockQuestion", 'Aufgabe freigeben / sperren', 'Klicken Sie auf den Button "Aufgabe freigeben", um die Aufgabe freizugeben.', ".toast-body:contains('Aufgabe wurde freigegeben.')");
           addStep(
@@ -2173,13 +2181,13 @@ export default {
             "#removeQuestion",
             "Einbettung entfernen",
             'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.',
-            ".toast-body:contains('Aufgabe wurde entfernt.')"
+            ".toast-body:contains('Aufgabe wurde entfernt.')",
           );
           addStep(
             steps,
             null,
             "Fertig!",
-            "Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren."
+            "Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.",
           );
         } else if (_this.context.showEditQuestionsAI) {
           addStep(
@@ -2188,7 +2196,7 @@ export default {
             "Willkommen zur Tour!",
             "Nun lernen Sie weitere Funktionalitäten kennen, bei denen KI ins Spiel kommt.<br> <br>Dabei werden Sie eine Aufgabe erstellen, die am Ende wieder gelöscht wird.<br><br>Sie können die Tour jederzeit schließen und über das Hilfe-Symbol rechts wieder öffnen.<br><br>Warten Sie einen Moment, bis die Seite geladen wurde und der Text erscheint.",
             "#longpage-content #paragraph-0:visible",
-            () => $("#longpage-main").scrollTop(0)
+            () => $("#longpage-main").scrollTop(0),
           );
           addStep(
             steps,
@@ -2198,7 +2206,7 @@ export default {
             ".selected-paragraph",
             null,
             "right",
-            "center"
+            "center",
           );
           addStep(
             steps,
@@ -2208,7 +2216,7 @@ export default {
             () => window.getSelection().toString() !== "",
             null,
             "right",
-            "center"
+            "center",
           );
           addStep(
             steps,
@@ -2218,7 +2226,7 @@ export default {
             "#quickEditQuestion:visible",
             null,
             "right",
-            "center"
+            "center",
           );
           addStep(
             steps,
@@ -2228,41 +2236,41 @@ export default {
             () =>
               $("#question .carousel-item.active iframe")
                 .contents()
-                .find(".qtext[contenteditable=true]")
+                .find(".qtext[contenteditable=true]"),
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Text umformulieren",
             "Lassen Sie den Text der Aufgabe oder einer Antwortmöglichkeit von der KI umformulieren. Klicken Sie dazu auf einen der kreisförmigen Pfeilsymbole auf der rechten Seite eines Textfeldes.",
-            ".toast-body:contains('Text wurde umformuliert.')"
+            ".toast-body:contains('Text wurde umformuliert.')",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Distraktor mit KI generieren",
             'Fügen Sie einen Distraktor hinzu, indem Sie auf den Button "Distraktor mit KI generieren" klicken.',
-            ".toast-body:contains('Distraktor wurde hinzugefügt.')"
+            ".toast-body:contains('Distraktor wurde hinzugefügt.')",
           );
           addStep(
             steps,
             "#longpage-sidebar",
             "Aufgabe bearbeiten",
             "Sie können KI-generierten Aufgaben auch manuell anpassen. Ändern Sie nun den Text einer Antwort, indem Sie auf das jeweilige Textfeld klicken und den Text bearbeiten. Klicken Sie außerhalb des Textfeldes, um die Änderungen zu speichern.",
-            ".toast-body:contains('Änderungen wurden gespeichert.'):nth(2)"
+            ".toast-body:contains('Änderungen wurden gespeichert.'):nth(2)",
           );
           addStep(
             steps,
             "#removeQuestion",
             "Einbettung entfernen",
             'Klicken Sie auf den Button "Einbettung entfernen", um die Aufgabe zu entfernen.',
-            ".toast-body:contains('Aufgabe wurde entfernt.')"
+            ".toast-body:contains('Aufgabe wurde entfernt.')",
           );
           addStep(
             steps,
             null,
             "Fertig!",
-            "Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren."
+            "Sie haben die Tour erfolgreich abgeschlossen. Wenn Sie genügend Aufgaben angelegt haben, können Sie auf den Button am Anfang des Textes klicken, um mit der Studie fortzufahren.",
           );
         }
 

@@ -58,28 +58,30 @@ export default {
       //   });
       // });
 
-      document.querySelectorAll(
-        "#longpage-app h2, #longpage-app h3, #longpage-app h4, #longpage-app div, #longpage-app p, #longpage-app ul, #longpage-app ol, #longpage-app pre"
-      ).forEach((val, i) => {
-        DocObj = new Object();
-        const tagName = val.tagName.toLowerCase();
-        if (tagName === "h2" || tagName === "h3" || tagName === "h4") {
-          DocObj.id = i;
-          DocObj.title = val.textContent;
-          DocObj.body = "";
-          DocObj.link = val.getAttribute("id");
-        } else {
-          let attr = val.getAttribute("id");
-          if (!attr) {
-            val.setAttribute("id", "search-" + i);
+      document
+        .querySelectorAll(
+          "#longpage-app h2, #longpage-app h3, #longpage-app h4, #longpage-app div, #longpage-app p, #longpage-app ul, #longpage-app ol, #longpage-app pre",
+        )
+        .forEach((val, i) => {
+          DocObj = new Object();
+          const tagName = val.tagName.toLowerCase();
+          if (tagName === "h2" || tagName === "h3" || tagName === "h4") {
+            DocObj.id = i;
+            DocObj.title = val.textContent;
+            DocObj.body = "";
+            DocObj.link = val.getAttribute("id");
+          } else {
+            let attr = val.getAttribute("id");
+            if (!attr) {
+              val.setAttribute("id", "search-" + i);
+            }
+            DocObj.id = i;
+            DocObj.title = "";
+            DocObj.body = val.textContent;
+            DocObj.link = val.getAttribute("id");
           }
-          DocObj.id = i;
-          DocObj.title = "";
-          DocObj.body = val.textContent;
-          DocObj.link = val.getAttribute("id");
-        }
-        _this.index.push(DocObj);
-      });
+          _this.index.push(DocObj);
+        });
       let options = {
         // isCaseSensitive: false,
         includeScore: true,
@@ -91,7 +93,7 @@ export default {
         threshold: 0.01,
         // distance: 100,
         // useExtendedSearch: false,
-         ignoreLocation: true,
+        ignoreLocation: true,
         // ignoreFieldNorm: false,
         keys: ["title", "body"],
       };
@@ -104,10 +106,11 @@ export default {
       let index = this.fuse.getIndex();
 
       // please dont crucify me for this. its a one liner to create deep copies
-      this.searchResults = JSON.parse(JSON.stringify(this.fuse.search(this.searchTerm)));
+      this.searchResults = JSON.parse(
+        JSON.stringify(this.fuse.search(this.searchTerm)),
+      );
 
-
-      this.searchResults = this.searchResults.map(function (res) {    
+      this.searchResults = this.searchResults.map(function (res) {
         let changelist = [];
         let pos = _this.index[res.refIndex].body.indexOf(_this.searchTerm);
         res.doc = new Object();
@@ -120,20 +123,19 @@ export default {
                 .substr(pos - 20 > 0 ? pos - 20 : 0, 40)
                 .replace(
                   _this.searchTerm,
-                  "<strong>" + _this.searchTerm + "</strong>"
+                  "<strong>" + _this.searchTerm + "</strong>",
                 );
           } else {
             res.matches[0].indices.forEach((element) => {
               changelist.push(
-                res.item.body.substr(
-                  element[0],
-                  element[1] - element[0] + 1
-                )
+                res.item.body.substr(element[0], element[1] - element[0] + 1),
               );
             });
             changelist.forEach((el) => {
-              res.item.body = res.item.
-              body.replace(el, "<strong>" + el + "</strong>");
+              res.item.body = res.item.body.replace(
+                el,
+                "<strong>" + el + "</strong>",
+              );
             });
             res.doc.short = res.item.body;
           }
@@ -145,19 +147,19 @@ export default {
                 .substr(pos - 20 > 0 ? pos - 20 : 0, 40)
                 .replace(
                   _this.searchTerm,
-                  "<strong>" + _this.searchTerm + "</strong>"
+                  "<strong>" + _this.searchTerm + "</strong>",
                 );
           } else {
             res.matches[0].indices.forEach((element) => {
               changelist.push(
-                res.item.title.substr(
-                  element[0],
-                  element[1] - element[0] + 1
-                )
+                res.item.title.substr(element[0], element[1] - element[0] + 1),
               );
             });
             changelist.forEach((el) => {
-              res.item.title = res.item.title.replace(el, "<strong>" + el + "</strong>");
+              res.item.title = res.item.title.replace(
+                el,
+                "<strong>" + el + "</strong>",
+              );
             });
             res.doc.short = res.item.title;
           }
@@ -256,5 +258,4 @@ export default {
   </div>
 </template>
 
-<style>
-</style>
+<style></style>

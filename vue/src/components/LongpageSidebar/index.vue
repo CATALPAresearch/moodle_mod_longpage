@@ -1,5 +1,12 @@
 <template>
-  <div :id="LONGPAGE_SIDEBAR_ID" class="row no-gutters vh-100-wo-nav max-w-80" :style="{ width: tabs.length == 0 ? '0px' : sidebarWidth, 'min-width': tabOpenedKey != undefined ? '400px' : '' }">
+  <div
+    :id="LONGPAGE_SIDEBAR_ID"
+    class="row no-gutters vh-100-wo-nav max-w-80"
+    :style="{
+      width: tabs.length == 0 ? '0px' : sidebarWidth,
+      'min-width': tabOpenedKey != undefined ? '400px' : '',
+    }"
+  >
     <div
       v-show="tabOpenedKey"
       :title="$t('sidebar.util.changeWidth')"
@@ -43,7 +50,13 @@
           :aria-label="$t(`sidebar.tabMenu.titles.${tab.key}`)"
           :class="tab.icon"
         />
-        <span style="right: 5px;position: absolute;border-radius: 10rem;" :title="tab.badgesTitle" class="badge badge-pill badge-warning" v-if="tab.badgesCount > 0">{{tab.badgesCount}}</span>
+        <span
+          style="right: 5px; position: absolute; border-radius: 10rem"
+          :title="tab.badgesTitle"
+          class="badge badge-pill badge-warning"
+          v-if="tab.badgesCount > 0"
+          >{{ tab.badgesCount }}</span
+        >
       </a>
     </div>
   </div>
@@ -122,12 +135,12 @@ window.addEventListener(
       const cursorScreenXDelta = resizeData.startCursorScreenX - event.screenX;
       const newWidth = Math.min(
         resizeData.startWidth + cursorScreenXDelta,
-        resizeData.maxWidth
+        resizeData.maxWidth,
       );
 
-      resizeData.resizeTarget.style.width = newWidth + 'px';
+      resizeData.resizeTarget.style.width = newWidth + "px";
     }
-  }, 1)
+  }, 1),
 );
 
 window.addEventListener("mouseup", () => {
@@ -147,71 +160,59 @@ export default {
   },
   data() {
     var tabs = [
-        // {        // deactivated sidebar tab for now
-        //   key: SidebarTabKeys.COURSE_RECOMMENDATIONS,
-        //   id: "sidebar-tab-recomm",
-        //   icon: ["fa", "fa-map", "fa-fw"],
-        // },
+      // {        // deactivated sidebar tab for now
+      //   key: SidebarTabKeys.COURSE_RECOMMENDATIONS,
+      //   id: "sidebar-tab-recomm",
+      //   icon: ["fa", "fa-map", "fa-fw"],
+      // },
     ];
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showsearch)
-    {
-      tabs.push(
-        {
+    if (this.$store.getters.LONGPAGE_CONTEXT.showsearch) {
+      tabs.push({
         key: SidebarTabKeys.SEARCH,
         id: "sidebar-tab-search",
         icon: ["fa", "fa-search", "fa-fw"],
-       });
+      });
     }
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showtableofcontents)
-    {
-      tabs.push(
-        {
+    if (this.$store.getters.LONGPAGE_CONTEXT.showtableofcontents) {
+      tabs.push({
         key: SidebarTabKeys.TOC,
         id: "sidebar-tab-table-of-contents",
         icon: ["fa", "fa-list", "fa-fw"],
       });
     }
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showposts)
-    {
-      tabs.push(
-        {
+    if (this.$store.getters.LONGPAGE_CONTEXT.showposts) {
+      tabs.push({
         key: SidebarTabKeys.POSTS,
         id: "sidebar-tab-posts",
         icon: ["fa", "fa-comments-o", "fa-fw"],
       });
     }
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showhighlights)
-    {
-      tabs.push(
-        {
+    if (this.$store.getters.LONGPAGE_CONTEXT.showhighlights) {
+      tabs.push({
         key: SidebarTabKeys.HIGHLIGHTS,
         id: "sidebar-tab-highlights",
         icon: ["fa", "fa-pencil", "fa-fw"],
       });
     }
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showbookmarks)
-    {
-      tabs.push(
-        {
+    if (this.$store.getters.LONGPAGE_CONTEXT.showbookmarks) {
+      tabs.push({
         key: SidebarTabKeys.BOOKMARKS,
         id: "sidebar-tab-bookmarks",
         icon: ["fa", "fa-bookmark-o", "fa-fw"],
       });
     }
 
-    if (this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
-    {
-      tabs.push(
-        {
-          key: SidebarTabKeys.QUIZ,
-          id: "sidebar-tab-quiz",
-          icon: ["fa", "fa-dashboard", "fa-fw"],
-        });
+    if (this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension) {
+      tabs.push({
+        key: SidebarTabKeys.QUIZ,
+        id: "sidebar-tab-quiz",
+        icon: ["fa", "fa-dashboard", "fa-fw"],
+      });
     }
 
     return {
@@ -219,7 +220,7 @@ export default {
       LONGPAGE_SIDEBAR_TAB_CONTENT,
       SidebarEvents,
       tabs: tabs,
-      sidebarWidth: ""
+      sidebarWidth: "",
     };
   },
   computed: {
@@ -243,90 +244,77 @@ export default {
       this.toggleTab(type);
     });
     EventBus.subscribe(SidebarEvents.CHANGE_BADGES, (params) => {
-      try
-      {
-        var tab = this.tabs.find(obj => { return obj.key == params["type"] });
-        tab.badgesCount = params["count"]; 
-        tab.badgesTitle = params["title"];
-        document.querySelectorAll(".badge.badge-pill.badge-warning").forEach(el => {
-          // Dispose old tooltip if exists
-          const tooltipInstance = bootstrap?.Tooltip?.getInstance(el);
-          if (tooltipInstance) tooltipInstance.dispose();
-          // Create new tooltip
-          new bootstrap.Tooltip(el, { placement: "auto", html: true });
+      try {
+        var tab = this.tabs.find((obj) => {
+          return obj.key == params["type"];
         });
-      }
-      catch
-      {
-        
-      }
+        tab.badgesCount = params["count"];
+        tab.badgesTitle = params["title"];
+        document
+          .querySelectorAll(".badge.badge-pill.badge-warning")
+          .forEach((el) => {
+            // Dispose old tooltip if exists
+            const tooltipInstance = bootstrap?.Tooltip?.getInstance(el);
+            if (tooltipInstance) tooltipInstance.dispose();
+            // Create new tooltip
+            new bootstrap.Tooltip(el, { placement: "auto", html: true });
+          });
+      } catch {}
     });
 
     var tab = undefined;
-    if(localStorage)
-    {
+    if (localStorage) {
       var tab = localStorage.getItem("sidebar-tab");
-      if(tab === "undefined" || tab == null)
-      {
-        if(this.tabs.length == 1)
-        {
+      if (tab === "undefined" || tab == null) {
+        if (this.tabs.length == 1) {
           tab = this.tabs[0].key;
         }
-      } 
+      }
     }
     this.toggleTab(tab);
 
     this.$nextTick(function () {
-      const observer = new MutationObserver(() => 
-      {
+      const observer = new MutationObserver(() => {
         const w = resizeData.resizeTarget?.offsetWidth;
-        if(w && parseFloat(w) >= 400)
-        {
-          localStorage.setItem("sidebar-width",  w + "px");
+        if (w && parseFloat(w) >= 400) {
+          localStorage.setItem("sidebar-width", w + "px");
         }
       });
 
       const sidebarEl = document.getElementById("longpage-sidebar");
       if (sidebarEl) {
-        observer.observe(sidebarEl, { attributes: true});
+        observer.observe(sidebarEl, { attributes: true });
       }
-  });
+    });
   },
   methods: {
     toggleTab(tabKey) {
-      if (tabKey === this.tabOpenedKey)
-      {
+      if (tabKey === this.tabOpenedKey) {
         tabKey = undefined;
         this.sidebarWidth = "";
-      }
-      else if(tabKey != undefined && tabKey != null)
-      {
+      } else if (tabKey != undefined && tabKey != null) {
         var width;
-        if(localStorage)
-        {
+        if (localStorage) {
           var w = localStorage.getItem("sidebar-width");
-          if(w)
-          {
+          if (w) {
             width = w;
           }
         }
-        if(!width)
-        {
-          if(this.tabs.length == 1 && this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension)
-          {
-            width = '50%';
-          }
-          else 
-          {
-            width = '40%';
+        if (!width) {
+          if (
+            this.tabs.length == 1 &&
+            this.$store.getters.LONGPAGE_CONTEXT.showreadingcomprehension
+          ) {
+            width = "50%";
+          } else {
+            width = "40%";
           }
         }
         this.sidebarWidth = width;
       }
 
       this.setTabOpened(tabKey);
-      if(localStorage)
-      {
+      if (localStorage) {
         localStorage.setItem("sidebar-tab", tabKey);
       }
 
@@ -338,7 +326,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 #longpage-sidebar .nav-link:hover {
   z-index: 1;
   color: #495057;
@@ -346,7 +333,8 @@ export default {
   background-color: #f8f9fa;
 }
 
-#longpage-sidebar .nav-link.active, #longpage-sidebar .nav-link:focus {
+#longpage-sidebar .nav-link.active,
+#longpage-sidebar .nav-link:focus {
   background-color: #0f6cbf;
   color: #fff !important;
 }

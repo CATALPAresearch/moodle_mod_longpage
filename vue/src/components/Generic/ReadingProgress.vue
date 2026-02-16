@@ -5,10 +5,9 @@
 <script>
 import ajax from "core/ajax";
 
-
 /**
  * This Module visualizes the collective reading progress on the course/longpage text
- * Every user can see how many times a text section has been read by other users 
+ * Every user can see how many times a text section has been read by other users
  */
 export default {
   name: "ReadingProgress",
@@ -22,8 +21,7 @@ export default {
 
   mounted: function () {
     this.enableScrollLogging();
-    if (this.context.showreadingprogress)
-    {
+    if (this.context.showreadingprogress) {
       this.visualizeReadingProgress();
     }
   },
@@ -60,7 +58,9 @@ export default {
             if (entry.isIntersecting && entry.isVisible) {
               var now = new Date();
               const targetElement = document.getElementById(entry.target.id);
-              let word_count = targetElement ? targetElement.textContent.split(" ").length : 0;
+              let word_count = targetElement
+                ? targetElement.textContent.split(" ").length
+                : 0;
               // TODO: Determine portion of visible text
               // _this.get($('#' + entry.target.id).get(0)).visibility
 
@@ -80,7 +80,6 @@ export default {
 
               var measuredElement = document.querySelector("#longpage-app");
               if (measuredElement) {
-                
                 var yPadding, xPadding;
                 if (window.getComputedStyle) {
                   var computedStyle = window.getComputedStyle(measuredElement);
@@ -96,7 +95,7 @@ export default {
                 var containerWidth = measuredElement.clientWidth - xPadding;
 
                 var longpageMain = document.querySelector("#longpage-main");
-  
+
                 var logentry = {
                   longpageid: _this.context.longpageid,
                   relativeTime: entry.time,
@@ -120,7 +119,7 @@ export default {
                     platform: navigator.platform,
                     oscpu: navigator.oscpu,
                     language: navigator.language,
-                    cookieEnabled: navigator.cookieEnabled
+                    cookieEnabled: navigator.cookieEnabled,
                   },
                   screenWidth: window.screen.width,
                   screenHeight: window.screen.height,
@@ -128,24 +127,24 @@ export default {
                   intersectionRatio: entry.intersectionRatio,
                 };
 
-              // ajax.call([
-              //   {
-              //     methodname: "mod_longpage_log",
-              //     args: {
-              //       data: {
-              //         entry: JSON.stringify(logentry),
-              //         action: "scroll",
-              //         utc: Math.ceil(now.getTime() / 1000),
-              //         courseid: _this.context.courseId
-              //       },
-              //     },
-              //     done: function (reads) {
-              //     },
-              //     fail: function (e) {
-              //       console.error("fail", e);
-              //     },
-              //   },
-              // ]);
+                // ajax.call([
+                //   {
+                //     methodname: "mod_longpage_log",
+                //     args: {
+                //       data: {
+                //         entry: JSON.stringify(logentry),
+                //         action: "scroll",
+                //         utc: Math.ceil(now.getTime() / 1000),
+                //         courseid: _this.context.courseId
+                //       },
+                //     },
+                //     done: function (reads) {
+                //     },
+                //     fail: function (e) {
+                //       console.error("fail", e);
+                //     },
+                //   },
+                // ]);
 
                 last_entry = logentry;
               }
@@ -166,12 +165,24 @@ export default {
         //
 
         //tie together text parts without wrapper to wrap them
-        var observedElements = ["h2", "h3", "h4", "h5", "pre", "img", "p", "ol", "ul", "div"];
+        var observedElements = [
+          "h2",
+          "h3",
+          "h4",
+          "h5",
+          "pre",
+          "img",
+          "p",
+          "ol",
+          "ul",
+          "div",
+        ];
         var container = "#longpage-content";
 
-        const containerEl = document.querySelector(container + " > .filter_mathjaxloader_equation");
-        if (containerEl)
-          container += " > .filter_mathjaxloader_equation";
+        const containerEl = document.querySelector(
+          container + " > .filter_mathjaxloader_equation",
+        );
+        if (containerEl) container += " > .filter_mathjaxloader_equation";
 
         // $($(container)
         //   .contents()
@@ -182,7 +193,7 @@ export default {
 
         //     if (cur.nodeType === 3 && cur.data.trim() == "")
         //       return prev;
- 
+
         //     if (prev.length == 0)
         //       return [[cur]];
 
@@ -198,42 +209,49 @@ export default {
           return container + " > " + val;
         });
 
-        document.querySelectorAll(observedSelectors.join(", ")).forEach((val, i) => {
-          var attr = val.getAttribute("id");
-          if (!attr) {
-            attr = "paragraph-" + pCounter;
-            val.setAttribute("id", attr);
-            val.classList.add("longpage-paragraph");
-            pCounter++;
-          }
-          sectionCount++;
-          
-          // Wrap element
-          const wrapper = document.createElement('div');
-          wrapper.className = 'wrapper';
-          val.parentNode.insertBefore(wrapper, val);
-          wrapper.appendChild(val);
-          
-          if (_this.context.showreadingprogress || _this.context.showreadingcomprehension) {
-            const span = document.createElement('span');
-            span.className = 'reading-progress';
-            span.setAttribute('data-html2canvas-ignore', '');
-            if (_this.context.showreadingprogress) {
-              span.setAttribute('title', 'Der Abschnitt wurde <br>bislang 0 mal gelesen.');
+        document
+          .querySelectorAll(observedSelectors.join(", "))
+          .forEach((val, i) => {
+            var attr = val.getAttribute("id");
+            if (!attr) {
+              attr = "paragraph-" + pCounter;
+              val.setAttribute("id", attr);
+              val.classList.add("longpage-paragraph");
+              pCounter++;
             }
-            else {
-              span.classList.add('progress-3');
+            sectionCount++;
+
+            // Wrap element
+            const wrapper = document.createElement("div");
+            wrapper.className = "wrapper";
+            val.parentNode.insertBefore(wrapper, val);
+            wrapper.appendChild(val);
+
+            if (
+              _this.context.showreadingprogress ||
+              _this.context.showreadingcomprehension
+            ) {
+              const span = document.createElement("span");
+              span.className = "reading-progress";
+              span.setAttribute("data-html2canvas-ignore", "");
+              if (_this.context.showreadingprogress) {
+                span.setAttribute(
+                  "title",
+                  "Der Abschnitt wurde <br>bislang 0 mal gelesen.",
+                );
+              } else {
+                span.classList.add("progress-3");
+              }
+              wrapper.appendChild(span);
             }
-            wrapper.appendChild(span);
-          }
-          
-          if (wrapper.querySelector(".filter_embedquestion-iframe")) {
-            wrapper.style.height = "0px";
-            wrapper.style.padding = "0px";
-          }
-          
-          observer.observe(document.querySelector("#" + attr));
-        });
+
+            if (wrapper.querySelector(".filter_embedquestion-iframe")) {
+              wrapper.style.height = "0px";
+              wrapper.style.padding = "0px";
+            }
+
+            observer.observe(document.querySelector("#" + attr));
+          });
       }
     },
 
@@ -248,7 +266,7 @@ export default {
       // Calculate percentage of the element that's been seen
       const distance = scrollTop + viewportHeight - elementOffsetTop;
       const percentage = Math.round(
-        distance / ((viewportHeight + elementHeight) / 100)
+        distance / ((viewportHeight + elementHeight) / 100),
       );
 
       // Restrict the range to between 0 and 100
@@ -308,7 +326,7 @@ export default {
 
     visualizeReadingProgress: function () {
       let _this = this;
-        
+
       ajax.call([
         {
           methodname: "mod_longpage_get_reading_progress",
@@ -327,23 +345,29 @@ export default {
                 const sectionEl = document.getElementById(data[i].section);
                 if (sectionEl) {
                   const progressEl = sectionEl.nextElementSibling;
-                  if (progressEl && progressEl.classList.contains('reading-progress')) {
+                  if (
+                    progressEl &&
+                    progressEl.classList.contains("reading-progress")
+                  ) {
                     progressEl.setAttribute(
                       "title",
                       "Der Abschnitt wurde <br>bislang " +
-                      data[i].count +
-                      " mal gelesen."
+                        data[i].count +
+                        " mal gelesen.",
                     );
                     progressEl.classList.add(
-                      "progress-" +
-                      Math.ceil((data[i].count / max) * 5)
+                      "progress-" + Math.ceil((data[i].count / max) * 5),
                     );
                   }
-                  
+
                   if (_this.debug) {
-                    const span = document.createElement('span');
-                    span.style.cssText = 'position:absolute; right:-40px; font-size:8px; background-color:red; padding:1px 2px; color:#fff;';
-                    span.textContent = data[i].section.replace("longpage-paragraph-", "");
+                    const span = document.createElement("span");
+                    span.style.cssText =
+                      "position:absolute; right:-40px; font-size:8px; background-color:red; padding:1px 2px; color:#fff;";
+                    span.textContent = data[i].section.replace(
+                      "longpage-paragraph-",
+                      "",
+                    );
                     sectionEl.appendChild(span);
                   }
                 } else {
@@ -364,5 +388,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

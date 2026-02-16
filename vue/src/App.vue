@@ -5,23 +5,23 @@
         <span class="sr-only" />
       </div>
     </div>
-    <div v-show="pageReady" id="longpage-app" class="row no-gutters w-100" tabindex="0">
+    <div
+      v-show="pageReady"
+      id="longpage-app"
+      class="row no-gutters w-100"
+      tabindex="0"
+    >
       <div
         id="longpage-main"
         ref="mainRef"
-        class="
-          col
-          overflow-y-auto
-          overflow-x-hidden
-          row
-          no-gutters
-          justify-content-center
-          p-3
-          vh-100-wo-nav
-        "
+        class="col overflow-y-auto overflow-x-hidden row no-gutters justify-content-center p-3 vh-100-wo-nav"
       >
         <!-- removed from longpage-pain: vh-100-wo-nav -->
-            <annotation-toolbar-controller v-if="context.showhighlights || context.showposts || context.showbookmarks"/>
+        <annotation-toolbar-controller
+          v-if="
+            context.showhighlights || context.showposts || context.showbookmarks
+          "
+        />
 
         <div
           id="longpage-content"
@@ -33,8 +33,14 @@
         <div style="position: absolute; right: 0">
           <!-- <DownloadPDF /> -->
         </div>
-        <div class="col col-auto p-0 mx-1" style="width: 35px" v-if="context.showhighlights || context.showposts || context.showbookmarks">
-          <annotation-indicator-sidebar   />
+        <div
+          class="col col-auto p-0 mx-1"
+          style="width: 35px"
+          v-if="
+            context.showhighlights || context.showposts || context.showbookmarks
+          "
+        >
+          <annotation-indicator-sidebar />
         </div>
       </div>
       <longpage-sidebar class="col-auto" />
@@ -80,7 +86,7 @@ import LongpageSidebar from "@/components/LongpageSidebar";
 import { mapActions, mapGetters } from "vuex";
 import AnnotationIndicatorSidebar from "@/components/LongpageContent/AnnotationIndicatorSidebar";
 //import { ReadingTimeEstimator } from "@/lib/reading-time-estimator";
-import throttle from 'lodash/throttle';
+import throttle from "lodash/throttle";
 import { toIdSelector } from "@/util/style";
 import Utils from "./util/utils";
 
@@ -96,7 +102,7 @@ export default {
     LongpageSidebar,
     ReadingProgress,
     CourseRecommendation,
-    ReadingTime
+    ReadingTime,
   },
   props: {
     content: { type: String, required: true },
@@ -133,12 +139,12 @@ export default {
           throttle(
             ($event) => {
               this[ACT.UPDATE_READING_PROGRESS](
-                $event.target.scrollTop / $event.target.scrollHeight
+                $event.target.scrollTop / $event.target.scrollHeight,
               );
             },
             1000,
-            { leading: false }
-          )
+            { leading: false },
+          ),
         );
       });
     });
@@ -160,20 +166,20 @@ export default {
         selection: highlightsAtClickCoords,
       });
     });
-    Y.use('mathjax', () => {
-      MathJax.Hub.Queue(['Typeset', MathJax.Hub, this.$refs.contentRef]);
+    Y.use("mathjax", () => {
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.$refs.contentRef]);
     });
     this[ACT.FETCH_USER_ROLES]();
     this[ACT.FETCH_ENROLLED_USERS]();
     this[ACT.USER_CAN_MOD_ANNOTATION]();
 
     // Log bootstrap interactions
-    document.querySelectorAll(".longpage-citation").forEach(el => {
+    document.querySelectorAll(".longpage-citation").forEach((el) => {
       el.addEventListener("click", function () {
         _this.log("citation_view", { citation: this.dataset.content });
       });
     });
-    document.querySelectorAll(".longpage-footnote").forEach(el => {
+    document.querySelectorAll(".longpage-footnote").forEach((el) => {
       el.addEventListener("click", function () {
         const button = this.querySelector("button");
         _this.log("footnote_view", {
@@ -182,7 +188,7 @@ export default {
         });
       });
     });
-    document.querySelectorAll(".longpage-crossref").forEach(el => {
+    document.querySelectorAll(".longpage-crossref").forEach((el) => {
       el.addEventListener("click", function () {
         _this.log("crossref_follow", {
           source: this.textContent,
@@ -191,7 +197,7 @@ export default {
         });
       });
     });
-    document.querySelectorAll(".longpage-assignment-link").forEach(el => {
+    document.querySelectorAll(".longpage-assignment-link").forEach((el) => {
       el.addEventListener("click", function () {
         _this.log("assignment_open", { target: this.getAttribute("href") });
       });

@@ -32,22 +32,22 @@ export default {
     calcH2: function () {
       const parentEl = document.querySelector(this.parentSelector);
       if (!parentEl) return;
-      
+
       let numberOfHeadings = parentEl.querySelectorAll("h2").length;
-      
+
       // add a dummy heading at the end.
-      const dummyHeading = document.createElement('h2');
-      dummyHeading.style.cssText = 'display:inline; color:#fff; font-size:7;';
-      dummyHeading.className = 'dummy-heading';
-      dummyHeading.textContent = '.';
+      const dummyHeading = document.createElement("h2");
+      dummyHeading.style.cssText = "display:inline; color:#fff; font-size:7;";
+      dummyHeading.className = "dummy-heading";
+      dummyHeading.textContent = ".";
       parentEl.appendChild(dummyHeading);
-      
+
       // iterate over all headings and determine the text length and number of images
       for (var i = 0; i < numberOfHeadings; i++) {
         let numberOfImages = 0;
         const fromm = parentEl.querySelectorAll("h2")[i];
         const to = parentEl.querySelectorAll("h2")[i + 1];
-        
+
         // Get elements between fromm and to
         let current = fromm.nextElementSibling;
         let elements = [];
@@ -55,47 +55,47 @@ export default {
           elements.push(current);
           current = current.nextElementSibling;
         }
-        
+
         // concat text from DOM
         var out = "";
-        elements.forEach(el => {
+        elements.forEach((el) => {
           out = out + " " + el.textContent;
           if (el.tagName === "IMG" || el.querySelectorAll("img").length > 0) {
             numberOfImages++;
           }
         });
-        
-        const output = document.createElement('span');
-        output.className = 'mx-0 my-1 p-0 section-info';
-        output.style.cssText = 'font-size: 0.8em; color: #333333;';
+
+        const output = document.createElement("span");
+        output.className = "mx-0 my-1 p-0 section-info";
+        output.style.cssText = "font-size: 0.8em; color: #333333;";
         output.innerHTML = this.estimateTime(out, numberOfImages);
         fromm.after(output);
       }
-      
+
       // Remove dummy heading
-      const dummy = parentEl.querySelector('.dummy-heading');
+      const dummy = parentEl.querySelector(".dummy-heading");
       if (dummy) dummy.remove();
     },
 
     calcH3: function () {
       const parentEl = document.querySelector(this.parentSelector);
       if (!parentEl) return;
-      
+
       let numberOfHeadings = parentEl.querySelectorAll("h3").length;
-      
+
       // add a dummy heading at the end.
-      const dummyHeading = document.createElement('h3');
-      dummyHeading.style.cssText = 'display:inline;color:#fff;';
-      dummyHeading.className = 'dummy-heading-3';
-      dummyHeading.textContent = 'ENDE';
+      const dummyHeading = document.createElement("h3");
+      dummyHeading.style.cssText = "display:inline;color:#fff;";
+      dummyHeading.className = "dummy-heading-3";
+      dummyHeading.textContent = "ENDE";
       parentEl.appendChild(dummyHeading);
-      
+
       // iterate over all headings and determine the text length and number of images
       for (var i = 0; i < numberOfHeadings; i++) {
         let numberOfImages = 0;
         const fromm = parentEl.querySelectorAll("h3")[i];
         const to = parentEl.querySelectorAll("h3")[i + 1];
-        
+
         // Get elements between fromm and to
         let current = fromm.nextElementSibling;
         let elements = [];
@@ -103,25 +103,25 @@ export default {
           elements.push(current);
           current = current.nextElementSibling;
         }
-        
+
         // concat text from DOM
         var out = "";
-        elements.forEach(el => {
+        elements.forEach((el) => {
           out = out + " " + el.textContent;
           if (el.tagName === "IMG" || el.querySelectorAll("img").length > 0) {
             numberOfImages++;
           }
         });
-        
-        const output = document.createElement('span');
-        output.className = 'mx-0 my-3 p-0 d-inline section-info';
-        output.style.cssText = 'font-size: 0.8em; color: #333333;';
+
+        const output = document.createElement("span");
+        output.className = "mx-0 my-3 p-0 d-inline section-info";
+        output.style.cssText = "font-size: 0.8em; color: #333333;";
         output.innerHTML = this.estimateTime(out, numberOfImages);
         fromm.after(output);
       }
-      
+
       // Remove dummy heading
-      const dummy = parentEl.querySelector('.dummy-heading-3');
+      const dummy = parentEl.querySelector(".dummy-heading-3");
       if (dummy) dummy.remove();
     },
 
@@ -135,10 +135,10 @@ export default {
         parseInt(numImg, 10) === 0 || typeof numImg !== "number" ? 1 : numImg;
       let readingSpeed = this.readingSpeedPerLanguage[this.language];
       let readingTimeSlow = Math.ceil(
-        textlength / (readingSpeed.cpm - readingSpeed.variance) + numImg * 0.3
+        textlength / (readingSpeed.cpm - readingSpeed.variance) + numImg * 0.3,
       );
       let readingTimeFast = Math.ceil(
-        textlength / (readingSpeed.cpm + readingSpeed.variance) + numImg * 0.3
+        textlength / (readingSpeed.cpm + readingSpeed.variance) + numImg * 0.3,
       );
       this.slowSum += readingTimeSlow;
       this.fastSum += readingTimeFast;
@@ -178,5 +178,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>
