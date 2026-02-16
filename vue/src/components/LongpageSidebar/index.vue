@@ -102,37 +102,35 @@ const resizeData = {
   maxWidth: undefined,
 };
 
-$(document.body).on("mousedown", ".resize-handle--x", null, (event) => {
-  if (event.button !== 0) return;
+document.body.addEventListener("mousedown", (event) => {
+  if (event.button !== 0 || !event.target.closest(".resize-handle--x")) return;
 
   const targetElement = document.getElementById(LONGPAGE_SIDEBAR_ID);
-  resizeData.startWidth = $(targetElement).outerWidth();
+  resizeData.startWidth = targetElement.offsetWidth;
   resizeData.startCursorScreenX = event.screenX;
   resizeData.resizeTarget = targetElement;
   resizeData.parentElement = document.getElementById(LONGPAGE_APP_ID);
   resizeData.maxWidth =
-    $(resizeData.parentElement).innerWidth() - resizeData.handleWidth;
+    resizeData.parentElement.offsetWidth - resizeData.handleWidth;
   resizeData.tracking = true;
 });
 
-$(window).on(
+window.addEventListener(
   "mousemove",
-  null,
-  null,
-  debounce(($event) => {
+  debounce((event) => {
     if (resizeData.tracking) {
-      const cursorScreenXDelta = resizeData.startCursorScreenX - $event.screenX;
+      const cursorScreenXDelta = resizeData.startCursorScreenX - event.screenX;
       const newWidth = Math.min(
         resizeData.startWidth + cursorScreenXDelta,
         resizeData.maxWidth
       );
 
-      $(resizeData.resizeTarget).outerWidth(newWidth);
+      resizeData.resizeTarget.style.width = newWidth + 'px';
     }
   }, 1)
 );
 
-$(window).on("mouseup", null, null, () => {
+window.addEventListener("mouseup", () => {
   if (resizeData.tracking) resizeData.tracking = false;
 });
 
@@ -250,7 +248,13 @@ export default {
         var tab = this.tabs.find(obj => { return obj.key == params["type"] });
         tab.badgesCount = params["count"]; 
         tab.badgesTitle = params["title"];
-        $(".badge.badge-pill.badge-warning").tooltip("dispose").tooltip({ "placement": "auto", "html": true, "offset": -5 });
+        document.querySelectorAll(".badge.badge-pill.badge-warning").forEach(el => {
+          // Dispose old tooltip if exists
+          const tooltipInstance = bootstrap?.Tooltip?.getInstance(el);
+          if (tooltipInstance) tooltipInstance.dispose();
+          // Create new tooltip
+          new bootstrap.Tooltip(el, { placement: "auto", html: true });
+        });
       }
       catch
       {
@@ -275,14 +279,17 @@ export default {
     this.$nextTick(function () {
       const observer = new MutationObserver(() => 
       {
-        var w = $(resizeData.resizeTarget).outerWidth();
+        const w = resizeData.resizeTarget?.offsetWidth;
         if(w && parseFloat(w) >= 400)
         {
           localStorage.setItem("sidebar-width",  w + "px");
         }
       });
 
-      observer.observe($("#longpage-sidebar")[0], { attributes: true});
+      const sidebarEl = document.getElementById("longpage-sidebar");
+      if (sidebarEl) {
+        observer.observe(sidebarEl, { attributes: true});
+      }
   });
   },
   methods: {

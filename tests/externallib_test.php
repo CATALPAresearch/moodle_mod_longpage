@@ -39,19 +39,19 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 3.0
  */
-class mod_page_external_testcase extends externallib_advanced_testcase {
-
+final class externallib_test extends externallib_advanced_testcase {
     /**
      * Test view_page
+     * @covers ::mod_longpage_view_page
      */
-    public function test_view_page() {
+    public function test_view_page(): void {
         global $DB;
 
         $this->resetAfterTest(true);
 
         // Setup test data.
         $course = $this->getDataGenerator()->create_course();
-        $page = $this->getDataGenerator()->create_module('page', array('course' => $course->id));
+        $page = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
         $context = context_module::instance($page->cmid);
         $cm = get_coursemodule_from_instance('page', $page->id);
 
@@ -74,7 +74,7 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         }
 
         // Test user with full capabilities.
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->getDataGenerator()->enrol_user($user->id, $course->id, $studentrole->id);
 
         // Trigger and capture the event.
@@ -90,7 +90,7 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         // Checking that the event contains the expected values.
         $this->assertInstanceOf('\mod_page\event\course_module_viewed', $event);
         $this->assertEquals($context, $event->get_context());
-        $moodlepage = new \moodle_url('/mod/page/view.php', array('id' => $cm->id));
+        $moodlepage = new \moodle_url('/mod/page/view.php', ['id' => $cm->id]);
         $this->assertEquals($moodlepage, $event->get_url());
         $this->assertEventContextNotUsed($event);
         $this->assertNotEmpty($event->get_name());
@@ -108,13 +108,13 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         } catch (moodle_exception $e) {
             $this->assertEquals('requireloginerror', $e->errorcode);
         }
-
     }
 
     /**
      * Test test_mod_page_get_pages_by_courses
+     * @covers ::mod_longpage_get_pages_by_courses
      */
-    public function test_mod_page_get_pages_by_courses() {
+    public function test_mod_page_get_pages_by_courses(): void {
         global $DB;
 
         $this->resetAfterTest(true);
@@ -123,7 +123,7 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         $course2 = self::getDataGenerator()->create_course();
 
         $student = self::getDataGenerator()->create_user();
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->getDataGenerator()->enrol_user($student->id, $course1->id, $studentrole->id);
 
         // First page.
@@ -152,9 +152,9 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         $returndescription = mod_page_external::get_pages_by_courses_returns();
 
         // Create what we expect to be returned when querying the two courses.
-        $expectedfields = array('id', 'coursemodule', 'course', 'name', 'intro', 'introformat', 'introfiles',
-                                'content', 'contentformat', 'contentfiles', 'legacyfiles', 'legacyfileslast', 'display',
-                                'displayoptions', 'revision', 'timemodified', 'section', 'visible', 'groupmode', 'groupingid');
+        $expectedfields = ['id', 'coursemodule', 'course', 'name', 'intro', 'introformat', 'introfiles',
+            'content', 'contentformat', 'contentfiles', 'legacyfiles', 'legacyfileslast', 'display',
+            'displayoptions', 'revision', 'timemodified', 'section', 'visible', 'groupmode', 'groupingid'];
 
         // Add expected coursemodule and data.
         $page1->coursemodule = $page1->cmid;
@@ -182,10 +182,10 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
             $expected2[$field] = $page2->{$field};
         }
 
-        $expectedpages = array($expected2, $expected1);
+        $expectedpages = [$expected2, $expected1];
 
         // Call the external function passing course ids.
-        $result = mod_page_external::get_pages_by_courses(array($course2->id, $course1->id));
+        $result = mod_page_external::get_pages_by_courses([$course2->id, $course1->id]);
         $result = external_api::clean_returnvalue($returndescription, $result);
 
         $this->assertEquals($expectedpages, $result['pages']);
@@ -199,19 +199,19 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
 
         // Add a file to the intro.
         $filename = "file.txt";
-        $filerecordinline = array(
+        $filerecordinline = [
             'contextid' => context_module::instance($page2->cmid)->id,
             'component' => 'mod_page',
             'filearea'  => 'intro',
             'itemid'    => 0,
             'filepath'  => '/',
             'filename'  => $filename,
-        );
+        ];
         $fs = get_file_storage();
         $timepost = time();
         $fs->create_file_from_string($filerecordinline, 'image contents (not really)');
 
-        $result = mod_page_external::get_pages_by_courses(array($course2->id, $course1->id));
+        $result = mod_page_external::get_pages_by_courses([$course2->id, $course1->id]);
         $result = external_api::clean_returnvalue($returndescription, $result);
 
         $this->assertCount(1, $result['pages'][0]['introfiles']);
@@ -227,7 +227,7 @@ class mod_page_external_testcase extends externallib_advanced_testcase {
         $this->assertEquals($expectedpages, $result['pages']);
 
         // Call for the second course we unenrolled the user from, expected warning.
-        $result = mod_page_external::get_pages_by_courses(array($course2->id));
+        $result = mod_page_external::get_pages_by_courses([$course2->id]);
         $this->assertCount(1, $result['warnings']);
         $this->assertEquals('1', $result['warnings'][0]['warningcode']);
         $this->assertEquals($course2->id, $result['warnings'][0]['itemid']);

@@ -152,8 +152,7 @@ export default {
                 methodname: MoodleWSMethods.GET_ANNOTATIONS,
                 args: {
                     parameters: {
-                        longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
-                        userid : userid
+                        longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid
                     },
                 },
                 done: (response) => {

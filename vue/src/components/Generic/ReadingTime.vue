@@ -30,83 +30,99 @@ export default {
   },
   methods: {
     calcH2: function () {
-      let numberOfHeadings = $(this.parentSelector + " h2").length;
-      //console.log(numberOfHeadings);
+      const parentEl = document.querySelector(this.parentSelector);
+      if (!parentEl) return;
+      
+      let numberOfHeadings = parentEl.querySelectorAll("h2").length;
+      
       // add a dummy heading at the end.
-      $(this.parentSelector).append(
-        '<h2 style="display:inline; color:#fff; font-size:7;" class="dummy-heading">.</h2>'
-      );
+      const dummyHeading = document.createElement('h2');
+      dummyHeading.style.cssText = 'display:inline; color:#fff; font-size:7;';
+      dummyHeading.className = 'dummy-heading';
+      dummyHeading.textContent = '.';
+      parentEl.appendChild(dummyHeading);
+      
       // iterate over all headings and determine the text length and number of images
       for (var i = 0; i < numberOfHeadings; i++) {
         let numberOfImages = 0;
-        var fromm = $(this.parentSelector + " h2:nth(" + i + ")");
-        var to = $(this.parentSelector + " h2:nth(" + (i + 1) + ")");
-        var a = $(fromm).nextUntil(to);
-        a.addClass("tmp-marked");
+        const fromm = parentEl.querySelectorAll("h2")[i];
+        const to = parentEl.querySelectorAll("h2")[i + 1];
+        
+        // Get elements between fromm and to
+        let current = fromm.nextElementSibling;
+        let elements = [];
+        while (current && current !== to) {
+          elements.push(current);
+          current = current.nextElementSibling;
+        }
+        
         // concat text from DOM
         var out = "";
-        $(".tmp-marked").each(function (d) {
-          out = out + " " + $(this).text();
-          if (
-            $(this).prop("tagName") === "IMG" ||
-            $(this).find("img").length > 0
-          ) {
+        elements.forEach(el => {
+          out = out + " " + el.textContent;
+          if (el.tagName === "IMG" || el.querySelectorAll("img").length > 0) {
             numberOfImages++;
           }
-          $(this).removeClass("tmp-marked");
         });
-        let output = $("<span></span>")
-          .addClass("mx-0 my-1 p-0 section-info")
-          .attr("style", " font-size: 0.8em; color: #333333;")
-          .html(this.estimateTime(out, numberOfImages));
+        
+        const output = document.createElement('span');
+        output.className = 'mx-0 my-1 p-0 section-info';
+        output.style.cssText = 'font-size: 0.8em; color: #333333;';
+        output.innerHTML = this.estimateTime(out, numberOfImages);
         fromm.after(output);
-        //console.log('h2', fromm.text(), numberOfHeadings, out.length, numberOfImages)
-        $(".dummy-heading").remove();
       }
-
-      /*
-                                        let output = $('<span></span>')
-                                            .addClass('mx-0 my-1 p-0')
-                                            .attr('style', ' font-size: 0.8em; color: #333333;')
-                                            .text('Geschätzte Lesezeit ' + this.convertToReadableTime(this.fastSum) + ' - ' + this.convertToReadableTime(this.slowSum) + ' Stunden');
-                                        $(this.parentSelector + ' h2').after(output);
-                                        */
+      
+      // Remove dummy heading
+      const dummy = parentEl.querySelector('.dummy-heading');
+      if (dummy) dummy.remove();
     },
 
     calcH3: function () {
-      let numberOfHeadings = $(this.parentSelector + " h3").length;
-      //console.log(numberOfHeadings);
+      const parentEl = document.querySelector(this.parentSelector);
+      if (!parentEl) return;
+      
+      let numberOfHeadings = parentEl.querySelectorAll("h3").length;
+      
       // add a dummy heading at the end.
-      $(this.parentSelector).append(
-        '<h3 style="display:inline;color:#fff;" class="dummy-heading-3">ENDE</h3>'
-      );
+      const dummyHeading = document.createElement('h3');
+      dummyHeading.style.cssText = 'display:inline;color:#fff;';
+      dummyHeading.className = 'dummy-heading-3';
+      dummyHeading.textContent = 'ENDE';
+      parentEl.appendChild(dummyHeading);
+      
       // iterate over all headings and determine the text length and number of images
       for (var i = 0; i < numberOfHeadings; i++) {
         let numberOfImages = 0;
-        var fromm = $(this.parentSelector + " h3:nth(" + i + ")");
-        var to = $(this.parentSelector + " h3:nth(" + (i + 1) + ")");
-        var a = $(fromm).nextUntil(to);
-        a.addClass("tmp-marked-h3");
+        const fromm = parentEl.querySelectorAll("h3")[i];
+        const to = parentEl.querySelectorAll("h3")[i + 1];
+        
+        // Get elements between fromm and to
+        let current = fromm.nextElementSibling;
+        let elements = [];
+        while (current && current !== to) {
+          elements.push(current);
+          current = current.nextElementSibling;
+        }
+        
         // concat text from DOM
         var out = "";
-        $(".tmp-marked-h3").each(function (d) {
-          out = out + " " + $(this).text();
-          if (
-            $(this).prop("tagName") === "IMG" ||
-            $(this).find("img").length > 0
-          ) {
+        elements.forEach(el => {
+          out = out + " " + el.textContent;
+          if (el.tagName === "IMG" || el.querySelectorAll("img").length > 0) {
             numberOfImages++;
           }
-          $(this).removeClass("tmp-marked-h3");
         });
-        let output = $("<span></span>")
-          .addClass("mx-0 my-3 p-0 d-inline section-info")
-          .attr("style", " font-size: 0.8em; color: #333333;")
-          .html(this.estimateTime(out, numberOfImages));
+        
+        const output = document.createElement('span');
+        output.className = 'mx-0 my-3 p-0 d-inline section-info';
+        output.style.cssText = 'font-size: 0.8em; color: #333333;';
+        output.innerHTML = this.estimateTime(out, numberOfImages);
         fromm.after(output);
-        //console.log('h3', numberOfHeadings, out.length, numberOfImages)
-        $(".dummy-heading-3").remove();
       }
+      
+      // Remove dummy heading
+      const dummy = parentEl.querySelector('.dummy-heading-3');
+      if (dummy) dummy.remove();
     },
 
     estimateTime: function (text, numImg) {

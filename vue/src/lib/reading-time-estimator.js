@@ -50,31 +50,50 @@ export class ReadingTimeEstimator {
     calcAndDisplay(headingTag) {
         const dummyHeadingClass = `dummy-heading-${headingTag}`;
         const tmpMarkerClass = `tmp-marked-${headingTag}`;
-        let noOfHeadings = $(`${this.textContainerSel} ${headingTag}`).length;
-        $(this.textContainerSel).append(`<${headingTag} style="display: inline; color: #fff;" class="${dummyHeadingClass}"></${headingTag}>`);
+        const container = document.querySelector(this.textContainerSel);
+        if (!container) return;
+        
+        let noOfHeadings = container.querySelectorAll(headingTag).length;
+        
+        const dummyHeading = document.createElement(headingTag);
+        dummyHeading.style.cssText = 'display: inline; color: #fff;';
+        dummyHeading.className = dummyHeadingClass;
+        container.appendChild(dummyHeading);
+        
         for (let i = 0; i < noOfHeadings; i++) {
             let numberOfImages = 0;
-            const from = $(`${this.textContainerSel} ${headingTag}:nth(${i})`);
-            const to = $(`${this.textContainerSel} ${headingTag}:nth(${i + 1})`);
-            const a = $(from).nextUntil(to);
+            const from = container.querySelectorAll(headingTag)[i];
+            const to = container.querySelectorAll(headingTag)[i + 1];
+            
+            // Get elements between from and to
+            let current = from.nextElementSibling;
+            let elements = [];
+            while (current && current !== to) {
+                elements.push(current);
+                current.classList.add(tmpMarkerClass);
+                current = current.nextElementSibling;
+            }
 
-            a.addClass(tmpMarkerClass);
             // Concat text from DOM
             let out = '';
-            $(toClassSelector(tmpMarkerClass)).each(function() {
-                out = `${out} ${$(this).text()}`;
-                if ($(this).prop('tagName') === 'IMG') {
+            elements.forEach(el => {
+                out = `${out} ${el.textContent}`;
+                if (el.tagName === 'IMG') {
                     numberOfImages++;
                 }
-                $(this).removeClass(tmpMarkerClass);
+                el.classList.remove(tmpMarkerClass);
             });
-            let output = $('<div></div>')
-                .addClass('mx-0 my-1 p-0')
-                .attr('style', ' font-size: 0.8em; color: #333333;')
-                .html(this.estimateTime(out, numberOfImages));
+            
+            const output = document.createElement('div');
+            output.className = 'mx-0 my-1 p-0';
+            output.style.cssText = 'font-size: 0.8em; color: #333333;';
+            output.innerHTML = this.estimateTime(out, numberOfImages);
             from.after(output);
-            $(toClassSelector(dummyHeadingClass)).remove();
         }
+        
+        // Remove dummy heading
+        const dummy = container.querySelector(toClassSelector(dummyHeadingClass));
+        if (dummy) dummy.remove();
     }
 
     estimateTime(text, numImg) {

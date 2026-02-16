@@ -58,36 +58,25 @@ export default {
       //   });
       // });
 
-      $(
+      document.querySelectorAll(
         "#longpage-app h2, #longpage-app h3, #longpage-app h4, #longpage-app div, #longpage-app p, #longpage-app ul, #longpage-app ol, #longpage-app pre"
-      ).each(function (i, val) {
+      ).forEach((val, i) => {
         DocObj = new Object();
-        if ($(this).is("h2") || $(this).is("h3") || $(this).is("h4")) {
+        const tagName = val.tagName.toLowerCase();
+        if (tagName === "h2" || tagName === "h3" || tagName === "h4") {
           DocObj.id = i;
-          DocObj.title = $(val).text();
+          DocObj.title = val.textContent;
           DocObj.body = "";
-          DocObj.link = $(val).attr("id");
-          // _this.index.addDoc({
-          //   id: i,
-          //   title: $(val).text(),
-          //   body: "",
-          //   link: $(val).attr("id"),
-          // });
+          DocObj.link = val.getAttribute("id");
         } else {
-          let attr = $(this).attr("id");
-          if (typeof attr === typeof undefined || attr === false) {
-            $(val).attr("id", "search-" + i);
+          let attr = val.getAttribute("id");
+          if (!attr) {
+            val.setAttribute("id", "search-" + i);
           }
           DocObj.id = i;
           DocObj.title = "";
-          DocObj.body = $(val).text();
-          DocObj.link = $(val).attr("id");
-          // _this.index.addDoc({
-          //   id: i,
-          //   title: "",
-          //   body: $(val).text(),
-          //   link: $(val).attr("id"),
-          // });
+          DocObj.body = val.textContent;
+          DocObj.link = val.getAttribute("id");
         }
         _this.index.push(DocObj);
       });

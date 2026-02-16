@@ -1,0 +1,30 @@
+
+> moodle-mod_longpage@0.1.0 build
+> cross-env NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --mode production --progress --config webpack.config.js
+
+node:events:493
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: spawn webpack ENOENT
+    at ChildProcess._handle.onexit (node:internal/child_process:286:19)
+    at onErrorNT (node:internal/child_process:484:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+Emitted 'error' event on ChildProcess instance at:
+    at ChildProcess._handle.onexit (node:internal/child_process:292:12)
+    at onErrorNT (node:internal/child_process:484:16)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'spawn webpack',
+  path: 'webpack',
+  spawnargs: [
+    '--mode',
+    'production',
+    '--progress',
+    '--config',
+    'webpack.config.js'
+  ]
+}
+
+Node.js v21.1.0

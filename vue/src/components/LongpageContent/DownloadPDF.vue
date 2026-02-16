@@ -112,7 +112,8 @@ export default {
                 switch (annotation.type) {
                     case 0:
                         if (found == 1) {
-                            var color = $("." + annotation.target.styleClass).css('backgroundColor')
+                            const styleElement = document.querySelector("." + annotation.target.styleClass);
+                            var color = styleElement ? window.getComputedStyle(styleElement).backgroundColor : "rgb(255,255,255)";
                             color = color == null ? "rgb(255,255,255)" : color;
                             factory.createHighlightAnnotation({
                                 page: lastPage,
@@ -167,10 +168,19 @@ export default {
             var _this = this;
 
             var html = document.getElementById(LONGPAGE_CONTENT_ID).cloneNode(true);
-            $(html).find("em, longpage-highlight, strong").contents().unwrap();
-            $(html).css("hyphens", "none").css("text-align", "justify");
+            
+            // Unwrap em, longpage-highlight, and strong elements
+            html.querySelectorAll("em, longpage-highlight, strong").forEach(el => {
+                while (el.firstChild) {
+                    el.parentNode.insertBefore(el.firstChild, el);
+                }
+                el.remove();
+            });
+            
+            html.style.hyphens = "none";
+            html.style.textAlign = "justify";
 
-            doc.html($(html).get(0), {
+            doc.html(html, {
                 callback: function (doc) {
                     var pdf = doc.output("arraybuffer");
                     var pdfData = null;

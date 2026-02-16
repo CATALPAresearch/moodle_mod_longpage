@@ -72,7 +72,15 @@ module.exports = (env, options) => {
                         // Creates `style` nodes from JS strings
                         "css-loader",
                         // Compiles Sass to CSS
-                        "sass-loader"
+                        {
+                            loader: "sass-loader",
+                            options: {
+                                api: 'modern',
+                                sassOptions: {
+                                    silenceDeprecations: ['legacy-js-api', 'import'],
+                                }
+                            }
+                        }
                     ],
                 },
                 {
@@ -117,6 +125,11 @@ module.exports = (env, options) => {
         plugins: [
             //new BundleAnalyzerPlugin(),
             new VueLoaderPlugin(),
+            new webpack.ProvidePlugin({
+                $: 'jquery',
+                jQuery: 'jquery',
+                'window.jQuery': 'jquery'
+            }),
             new FileManagerPlugin({
                 events: {
                     onStart :{

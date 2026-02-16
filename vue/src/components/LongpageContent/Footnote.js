@@ -18,30 +18,27 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import $ from 'jquery';
  
- $(() => {
- 
-    //  $('.longpage-footnote button').popover({
-    //      html: true,
-    //      trigger: 'focus',
-    //      sanitize: false
-    //  });
- 
-     const popovers = document.querySelectorAll('.longpage-footnote button[data-toggle="popover"]');
-     for (let popover of popovers)
-     {
-         var html = $(popover).html();
-         var pos = html.indexOf("&gt;");
-         if (pos >= 0)
-         {
-             var footnote = html.substring(pos + 4);
-             html = html.substring(0, pos - 2).replaceAll("\"", "'");
-             var content = popover.getAttribute('data-content');
-             content += html;
-             popover.setAttribute('data-content', content);
-             $(popover).text(footnote);
-         }
-     }
- });
+// Wait for DOM to be ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initFootnotes);
+} else {
+    initFootnotes();
+}
+
+function initFootnotes() {
+    const popovers = document.querySelectorAll('.longpage-footnote button[data-toggle="popover"]');
+    for (let popover of popovers) {
+        var html = popover.innerHTML;
+        var pos = html.indexOf("&gt;");
+        if (pos >= 0) {
+            var footnote = html.substring(pos + 4);
+            html = html.substring(0, pos - 2).replaceAll("\"", "'");
+            var content = popover.getAttribute('data-content');
+            content += html;
+            popover.setAttribute('data-content', content);
+            popover.textContent = footnote;
+        }
+    }
+}
  

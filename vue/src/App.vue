@@ -168,24 +168,33 @@ export default {
     this[ACT.USER_CAN_MOD_ANNOTATION]();
 
     // Log bootstrap interactions
-    $(".longpage-citation").click(function () {
-      _this.log("citation_view", { citation: $(this).data("content") });
-    });
-    $(".longpage-footnote").click(function () {
-      _this.log("footnote_view", {
-        title: $(this).find("button").data("original-title"),
-        text: $(this).find("button").data("content"),
+    document.querySelectorAll(".longpage-citation").forEach(el => {
+      el.addEventListener("click", function () {
+        _this.log("citation_view", { citation: this.dataset.content });
       });
     });
-    $(".longpage-crossref").click(function () {
-      _this.log("crossref_follow", {
-        source: $(this).text(),
-        target: $(this).attr("href"),
-        parent: $(this).parent().attr("id"),
+    document.querySelectorAll(".longpage-footnote").forEach(el => {
+      el.addEventListener("click", function () {
+        const button = this.querySelector("button");
+        _this.log("footnote_view", {
+          title: button?.dataset.originalTitle,
+          text: button?.dataset.content,
+        });
       });
     });
-    $(".longpage-assignment-link").click(function () {
-      _this.log("assignment_open", { target: $(this).attr("href") });
+    document.querySelectorAll(".longpage-crossref").forEach(el => {
+      el.addEventListener("click", function () {
+        _this.log("crossref_follow", {
+          source: this.textContent,
+          target: this.getAttribute("href"),
+          parent: this.parentElement?.getAttribute("id"),
+        });
+      });
+    });
+    document.querySelectorAll(".longpage-assignment-link").forEach(el => {
+      el.addEventListener("click", function () {
+        _this.log("assignment_open", { target: this.getAttribute("href") });
+      });
     });
     // ["h2", "h3"].forEach((hTag) => {
     //   this.readingTimeEstimator.calcAndDisplay(hTag);

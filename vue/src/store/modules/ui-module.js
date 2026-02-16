@@ -51,7 +51,9 @@ export default {
                 args: {
                     longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
                     scrolltop: scrollTop,
-                    courseId: getters[GET.LONGPAGE_CONTEXT].courseId
+                    courseid: getters[GET.LONGPAGE_CONTEXT].courseId,
+                    section: '',
+                    sectionhash: 0
                 },
                 fail: (e) => {
                     console.error(`"${MoodleWSMethods.UPDATE_READING_PROGRESS}" failed`, e);

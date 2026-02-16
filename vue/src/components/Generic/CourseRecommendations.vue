@@ -371,69 +371,78 @@ export default {
     },
 
     renderRecommendations: function () {
-      let numerOfHeadings = $(this.parantSelector + " h3").length;
+      const parentEl = document.querySelector(this.parantSelector);
+      if (!parentEl) return;
+      
+      let numerOfHeadings = parentEl.querySelectorAll("h3").length;
+      
       // add a dummy heading at the end.
-      $(this.parantSelector).append(
-        '<h3 style="display:inline; color:#fff; font-size:7;" class="dummy-heading">.</h3>'
-      );
+      const dummyHeading = document.createElement('h3');
+      dummyHeading.style.cssText = 'display:inline; color:#fff; font-size:7;';
+      dummyHeading.className = 'dummy-heading';
+      dummyHeading.textContent = '.';
+      parentEl.appendChild(dummyHeading);
+      
       // iterate over all headings and determine the text length and number of images
       for (var j = 0; j < numerOfHeadings; j++) {
         var data = this.recommendations["ke1"][j];
         if (data === undefined) {
           break;
         }
-        let courseRecommendationList = $(
-          '<span class="dropdown-menu p-1" aria-labelledby="dropdownMenuLink' +
-            j +
-            '"></span>'
-        );
+        
+        const courseRecommendationList = document.createElement('span');
+        courseRecommendationList.className = 'dropdown-menu p-1';
+        courseRecommendationList.setAttribute('aria-labelledby', 'dropdownMenuLink' + j);
+        
         var course = "";
         for (var i = 0; i < data.length; i++) {
           course = data[i][0].replace("_t.pickle", "").split("/");
-          //console.log(course[2].substr(0, 4), course[2], this.blacklist.indexOf(parseInt(course[2].substr(0, 4), 10)));
           if (
             this.blacklist.indexOf(parseInt(course[2].substr(0, 4), 10)) !== -1
           ) {
             let url = "#";
-            //console.log(course[2], this.modulesbyCourse[course[2].substr(0, 4)])
             if (this.modulesbyCourse[course[2].substr(0, 4)] !== undefined) {
               url = this.modulesbyCourse[course[2].substr(0, 4)].url;
             }
-            //console.log(course[2], course[3]);
-            courseRecommendationList.append(
-              '<a class="dropdown-item px-0 py-1" href="' +
-                url +
-                '">' +
-                course[2] +
-                ": " +
-                course[3] +
-                " (" +
-                data[i][1].toFixed(2) +
-                ")</li>"
-            );
-          } else {
-            //console.log('blacklisted ' + course[2], course[2].substr(0, 4));
+            
+            const link = document.createElement('a');
+            link.className = 'dropdown-item px-0 py-1';
+            link.href = url;
+            link.textContent = course[2] + ": " + course[3] + " (" + data[i][1].toFixed(2) + ")";
+            courseRecommendationList.appendChild(link);
           }
         }
 
-        let courseRecommendations = $(
-          '<a href="#" class="badge dropdown-toggle p-0" id="dropdownMenuLink' +
-            j +
-            '" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="background-color: transparent; font-size: 0.8em; color: #333333; font-weight:100;">Semantisch ähnliche Kurseinheiten</a>'
-        );
+        const courseRecommendations = document.createElement('a');
+        courseRecommendations.href = '#';
+        courseRecommendations.className = 'badge dropdown-toggle p-0';
+        courseRecommendations.id = 'dropdownMenuLink' + j;
+        courseRecommendations.setAttribute('role', 'button');
+        courseRecommendations.setAttribute('data-toggle', 'dropdown');
+        courseRecommendations.setAttribute('aria-haspopup', 'true');
+        courseRecommendations.setAttribute('aria-expanded', 'false');
+        courseRecommendations.style.cssText = 'background-color: transparent; font-size: 0.8em; color: #333333; font-weight:100;';
+        courseRecommendations.textContent = 'Semantisch ähnliche Kurseinheiten';
 
-        // style="position:absolute; right:10px; top:0px;
-
-        let wrapper = $('<span class="dropdown d-inline show"></span>')
-          .append(courseRecommendations)
-          .append(courseRecommendationList);
-        $(this.parantSelector + " h3:nth(" + j + ")")
-          .css("position", "relative")
-          .parent(".wrapper")
-          .next("span")
-          .after("<br>")
-          .after(wrapper)
-          .after('<span class="mx-3 d-inline">|</span>');
+        const wrapper = document.createElement('span');
+        wrapper.className = 'dropdown d-inline show';
+        wrapper.appendChild(courseRecommendations);
+        wrapper.appendChild(courseRecommendationList);
+        
+        const heading = parentEl.querySelectorAll("h3")[j];
+        heading.style.position = 'relative';
+        const wrapperParent = heading.closest('.wrapper');
+        if (wrapperParent && wrapperParent.nextElementSibling) {
+          const nextSpan = wrapperParent.nextElementSibling;
+          const br = document.createElement('br');
+          nextSpan.after(br);
+          br.after(wrapper);
+          
+          const separator = document.createElement('span');
+          separator.className = 'mx-3 d-inline';
+          separator.textContent = '|';
+          wrapper.after(separator);
+        }
       }
     },
 

@@ -14,19 +14,29 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    mod_longpage
+ * @package    mod_page
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import de from './locale-messages/de.json';
-import {LANGUAGE} from '@/config/constants';
-import {createI18n} from 'vue-i18n';
-import datetimeFormats from './date-time-formats.json';
+import { LANGUAGE } from "@/config/constants";
+import { createI18n } from "vue-i18n";
+import datetimeFormats from "./date-time-formats.json";
 
+// Custom message resolver that converts dots to underscores
+// Vue: $t('sidebar.tabs.posts.heading') -> PHP: $string['sidebar_tabs_posts_heading']
+const messageResolver = (obj, path) => {
+  const key = path.replace(/\./g, '_');
+  return obj[key];
+};
+
+// Create i18n instance with empty messages - will be loaded from Moodle backend
 export const i18n = createI18n({
-    datetimeFormats,
-    locale: LANGUAGE,
-    fallbackLocale: LANGUAGE,
-    messages: {de},
-    silentTranslationWarn: true,
+  legacy: true, // Use Options API mode for backward compatibility
+  locale: LANGUAGE,
+  fallbackLocale: "en",
+  datetimeFormats,
+  messages: {}, // Empty - populated from store after loadComponentStrings
+  silentTranslationWarn: true,
+  globalInjection: true, // Enable $t in templates
+  messageResolver, // Custom resolver for dot-to-underscore conversion
 });

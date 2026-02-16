@@ -95,7 +95,7 @@ export default {
               if (this.activeTOCEntryIndex === -1) {
                 return;
               }
-              $(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`).get(0).scrollIntoView(false);
+              document.querySelector(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`)?.scrollIntoView(false);
              return;
             }
 
@@ -105,18 +105,18 @@ export default {
               if (this.activeTOCEntryIndex === -1) {
                 return;
               }
-              $(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`).get(0).scrollIntoView(false);
+              document.querySelector(`a.nav-link[href='#h-in-toc-${this.activeTOCEntryIndex}']`)?.scrollIntoView(false);
             }
           }, {root});
         this.tocEntries.map(entry => entry.hEl).forEach(targetEl => intersectionObserver.observe(targetEl));
         },
         initTOC() {
-            $(this.allHeadingsSelector).each((index, el) => {
+            document.querySelectorAll(this.allHeadingsSelector).forEach((el, index) => {
               const hId = `h-in-toc-${index}`;
-              const hLvl = this.headingSelectors.findIndex(selector => $(el).is(selector));
-              this.tocEntries.push({hEl: el, hId, hLvl, text: $(el).text()});
-              $(el).attr('id', hId);
-              $(el).attr('class', this.hClass);
+              const hLvl = this.headingSelectors.findIndex(selector => el.matches(selector));
+              this.tocEntries.push({hEl: el, hId, hLvl, text: el.textContent});
+              el.setAttribute('id', hId);
+              el.setAttribute('class', this.hClass);
             });
         },
         scrollTextElementIntoView,

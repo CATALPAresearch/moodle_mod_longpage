@@ -638,8 +638,7 @@ export default {
                 entry: JSON.stringify(logentry),
                 action: action,
                 utc: Math.ceil(new Date().getTime() / 1000),
-                courseid: _this.context.courseId,
-                longpageid: _this.context.longpageid,
+                courseid: _this.context.courseId
               },
             },
             done: function (reads) {},

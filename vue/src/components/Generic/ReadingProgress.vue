@@ -59,9 +59,8 @@ export default {
 
             if (entry.isIntersecting && entry.isVisible) {
               var now = new Date();
-              let word_count = $("#" + entry.target.id)
-                .text()
-                .split(" ").length;
+              const targetElement = document.getElementById(entry.target.id);
+              let word_count = targetElement ? targetElement.textContent.split(" ").length : 0;
               // TODO: Determine portion of visible text
               // _this.get($('#' + entry.target.id).get(0)).visibility
 
@@ -129,25 +128,24 @@ export default {
                   intersectionRatio: entry.intersectionRatio,
                 };
 
-              ajax.call([
-                {
-                  methodname: "mod_longpage_log",
-                  args: {
-                    data: {
-                      entry: JSON.stringify(logentry),
-                      action: "scroll",
-                      utc: Math.ceil(now.getTime() / 1000),
-                      courseid: _this.context.courseId,
-                      longpageid: _this.context.longpageid
-                    },
-                  },
-                  done: function (reads) {
-                  },
-                  fail: function (e) {
-                    console.error("fail", e);
-                  },
-                },
-              ]);
+              // ajax.call([
+              //   {
+              //     methodname: "mod_longpage_log",
+              //     args: {
+              //       data: {
+              //         entry: JSON.stringify(logentry),
+              //         action: "scroll",
+              //         utc: Math.ceil(now.getTime() / 1000),
+              //         courseid: _this.context.courseId
+              //       },
+              //     },
+              //     done: function (reads) {
+              //     },
+              //     fail: function (e) {
+              //       console.error("fail", e);
+              //     },
+              //   },
+              // ]);
 
                 last_entry = logentry;
               }
@@ -171,7 +169,8 @@ export default {
         var observedElements = ["h2", "h3", "h4", "h5", "pre", "img", "p", "ol", "ul", "div"];
         var container = "#longpage-content";
 
-        if ($(container + " > .filter_mathjaxloader_equation").length == 1)
+        const containerEl = document.querySelector(container + " > .filter_mathjaxloader_equation");
+        if (containerEl)
           container += " > .filter_mathjaxloader_equation";
 
         // $($(container)
@@ -199,38 +198,39 @@ export default {
           return container + " > " + val;
         });
 
-        $(observedSelectors.join(", ")).each(function (i, val) {
-          var attr = $(this).attr("id");
-          if (typeof attr === typeof undefined || attr === false) {
+        document.querySelectorAll(observedSelectors.join(", ")).forEach((val, i) => {
+          var attr = val.getAttribute("id");
+          if (!attr) {
             attr = "paragraph-" + pCounter;
-            $(this)
-              .attr("id", attr)
-              .addClass("longpage-paragraph");
+            val.setAttribute("id", attr);
+            val.classList.add("longpage-paragraph");
             pCounter++;
           }
           sectionCount++;
-          $("#" + attr).wrap("<div class='wrapper'></div>");
-          var wrapper = $("#" + attr).parent();
+          
+          // Wrap element
+          const wrapper = document.createElement('div');
+          wrapper.className = 'wrapper';
+          val.parentNode.insertBefore(wrapper, val);
+          wrapper.appendChild(val);
+          
           if (_this.context.showreadingprogress || _this.context.showreadingcomprehension) {
-            var span = $("<span></span>")
-              .addClass("reading-progress")
-              .attr("data-html2canvas-ignore", "");
+            const span = document.createElement('span');
+            span.className = 'reading-progress';
+            span.setAttribute('data-html2canvas-ignore', '');
             if (_this.context.showreadingprogress) {
-              $(span).attr(
-                "title",
-                "Der Abschnitt wurde <br>bislang 0 mal gelesen."
-              )
+              span.setAttribute('title', 'Der Abschnitt wurde <br>bislang 0 mal gelesen.');
             }
             else {
-              $(span).addClass("progress-3");
+              span.classList.add('progress-3');
             }
-            $(wrapper).append(span);
+            wrapper.appendChild(span);
           }
-            if ($(wrapper).find(".filter_embedquestion-iframe").length > 0)
-            {
-              $(wrapper).height("0px");
-              $(wrapper).css("padding", "0px");
-            }
+          
+          if (wrapper.querySelector(".filter_embedquestion-iframe")) {
+            wrapper.style.height = "0px";
+            wrapper.style.padding = "0px";
+          }
           
           observer.observe(document.querySelector("#" + attr));
         });
@@ -324,27 +324,27 @@ export default {
               });
               let max = max_arr.reduce((a, b) => Math.max(a, b), -Infinity);
               for (var i = 0; i < data.length; i++) {
-                if ($("#" + data[i].section)) {
-                  $("#" + data[i].section).next(".reading-progress")
-                    .attr(
+                const sectionEl = document.getElementById(data[i].section);
+                if (sectionEl) {
+                  const progressEl = sectionEl.nextElementSibling;
+                  if (progressEl && progressEl.classList.contains('reading-progress')) {
+                    progressEl.setAttribute(
                       "title",
                       "Der Abschnitt wurde <br>bislang " +
                       data[i].count +
                       " mal gelesen."
-                    )
-                    .addClass(
+                    );
+                    progressEl.classList.add(
                       "progress-" +
                       Math.ceil((data[i].count / max) * 5)
                     );
+                  }
                   
                   if (_this.debug) {
-                    $("#" + data[i].section).append(
-                      $(
-                        '<span style="position:absolute; right:-40px; font-size:8px; background-color:red; padding:1px 2px; color:#fff;">' +
-                          data[i].section.replace("longpage-paragraph-", "") +
-                          "</span>"
-                      )
-                    );
+                    const span = document.createElement('span');
+                    span.style.cssText = 'position:absolute; right:-40px; font-size:8px; background-color:red; padding:1px 2px; color:#fff;';
+                    span.textContent = data[i].section.replace("longpage-paragraph-", "");
+                    sectionEl.appendChild(span);
                   }
                 } else {
                   console.log("Section not found", data[i].section);

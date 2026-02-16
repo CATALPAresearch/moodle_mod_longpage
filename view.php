@@ -123,9 +123,9 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             
     echo    '</div>
         </div>';
-    //hidden form needed for embedding questions
-    $embedform = new MoodleQuickForm("embedform", 'POST', "", "", array("style" => "width: 0; height: 0; overflow: hidden"));
-    $embedform->addElement('editor', 'embedform', "embedform", null, longpage_get_editor_options($context));
+    // Hidden form needed for embedding questions.
+    $embedform = new MoodleQuickForm('embedform', 'POST', '', '', ['style' => 'width: 0; height: 0; overflow: hidden']);
+    $embedform->addElement('textarea', 'embedform', 'embedform');
     $embedform->display();
 
     //get tags
