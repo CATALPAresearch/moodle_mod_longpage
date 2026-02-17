@@ -24,25 +24,65 @@ namespace mod_longpage\event;
  *
  * @package   mod_longpage
  * @category  event
- * @copyright 
+ * @copyright
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_module_question extends \core\event\base {
-
+    /**
+     * Init method.
+     *
+     * @return void
+     */
     protected function init() {
         $this->data['objecttable'] = 'longpage';
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
+    /**
+     * Returns description of what happened.
+     *
+     * @return string
+     */
     public function get_description() {
-        extract($this->data["other"]);
+        $other = $this->data["other"];
+        $type = $other['type'];
+        $questionid = $other['questionid'];
+        $qtype = $other['qtype'];
+        $selectedtext = $other['selectedText'];
+        $selectedparagraphs = $other['selectedParagraphs'];
+        $useai = $other['useAI'];
+        $existingquestions = $other['existingQuestions'];
+        $position = $other['position'];
+        $embedid = $other['embedid'];
+        $elapsedtimems = $other['elapsedTimeMs'];
 
-        return "The user with id '$this->userid' changed ($type) a question with id '$questionid' on the 'longpage activity' with course module id " .
-            "'$this->contextinstanceid' in course '$this->courseid' (qtype: $qtype, selectedText: '$selectedText', selectedParagraphs: '$selectedParagraphs', useAI: $useAI, existingQuestions: '$existingQuestions', position: $position, embedid: $embedid, elapsedTimeMs: $elapsedTimeMs).";
+        return "The user with id '$this->userid' changed ($type) a question with id '$questionid' on the " .
+            "'longpage activity' with course module id '$this->contextinstanceid' in course '$this->courseid' " .
+            "(qtype: $qtype, selectedText: '$selectedtext', selectedParagraphs: '$selectedparagraphs', useAI: $useai, " .
+            "existingQuestions: '$existingquestions', position: $position, embedid: $embedid, elapsedTimeMs: $elapsedtimems).";
     }
 
+    /**
+     * Custom validation.
+     *
+     * @throws \coding_exception
+     * @return void
+     */
+    protected function validate_data() {
+        parent::validate_data();
+
+        if (!isset($this->other['type'])) {
+            throw new \coding_exception('The \'type\' value must be set in other.');
+        }
+    }
+
+    /**
+     * Return the mapping for object ID to database table.
+     *
+     * @return array
+     */
     public static function get_objectid_mapping() {
-        return array('db' => 'longpage', 'restore' => 'longpage');
+        return ['db' => 'longpage', 'restore' => 'longpage'];
     }
 }

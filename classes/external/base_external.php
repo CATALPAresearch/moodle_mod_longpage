@@ -208,8 +208,8 @@ abstract class base_external extends \external_api {
             'threadid' => new \external_value(PARAM_INT),
             'content' => new \external_value(PARAM_TEXT),
             'anonymous' => new \external_value(PARAM_BOOL),
-            'ispublic' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
-            'creatorid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
+            'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_OPTIONAL),
+            'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
         ];
     }
 

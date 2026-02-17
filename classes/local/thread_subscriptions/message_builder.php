@@ -24,9 +24,9 @@
 
 namespace mod_longpage\local\thread_subscriptions;
 
-require_once($CFG->dirroot.'/mod/longpage/locallib.php');
-
 defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/mod/longpage/locallib.php');
 
 /**
  * Message Builder
@@ -35,28 +35,54 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class message_builder {
+    /**
+     * Build message based on post action.
+     *
+     * @param object $data Message data
+     * @return object|null
+     */
     public static function build_message($data) {
-        switch($data->action) {
-            case post_action::CREATE: return self::build_post_in_thread_created_message($data);
-            case post_action::DELETE: return self::build_post_in_thread_deleted_message($data);
-            case post_action::UPDATE: return self::build_post_in_thread_updated_message($data);
-            default: return null;
+        switch ($data->action) {
+            case post_action::CREATE:
+                return self::build_post_in_thread_created_message($data);
+            case post_action::DELETE:
+                return self::build_post_in_thread_deleted_message($data);
+            case post_action::UPDATE:
+                return self::build_post_in_thread_updated_message($data);
+            default:
+                return null;
         }
     }
 
+    /**
+     * Build message for post creation in thread.
+     *
+     * @param object $data Message data
+     * @return object
+     */
     private static function build_post_in_thread_created_message($data) {
         $message = self::get_message_base($data->subscriberid);
         $substitutions = self::get_string_substitutions($data);
-        //$message->subject = get_string('messagesubjectpostcreated', 'longpage');
+        // Message subject is generated with short content.
         $message->subject = get_string('messagesubjectpostcreated_shortcontent', 'longpage', $substitutions);
         $message->fullmessage = get_string('messagefullpostcreated', 'longpage', $substitutions);
         $message->fullmessagehtml = get_string('messagehtmlpostcreated', 'longpage', $substitutions);
         $message->smallmessage = get_string('messagesmallpostcreated', 'longpage', $substitutions);
-        $message->contexturl = (new \moodle_url('/mod/longpage/view.php', ['id' => $data->cmid], "post-{$data->postid}"))->out(false);
+        $message->contexturl = (new \moodle_url(
+            '/mod/longpage/view.php',
+            ['id' => $data->cmid],
+            "post-{$data->postid}"
+        ))->out(false);
         $message->contexturlname = get_string('messagecontexturlnamepostcreated', 'longpage');
         return $message;
     }
 
+    /**
+     * Build message for post deletion in thread.
+     *
+     * @param object $data Message data
+     * @return object
+     */
     private static function build_post_in_thread_deleted_message($data) {
         $message = self::get_message_base($data->subscriberid);
         $substitutions = self::get_string_substitutions($data);
@@ -64,11 +90,21 @@ class message_builder {
         $message->fullmessage = get_string('messagefullpostdeleted', 'longpage', $substitutions);
         $message->fullmessagehtml = get_string('messagehtmlpostdeleted', 'longpage', $substitutions);
         $message->smallmessage = get_string('messagesmallpostdeleted', 'longpage', $substitutions);
-        $message->contexturl = (new \moodle_url('/mod/longpage/view.php', ['id' => $data->cmid], "thread-{$data->threadid}"))->out(false);
+        $message->contexturl = (new \moodle_url(
+            '/mod/longpage/view.php',
+            ['id' => $data->cmid],
+            "thread-{$data->threadid}"
+        ))->out(false);
         $message->contexturlname = get_string('messagecontexturlnamepostdeleted', 'longpage');
         return $message;
     }
 
+    /**
+     * Build message for post update in thread.
+     *
+     * @param object $data Message data
+     * @return object
+     */
     private static function build_post_in_thread_updated_message($data) {
         $message = self::get_message_base($data->subscriberid);
         $substitutions = self::get_string_substitutions($data);
@@ -76,11 +112,21 @@ class message_builder {
         $message->fullmessage = get_string('messagefullpostupdated', 'longpage', $substitutions);
         $message->fullmessagehtml = get_string('messagehtmlpostupdated', 'longpage', $substitutions);
         $message->smallmessage = get_string('messagesmallpostupdated', 'longpage', $substitutions);
-        $message->contexturl = (new \moodle_url('/mod/longpage/view.php', ['id' => $data->cmid], "post-{$data->postid}"))->out(false);
+        $message->contexturl = (new \moodle_url(
+            '/mod/longpage/view.php',
+            ['id' => $data->cmid],
+            "post-{$data->postid}"
+        ))->out(false);
         $message->contexturlname = get_string('messagecontexturlnamepostupdated', 'longpage');
         return $message;
     }
 
+    /**
+     * Get base message object.
+     *
+     * @param int $userid User ID
+     * @return object
+     */
     private static function get_message_base($userid) {
         $message = new \core\message\message();
         $message->component = 'mod_longpage';
@@ -92,6 +138,12 @@ class message_builder {
         return $message;
     }
 
+    /**
+     * Get string substitutions for message.
+     *
+     * @param object $data Message data
+     * @return array
+     */
     private static function get_string_substitutions($data) {
         $actor = \core_user::get_user($data->actorid);
         $shortcontent = self::shorten_content($data->content);
@@ -106,10 +158,16 @@ class message_builder {
         return $substitutions;
     }
 
+    /**
+     * Shorten content for display.
+     *
+     * @param string $content Content to shorten
+     * @return string
+     */
     private static function shorten_content($content) {
         $returnval;
         if (strlen($content) >= 15) {
-            $returnval = substr($content, 0 ,12);
+            $returnval = substr($content, 0, 12);
             $returnval .= "...";
         } else {
             $returnval = $content;

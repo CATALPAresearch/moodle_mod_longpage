@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Library functions for mod_longpage.
+ *
  * @package mod_longpage
  * @copyright  2009 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,19 +30,29 @@ defined('MOODLE_INTERNAL') || die;
  * @return mixed True if module supports feature, false if not, null if doesn't know
  */
 function longpage_supports($feature) {
-    switch($feature) {
-        case FEATURE_MOD_ARCHETYPE:           return MOD_ARCHETYPE_RESOURCE;
-        case FEATURE_GROUPS:                  return true;
-        case FEATURE_GROUPINGS:               return true;
-        case FEATURE_MOD_INTRO:               return true;
-        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
-        case FEATURE_GRADE_HAS_GRADE:         return true;
-        case FEATURE_GRADE_OUTCOMES:          return false;
-        case FEATURE_BACKUP_MOODLE2:          return true;
-        case FEATURE_SHOW_DESCRIPTION:        return true;
+    switch ($feature) {
+        case FEATURE_MOD_ARCHETYPE:
+            return MOD_ARCHETYPE_RESOURCE;
+        case FEATURE_GROUPS:
+            return true;
+        case FEATURE_GROUPINGS:
+            return true;
+        case FEATURE_MOD_INTRO:
+            return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS:
+            return true;
+        case FEATURE_GRADE_HAS_GRADE:
+            return true;
+        case FEATURE_GRADE_OUTCOMES:
+            return false;
+        case FEATURE_BACKUP_MOODLE2:
+            return true;
+        case FEATURE_SHOW_DESCRIPTION:
+            return true;
 
-        default: return null;
-    // Remove the original element as it has been split into multiple elements.
+        default:
+            return null;
+        // Remove the original element as it has been split into multiple elements.
     }
 }
 
@@ -55,7 +66,7 @@ function longpage_reset_userdata($data) {
     // Any changes to the list of dates that needs to be rolled should be same during course restore and course reset.
     // See MDL-9367.
 
-    return array();
+    return [];
 }
 
 /**
@@ -69,7 +80,7 @@ function longpage_reset_userdata($data) {
  * @return array
  */
 function longpage_get_view_actions() {
-    return array('view','view all');
+    return ['view', 'view all'];
 }
 
 /**
@@ -83,116 +94,121 @@ function longpage_get_view_actions() {
  * @return array
  */
 function longpage_get_post_actions() {
-    return array('update', 'add');
+    return ['update', 'add'];
 }
 
 /**
  * Sanitize the HTML content of a longpage by wrapping all tags on the top level with a p tag.
  * @param string $content The HTML content to sanitize
+ * @param int $maxwords Maximum words parameter
  * @return string The sanitized HTML content
  */
-function longpage_sanitize_html($content, $maxWords = 250) {
-    // Use DOMDocument to parse and manipulate the HTML
+function longpage_sanitize_html($content, $maxwords = 250) {
+    // Use DOMDocument to parse and manipulate the HTML.
     $dom = new DOMDocument('UTF-8');
     $dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'), LIBXML_HTML_NODEFDTD | LIBXML_NOBLANKS);
 
     $xpath = new DOMXPath($dom);
     $nodes = $xpath->query('//body/text()');
 
-    // Loop through all found texts
+    // Loop through all found texts.
     foreach ($nodes as $node) {
-        // Trim to remove unnecessary spaces or line breaks
+        // Trim to remove unnecessary spaces or line breaks.
         $text = trim($node->nodeValue);
         if (!empty($text)) {
-            // Create a new <p> element and add the text
+            // Create a new <p> element and add the text.
             $p = $dom->createElement('p', $text);
 
-            // Replace the text node with the new <p> element
+            // Replace the text node with the new <p> element.
             $node->parentNode->replaceChild($p, $node);
         }
     }
 
-    // Get all top-level elements which are not h tags
+    // Get all top-level elements which are not h tags.
     $elements = $dom->getElementsByTagName('*');
 
-    $topLevelElements = [];
-    $toRemove = [];
+    $toplevelelements = [];
+    $toremove = [];
     foreach ($elements as $element) {
-        // Remove all non-visible whitespace characters including &nbsp;
-        $textContent = $element->textContent;
-        // Normalize whitespace characters, including &nbsp; and non-breaking spaces
-        $normalizedText = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textContent);
-        // Check if the content is empty after normalization
-        if ($normalizedText === ''&& !in_array(strtolower($element->nodeName), ['br', 'img', 'hr'])) {
-            $toRemove[] = $element;
-        } else if ($element->parentNode->nodeName === 'body' && !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
-            $topLevelElements[] = $element;
+        // Remove all non-visible whitespace characters including &nbsp;.
+        $textcontent = $element->textContent;
+        // Normalize whitespace characters, including &nbsp; and non-breaking spaces.
+        $normalizedtext = preg_replace('/\xC2\xA0|&nbsp;|[\s\h\v]/u', '', $textcontent);
+        // Check if the content is empty after normalization.
+        if ($normalizedtext === '' && !in_array(strtolower($element->nodeName), ['br', 'img', 'hr'])) {
+            $toremove[] = $element;
+        } else if (
+            $element->parentNode->nodeName === 'body' &&
+            !in_array($element->nodeName, ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+        ) {
+            $toplevelelements[] = $element;
         }
     }
 
-    foreach ($toRemove as $emptyP) {
-        $emptyP->parentNode->removeChild($emptyP);
+    foreach ($toremove as $emptyp) {
+        $emptyp->parentNode->removeChild($emptyp);
     }
 
-    // If all top-level elements are p or h tags, return the content as is
-    $allPTags = true;
-    foreach ($topLevelElements as $element) {
+    // If all top-level elements are p or h tags, return the content as is.
+    $allptags = true;
+    foreach ($toplevelelements as $element) {
         if (!in_array($element->nodeName, ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'])) {
-            $allPTags = false;
+            $allptags = false;
             break;
         }
     }
 
-    if (!$allPTags) {
-        // Wrap each top-level element with a div tag
-        foreach ($topLevelElements as $element) {
+    if (!$allptags) {
+        // Wrap each top-level element with a div tag.
+        foreach ($toplevelelements as $element) {
             if ($element->nodeName === 'div') {
                 continue;
             }
-            $divTag = $dom->createElement('div');
-            $element->parentNode->insertBefore($divTag, $element);
-            $divTag->appendChild($element);
+            $divtag = $dom->createElement('div');
+            $element->parentNode->insertBefore($divtag, $element);
+            $divtag->appendChild($element);
         }
 
-        // If div has no attributes and no text node as a direct child, but only div children, attach the children to the parent div and remove the empty div
+        // If div has no attributes and no text node as a direct child, but only div children,
+        // attach the children to the parent div and remove the empty div.
         $divs = $dom->getElementsByTagName('div');
-        //also spans
+        // Also spans.
         $spans = $dom->getElementsByTagName('span');
         $divs = array_merge(iterator_to_array($divs), iterator_to_array($spans));
-        $toRemove = [];
+        $toremove = [];
         foreach ($divs as $div) {
             if ($div->childNodes->length === 0) {
                 continue;
             }
-            $hasText = false;
-            $hasOnlyDiv = true;
+            $hastext = false;
+            $hasonlydiv = true;
             foreach ($div->childNodes as $child) {
                 if ($child->nodeType === XML_TEXT_NODE) {
-                    $hasText = true;
+                    $hastext = true;
                     break;
                 }
                 if ($child->nodeName !== 'div') {
-                    $hasOnlyDiv = false;
+                    $hasonlydiv = false;
                     break;
                 }
             }
-            if (!$hasText && $hasOnlyDiv) {
-                $toRemove[] = $div;
+            if (!$hastext && $hasonlydiv) {
+                $toremove[] = $div;
             }
         }
 
-        foreach ($toRemove as $emptyDiv) {
-            while ($emptyDiv->childNodes->length > 0) {
-                $emptyDiv->parentNode->insertBefore($emptyDiv->childNodes->item(0), $emptyDiv);
+        foreach ($toremove as $emptydiv) {
+            while ($emptydiv->childNodes->length > 0) {
+                $emptydiv->parentNode->insertBefore($emptydiv->childNodes->item(0), $emptydiv);
             }
-            $emptyDiv->parentNode->removeChild($emptyDiv);
+            $emptydiv->parentNode->removeChild($emptydiv);
         }
     }
 
-    // Save the modified HTML back to a string
-    $sanitizedContent = $dom->saveHTML($dom->documentElement);
+    // Save the modified HTML back to a string.
+    $sanitizedcontent = $dom->saveHTML($dom->documentElement);
 
-    return $sanitizedContent;
+    return $sanitizedcontent;
 }
 
 /**
@@ -208,7 +224,7 @@ function longpage_add_instance($data, $mform = null) {
     $cmid = $data->coursemodule;
 
     $data->timemodified = time();
-    $displayoptions = array();
+    $displayoptions = [];
     if ($data->display == RESOURCELIB_DISPLAY_POPUP) {
         $displayoptions['popupwidth']  = $data->popupwidth;
         $displayoptions['popupheight'] = $data->popupheight;
@@ -222,23 +238,36 @@ function longpage_add_instance($data, $mform = null) {
         $data->contentformat = $data->longpage['format'];
     }
 
-    if(!$data->id = $DB->insert_record('longpage', $data)){
-        print_error("er1");
+    if (!$data->id = $DB->insert_record('longpage', $data)) {
+        throw new moodle_exception('errorinsertingrecord', 'mod_longpage');
     }
 
-    // we need to use context now, so we need to make sure all needed info is already in db
-    $DB->set_field('course_modules', 'instance', $data->id, array('id'=>$cmid));
+    // We need to use context now, so we need to make sure all needed info is already in db.
+    $DB->set_field('course_modules', 'instance', $data->id, ['id' => $cmid]);
     $context = context_module::instance($cmid);
 
-    if ($mform and !empty($data->longpage['itemid'])) {
+    if ($mform && !empty($data->longpage['itemid'])) {
         $draftitemid = $data->longpage['itemid'];
-        $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = file_save_draft_area_files(
+            $draftitemid,
+            $context->id,
+            'mod_longpage',
+            'content',
+            0,
+            longpage_get_editor_options($context),
+            $data->content
+        );
         $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
     $completiontimeexpected = !empty($data->completionexpected) ? $data->completionexpected : null;
-    \core_completion\api::update_completion_date_event($cmid, 'longpage', $data->id, $completiontimeexpected);
+    \core_completion\api::update_completion_date_event(
+        $cmid,
+        'longpage',
+        $data->id,
+        $completiontimeexpected
+    );
 
     longpage_grade_item_update($data);
 
@@ -262,7 +291,7 @@ function longpage_update_instance($data, $mform) {
     $data->id           = $data->instance;
     $data->revision++;
 
-    $displayoptions = array();
+    $displayoptions = [];
     if ($data->display == RESOURCELIB_DISPLAY_POPUP) {
         $displayoptions['popupwidth']  = $data->popupwidth;
         $displayoptions['popupheight'] = $data->popupheight;
@@ -288,13 +317,26 @@ function longpage_update_instance($data, $mform) {
 
     $context = context_module::instance($cmid);
     if ($draftitemid) {
-        $data->content = file_save_draft_area_files($draftitemid, $context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($context), $data->content);
+        $data->content = file_save_draft_area_files(
+            $draftitemid,
+            $context->id,
+            'mod_longpage',
+            'content',
+            0,
+            longpage_get_editor_options($context),
+            $data->content
+        );
         $data->content = longpage_sanitize_html($data->content);
         $DB->update_record('longpage', $data);
     }
 
     $completiontimeexpected = !empty($data->completionexpected) ? $data->completionexpected : null;
-    \core_completion\api::update_completion_date_event($cmid, 'longpage', $data->id, $completiontimeexpected);
+    \core_completion\api::update_completion_date_event(
+        $cmid,
+        'longpage',
+        $data->id,
+        $completiontimeexpected
+    );
 
     longpage_grade_item_update($data);
 
@@ -309,18 +351,18 @@ function longpage_update_instance($data, $mform) {
 function longpage_delete_instance($id) {
     global $DB;
 
-    if (!$page = $DB->get_record('longpage', array('id'=>$id))) {
+    if (!$page = $DB->get_record('longpage', ['id' => $id])) {
         return false;
     }
 
     $cm = get_coursemodule_from_instance('longpage', $id);
     \core_completion\api::update_completion_date_event($cm->id, 'longpage', $id, null);
 
-    // note: all context files are deleted automatically
+    // Note: all context files are deleted automatically.
 
-    grade_update('mod/longpage', $page->course, 'mod', 'longpage', $page->id, 0, null, array('deleted'=>1));
+    grade_update('mod/longpage', $page->course, 'mod', 'longpage', $page->id, 0, null, ['deleted' => 1]);
 
-    $DB->delete_records('longpage', array('id'=>$page->id));
+    $DB->delete_records('longpage', ['id' => $page->id]);
 
     return true;
 }
@@ -339,9 +381,14 @@ function longpage_get_coursemodule_info($coursemodule) {
     global $CFG, $DB;
     require_once("$CFG->libdir/resourcelib.php");
 
-    if (!$page = $DB->get_record('longpage', array('id'=>$coursemodule->instance),
-            'id, name, display, displayoptions, intro, introformat')) {
-        return NULL;
+    if (
+        !$page = $DB->get_record(
+            'longpage',
+            ['id' => $coursemodule->instance],
+            'id, name, display, displayoptions, intro, introformat'
+        )
+    ) {
+        return null;
     }
 
     $info = new cached_cm_info();
@@ -357,10 +404,11 @@ function longpage_get_coursemodule_info($coursemodule) {
     }
 
     $fullurl = "$CFG->wwwroot/mod/longpage/view.php?id=$coursemodule->id&amp;inpopup=1";
-    $options = empty($page->displayoptions) ? array() : unserialize($page->displayoptions);
-    $width  = empty($options['popupwidth'])  ? 620 : $options['popupwidth'];
+    $options = empty($page->displayoptions) ? [] : unserialize($page->displayoptions);
+    $width  = empty($options['popupwidth']) ? 620 : $options['popupwidth'];
     $height = empty($options['popupheight']) ? 450 : $options['popupheight'];
-    $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no,status=no,directories=no,scrollbars=yes,resizable=yes";
+    $wh = "width=$width,height=$height,toolbar=no,location=no,menubar=no,copyhistory=no," .
+        "status=no,directories=no,scrollbars=yes,resizable=yes";
     $info->onclick = "window.open('$fullurl', '', '$wh'); return false;";
 
     return $info;
@@ -378,7 +426,7 @@ function longpage_get_coursemodule_info($coursemodule) {
  * @return array
  */
 function longpage_get_file_areas($course, $cm, $context) {
-    $areas = array();
+    $areas = [];
     $areas['content'] = get_string('content', 'longpage');
     return $areas;
 }
@@ -403,7 +451,7 @@ function longpage_get_file_info($browser, $areas, $course, $cm, $context, $filea
     global $CFG;
 
     if (!has_capability('moodle/course:managefiles', $context)) {
-        // students can not peak here!
+        // Students can not peak here!
         return null;
     }
 
@@ -413,20 +461,30 @@ function longpage_get_file_info($browser, $areas, $course, $cm, $context, $filea
         $filepath = is_null($filepath) ? '/' : $filepath;
         $filename = is_null($filename) ? '.' : $filename;
 
-        $urlbase = $CFG->wwwroot.'/pluginfile.php';
+        $urlbase = $CFG->wwwroot . '/pluginfile.php';
         if (!$storedfile = $fs->get_file($context->id, 'mod_longpage', 'content', 0, $filepath, $filename)) {
-            if ($filepath === '/' and $filename === '.') {
+            if ($filepath === '/' && $filename === '.') {
                 $storedfile = new virtual_root_file($context->id, 'mod_longpage', 'content', 0);
             } else {
-                // not found
+                // Not found.
                 return null;
             }
         }
         require_once("$CFG->dirroot/mod/longpage/locallib.php");
-        return new longpage_content_file_info($browser, $context, $storedfile, $urlbase, $areas[$filearea], true, true, true, false);
+        return new longpage_content_file_info(
+            $browser,
+            $context,
+            $storedfile,
+            $urlbase,
+            $areas[$filearea],
+            true,
+            true,
+            true,
+            false
+        );
     }
 
-    // note: page_intro handled in file_browser automatically
+    // Note: page_intro handled in file_browser automatically.
 
     return null;
 }
@@ -445,7 +503,7 @@ function longpage_get_file_info($browser, $areas, $course, $cm, $context, $filea
  * @param array $options additional options affecting the file serving
  * @return bool false if file not found, does not return if found - just send the file
  */
-function longpage_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options=array()) {
+function longpage_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
     global $CFG, $DB;
     require_once("$CFG->libdir/resourcelib.php");
 
@@ -459,33 +517,46 @@ function longpage_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
     }
 
     if ($filearea !== 'content') {
-        // intro is handled automatically in pluginfile.php
+        // Intro is handled automatically in pluginfile.php.
         return false;
     }
 
-    // $arg could be revision number or index.html
+    // Arg could be revision number or index.html.
     $arg = array_shift($args);
     if ($arg == 'index.html' || $arg == 'index.htm') {
-        // serve page content
+        // Serve page content.
         $filename = $arg;
 
-        if (!$page = $DB->get_record('longpage', array('id'=>$cm->instance), '*', MUST_EXIST)) {
+        if (!$page = $DB->get_record('longpage', ['id' => $cm->instance], '*', MUST_EXIST)) {
             return false;
         }
 
         // We need to rewrite the pluginfile URLs so the media filters can work.
-        $content = file_rewrite_pluginfile_urls($page->content, 'webservice/pluginfile.php', $context->id, 'mod_longpage', 'content',
-                                                $page->revision);
-        $formatoptions = new stdClass;
+        $content = file_rewrite_pluginfile_urls(
+            $page->content,
+            'webservice/pluginfile.php',
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision
+        );
+        $formatoptions = new stdClass();
         $formatoptions->noclean = true;
         $formatoptions->overflowdiv = true;
         $formatoptions->context = $context;
         $content = format_text($content, $page->contentformat, $formatoptions);
 
         // Remove @@PLUGINFILE@@/.
-        $options = array('reverse' => true);
-        $content = file_rewrite_pluginfile_urls($content, 'webservice/pluginfile.php', $context->id, 'mod_longpage', 'content',
-                                                $page->revision, $options);
+        $options = ['reverse' => true];
+        $content = file_rewrite_pluginfile_urls(
+            $content,
+            'webservice/pluginfile.php',
+            $context->id,
+            'mod_longpage',
+            'content',
+            $page->revision,
+            $options
+        );
         $content = str_replace('@@PLUGINFILE@@/', '', $content);
 
         send_file($content, $filename, 0, 0, true, true);
@@ -493,20 +564,20 @@ function longpage_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
         $fs = get_file_storage();
         $relativepath = implode('/', $args);
         $fullpath = "/$context->id/mod_longpage/$filearea/0/$relativepath";
-        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
-            $page = $DB->get_record('longpage', array('id'=>$cm->instance), 'id, legacyfiles', MUST_EXIST);
+        if (!$file = $fs->get_file_by_hash(sha1($fullpath)) || $file->is_directory()) {
+            $page = $DB->get_record('longpage', ['id' => $cm->instance], 'id, legacyfiles', MUST_EXIST);
             if ($page->legacyfiles != RESOURCELIB_LEGACYFILES_ACTIVE) {
                 return false;
             }
-            if (!$file = resourcelib_try_file_migration('/'.$relativepath, $cm->id, $cm->course, 'mod_longpage', 'content', 0)) {
+            if (!$file = resourcelib_try_file_migration('/' . $relativepath, $cm->id, $cm->course, 'mod_longpage', 'content', 0)) {
                 return false;
             }
-            //file migrate - update flag
+            // File migrate - update flag.
             $page->legacyfileslast = time();
             $DB->update_record('longpage', $page);
         }
 
-        // finally send the file
+        // Finally send the file.
         send_stored_file($file, null, 0, $forcedownload, $options);
     }
 }
@@ -516,34 +587,42 @@ function longpage_pluginfile($course, $cm, $context, $filearea, $args, $forcedow
  * @param string $pagetype current page type
  * @param stdClass $parentcontext Block's parent context
  * @param stdClass $currentcontext Current context of block
+ * @return array
  */
 function longpage_page_type_list($pagetype, $parentcontext, $currentcontext) {
-    $module_pagetype = array('mod-page-*'=>get_string('page-mod-page-x', 'longpage'));
-    return $module_pagetype;
+    $modulepagetype = ['mod-page-*' => get_string('page-mod-page-x', 'longpage')];
+    return $modulepagetype;
 }
 
 /**
  * Export page resource contents
  *
+ * @param stdClass $cm Course module object
+ * @param string $baseurl Base URL
  * @return array of file content
  */
 function longpage_export_contents($cm, $baseurl) {
     global $CFG, $DB;
-    $contents = array();
+    $contents = [];
     $context = context_module::instance($cm->id);
 
-    $page = $DB->get_record('longpage', array('id'=>$cm->instance), '*', MUST_EXIST);
+    $page = $DB->get_record('longpage', ['id' => $cm->instance], '*', MUST_EXIST);
 
-    // page contents
+    // Page contents.
     $fs = get_file_storage();
     $files = $fs->get_area_files($context->id, 'mod_longpage', 'content', 0, 'sortorder DESC, id ASC', false);
     foreach ($files as $fileinfo) {
-        $file = array();
+        $file = [];
         $file['type']         = 'file';
         $file['filename']     = $fileinfo->get_filename();
         $file['filepath']     = $fileinfo->get_filepath();
         $file['filesize']     = $fileinfo->get_filesize();
-        $file['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_longpage/content/'.$page->revision.$fileinfo->get_filepath().$fileinfo->get_filename(), true);
+        $file['fileurl']      = file_encode_url(
+            "$CFG->wwwroot/" . $baseurl,
+            '/' . $context->id . '/mod_longpage/content/' . $page->revision .
+                $fileinfo->get_filepath() . $fileinfo->get_filename(),
+            true
+        );
         $file['timecreated']  = $fileinfo->get_timecreated();
         $file['timemodified'] = $fileinfo->get_timemodified();
         $file['sortorder']    = $fileinfo->get_sortorder();
@@ -558,17 +637,21 @@ function longpage_export_contents($cm, $baseurl) {
         $contents[] = $file;
     }
 
-    // page html conent
+    // Page html conent.
     $filename = 'index.html';
-    $pagefile = array();
+    $pagefile = [];
     $pagefile['type']         = 'file';
     $pagefile['filename']     = $filename;
     $pagefile['filepath']     = '/';
     $pagefile['filesize']     = 0;
-    $pagefile['fileurl']      = file_encode_url("$CFG->wwwroot/" . $baseurl, '/'.$context->id.'/mod_longpage/content/' . $filename, true);
+    $pagefile['fileurl']      = file_encode_url(
+        "$CFG->wwwroot/" . $baseurl,
+        '/' . $context->id . '/mod_longpage/content/' . $filename,
+        true
+    );
     $pagefile['timecreated']  = null;
     $pagefile['timemodified'] = $page->timemodified;
-    // make this file as main file
+    // Make this file as main file.
     $pagefile['sortorder']    = 1;
     $pagefile['userid']       = null;
     $pagefile['author']       = null;
@@ -583,15 +666,15 @@ function longpage_export_contents($cm, $baseurl) {
  * @return array containing details of the files / types the mod can handle
  */
 function longpage_dndupload_register() {
-    return array('types' => array(
-                     array('identifier' => 'text/html', 'message' => get_string('createpage', 'longpage')),
-                     array('identifier' => 'text', 'message' => get_string('createpage', 'longpage'))
-                 ));
+    return ['types' => [
+                     ['identifier' => 'text/html', 'message' => get_string('createpage', 'longpage')],
+                     ['identifier' => 'text', 'message' => get_string('createpage', 'longpage')],
+                 ]];
 }
 
 /**
  * Handle a file that has been uploaded
- * @param object $uploadinfo details of the file / content that has been uploaded
+ * @param stdClass $uploadinfo details of the file / content that has been uploaded
  * @return int instance id of the newly created mod
  */
 function longpage_dndupload_handle($uploadinfo) {
@@ -599,7 +682,7 @@ function longpage_dndupload_handle($uploadinfo) {
     $data = new stdClass();
     $data->course = $uploadinfo->course->id;
     $data->name = $uploadinfo->displayname;
-    $data->intro = '<p>'.$uploadinfo->displayname.'</p>';
+    $data->intro = '<p>' . $uploadinfo->displayname . '</p>';
     $data->introformat = FORMAT_HTML;
     if ($uploadinfo->type == 'text/html') {
         $data->contentformat = FORMAT_HTML;
@@ -633,10 +716,10 @@ function longpage_dndupload_handle($uploadinfo) {
 function longpage_view($page, $course, $cm, $context) {
 
     // Trigger course_module_viewed event.
-    $params = array(
+    $params = [
         'context' => $context,
-        'objectid' => $page->id
-    );
+        'objectid' => $page->id,
+    ];
 
     $event = \mod_longpage\event\course_module_viewed::create($params);
     $event->add_record_snapshot('course_modules', $cm);
@@ -658,8 +741,8 @@ function longpage_view($page, $course, $cm, $context) {
  * @return stdClass an object with the different type of areas indicating if they were updated or not
  * @since Moodle 3.2
  */
-function longpage_check_updates_since(cm_info $cm, $from, $filter = array()) {
-    $updates = course_check_module_updates_since($cm, $from, array('content'), $filter);
+function longpage_check_updates_since(cm_info $cm, $from, $filter = []) {
+    $updates = course_check_module_updates_since($cm, $from, ['content'], $filter);
     return $updates;
 }
 
@@ -671,10 +754,14 @@ function longpage_check_updates_since(cm_info $cm, $from, $filter = array()) {
  *
  * @param calendar_event $event
  * @param \core_calendar\action_factory $factory
+ * @param int $userid User ID
  * @return \core_calendar\local\event\entities\action_interface|null
  */
-function mod_longpage_core_calendar_provide_event_action(calendar_event $event,
-                                                      \core_calendar\action_factory $factory, $userid = 0) {
+function mod_longpage_core_calendar_provide_event_action(
+    calendar_event $event,
+    \core_calendar\action_factory $factory,
+    $userid = 0
+) {
     global $USER;
 
     if (empty($userid)) {
@@ -699,24 +786,30 @@ function mod_longpage_core_calendar_provide_event_action(calendar_event $event,
     );
 }
 
-function longpage_grade_item_update($longpage, $grades=NULL) {
+/**
+ * Update grade item for the longpage activity.
+ *
+ * @param stdClass $longpage Longpage instance object
+ * @param mixed $grades Optional grades
+ * @return int Result code
+ */
+function longpage_grade_item_update($longpage, $grades = null) {
     global $CFG;
-    if (!function_exists('grade_update')) { //workaround for buggy PHP versions
-        require_once($CFG->libdir.'/gradelib.php');
+    if (!function_exists('grade_update')) { // Workaround for buggy PHP versions.
+        require_once($CFG->libdir . '/gradelib.php');
     }
 
-    $params = array('itemname'=>$longpage->name);
+    $params = ['itemname' => $longpage->name];
 
-    if($grades == NULL)
-    {
+    if ($grades == null) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
         $params['grademax']  = $longpage->grade;
         $params['gradepass']  = $longpage->gradepass;
     }
-    
-    if ($grades  === 'reset') {
+
+    if ($grades === 'reset') {
         $params['reset'] = true;
-        $grades = NULL;
+        $grades = null;
     }
 
     return grade_update('mod/longpage', $longpage->course, 'mod', 'longpage', $longpage->id, 0, $grades, $params);
@@ -725,11 +818,13 @@ function longpage_grade_item_update($longpage, $grades=NULL) {
 /**
  * Update activity grades.
  *
- * @param object $longpage
+ * @param stdClass $longpage Longpage instance object
+ * @param array $grades Optional array of user grades
+ * @return void
  */
 function longpage_update_grades($longpage, $grades = []): void {
     global $CFG, $DB;
-    require_once($CFG->libdir.'/gradelib.php');
+    require_once($CFG->libdir . '/gradelib.php');
 
     longpage_grade_item_update($longpage, $grades);
 }

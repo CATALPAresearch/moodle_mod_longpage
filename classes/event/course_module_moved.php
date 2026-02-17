@@ -24,24 +24,58 @@ namespace mod_longpage\event;
  *
  * @package   mod_longpage
  * @category  event
- * @copyright 
+ * @copyright
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_module_moved extends \core\event\base {
-
+    /**
+     * Init method.
+     *
+     * @return void
+     */
     protected function init() {
         $this->data['objecttable'] = 'longpage';
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
+    /**
+     * Returns description of what happened.
+     *
+     * @return string
+     */
     public function get_description() {
-        extract($this->data["other"]);
-        
-        return "The user with id {$this->userid} moved the mouse ({$type}) at the element with id {$element} at position ({$pageX}, {$pageY}) on the 'longpage activity' with course module id " . "'$this->contextinstanceid' in course '$this->courseid'.";
+        $other = $this->data["other"];
+        $type = $other['type'];
+        $element = $other['element'];
+        $pagex = $other['pageX'];
+        $pagey = $other['pageY'];
+
+        return "The user with id {$this->userid} moved the mouse ({$type}) at the element with id {$element} " .
+            "at position ({$pagex}, {$pagey}) on the 'longpage activity' with course module id " .
+            "'$this->contextinstanceid' in course '$this->courseid'.";
     }
 
+    /**
+     * Custom validation.
+     *
+     * @throws \coding_exception
+     * @return void
+     */
+    protected function validate_data() {
+        parent::validate_data();
+
+        if (!isset($this->other['type'])) {
+            throw new \coding_exception('The \'type\' value must be set in other.');
+        }
+    }
+
+    /**
+     * Return the mapping for object ID to database table.
+     *
+     * @return array
+     */
     public static function get_objectid_mapping() {
-        return array('db' => 'longpage', 'restore' => 'longpage');
+        return ['db' => 'longpage', 'restore' => 'longpage'];
     }
 }

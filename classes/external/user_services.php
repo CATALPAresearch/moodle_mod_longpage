@@ -165,7 +165,7 @@ class user_services extends base_external {
                 VALUE_OPTIONAL
             ),
             'profilelink' => new \external_value(PARAM_URL),
-            'imagealt' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
+            'imagealt' => new \external_value(PARAM_TEXT, 'Alternative text for image', VALUE_OPTIONAL),
             'fullname' => new \external_value(
                 PARAM_TEXT,
                 'The full name of the user',

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -25,40 +24,66 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/course/moodleform_mod.php');
-require_once($CFG->dirroot.'/mod/longpage/locallib.php');
-require_once($CFG->libdir.'/filelib.php');
+require_once($CFG->dirroot . '/course/moodleform_mod.php');
+require_once($CFG->dirroot . '/mod/longpage/locallib.php');
+require_once($CFG->libdir . '/filelib.php');
 
+/**
+ * Module instance settings form.
+ */
 class mod_longpage_mod_form extends moodleform_mod {
-    function definition() {
+    /**
+     * Defines forms elements.
+     */
+    public function definition() {
         global $CFG, $DB;
 
         $mform = $this->_form;
 
         $config = get_config('longpage');
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
-        $mform->addElement('text', 'name', get_string('name'), array('size'=>'48'));
+        $mform->addElement(
+            'text',
+            'name',
+            get_string('name'),
+            ['size' => '48']
+        );
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
         } else {
             $mform->setType('name', PARAM_CLEANHTML);
         }
         $mform->addRule('name', null, 'required', null, 'client');
-        $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
+        $mform->addRule(
+            'name',
+            get_string('maximumchars', '', 255),
+            'maxlength',
+            255,
+            'client'
+        );
         $this->standard_intro_elements();
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $mform->addElement('header', 'contentsection', get_string('contentheader', 'longpage'));
-        $mform->addElement('editor', 'longpage', get_string('content', 'longpage'), null, longpage_get_editor_options($this->context));
+        $mform->addElement(
+            'editor',
+            'longpage',
+            get_string('content', 'longpage'),
+            null,
+            longpage_get_editor_options($this->context)
+        );
         $mform->addRule('longpage', get_string('required'), 'required', null, 'client');
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $mform->addElement('header', 'appearancehdr', get_string('appearance'));
 
         if ($this->current->instance) {
-            $options = resourcelib_get_displayoptions(explode(',', $config->displayoptions), $this->current->display);
+            $options = resourcelib_get_displayoptions(
+                explode(',', $config->displayoptions),
+                $this->current->display
+            );
         } else {
             $options = resourcelib_get_displayoptions(explode(',', $config->displayoptions));
         }
@@ -73,14 +98,14 @@ class mod_longpage_mod_form extends moodleform_mod {
         }
 
         if (array_key_exists(RESOURCELIB_DISPLAY_POPUP, $options)) {
-            $mform->addElement('text', 'popupwidth', get_string('popupwidth', 'longpage'), array('size'=>3));
+            $mform->addElement('text', 'popupwidth', get_string('popupwidth', 'longpage'), ['size' => 3]);
             if (count($options) > 1) {
                 $mform->disabledIf('popupwidth', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
             }
             $mform->setType('popupwidth', PARAM_INT);
             $mform->setDefault('popupwidth', $config->popupwidth);
 
-            $mform->addElement('text', 'popupheight', get_string('popupheight', 'longpage'), array('size'=>3));
+            $mform->addElement('text', 'popupheight', get_string('popupheight', 'longpage'), ['size' => 3]);
             if (count($options) > 1) {
                 $mform->disabledIf('popupheight', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
             }
@@ -88,16 +113,28 @@ class mod_longpage_mod_form extends moodleform_mod {
             $mform->setDefault('popupheight', $config->popupheight);
         }
 
-        $mform->addElement('advcheckbox', 'printheading', get_string('printheading', 'longpage'));
+        $mform->addElement(
+            'advcheckbox',
+            'printheading',
+            get_string('printheading', 'longpage')
+        );
         $mform->setDefault('printheading', $config->printheading);
         $mform->addElement('advcheckbox', 'printintro', get_string('printintro', 'longpage'));
         $mform->setDefault('printintro', $config->printintro);
 
-        $mform->addElement('advcheckbox', 'showreadingprogress', get_string('showreadingprogress', 'longpage'));
+        $mform->addElement(
+            'advcheckbox',
+            'showreadingprogress',
+            get_string('showreadingprogress', 'longpage')
+        );
         $mform->setType('showreadingprogress', PARAM_BOOL);
         $mform->setDefault('showreadingprogress', $config->showreadingprogress);
 
-        $mform->addElement('advcheckbox', 'showreadingcomprehension', get_string('showreadingcomprehension', 'longpage'));
+        $mform->addElement(
+            'advcheckbox',
+            'showreadingcomprehension',
+            get_string('showreadingcomprehension', 'longpage')
+        );
         $mform->setType('showreadingcomprehension', PARAM_BOOL);
         $mform->setDefault('showreadingcomprehension', $config->showreadingcomprehension);
 
@@ -112,7 +149,7 @@ class mod_longpage_mod_form extends moodleform_mod {
         $mform->addElement('advcheckbox', 'showposts', get_string('showposts', 'longpage'));
         $mform->setType('showposts', PARAM_BOOL);
         $mform->setDefault('showposts', $config->showposts);
-        
+
         $mform->addElement('advcheckbox', 'showhighlights', get_string('showhighlights', 'longpage'));
         $mform->setType('showhighlights', PARAM_BOOL);
         $mform->setDefault('showhighlights', $config->showhighlights);
@@ -121,18 +158,26 @@ class mod_longpage_mod_form extends moodleform_mod {
         $mform->setType('showbookmarks', PARAM_BOOL);
         $mform->setDefault('showbookmarks', $config->showbookmarks);
 
-        $mform->addElement('advcheckbox', 'showeditquestionsnoai', get_string('showeditquestionsnoai', 'longpage'));
+        $mform->addElement(
+            'advcheckbox',
+            'showeditquestionsnoai',
+            get_string('showeditquestionsnoai', 'longpage')
+        );
         $mform->setType('showeditquestionsnoai', PARAM_BOOL);
         $mform->setDefault('showeditquestionsnoai', $config->showeditquestionsnoai);
 
-        $mform->addElement('advcheckbox', 'showeditquestionsai', get_string('showeditquestionsai', 'longpage'));
+        $mform->addElement(
+            'advcheckbox',
+            'showeditquestionsai',
+            get_string('showeditquestionsai', 'longpage')
+        );
         $mform->setType('showeditquestionsai', PARAM_BOOL);
         $mform->setDefault('showeditquestionsai', $config->showeditquestionsai);
 
-        // add legacy files flag only if used
-        if (isset($this->current->legacyfiles) and $this->current->legacyfiles != RESOURCELIB_LEGACYFILES_NO) {
-            $options = array(RESOURCELIB_LEGACYFILES_DONE   => get_string('legacyfilesdone', 'longpage'),
-                             RESOURCELIB_LEGACYFILES_ACTIVE => get_string('legacyfilesactive', 'longpage'));
+        // Add legacy files flag only if used.
+        if (isset($this->current->legacyfiles) && $this->current->legacyfiles != RESOURCELIB_LEGACYFILES_NO) {
+            $options = [RESOURCELIB_LEGACYFILES_DONE   => get_string('legacyfilesdone', 'longpage'),
+                             RESOURCELIB_LEGACYFILES_ACTIVE => get_string('legacyfilesactive', 'longpage')];
             $mform->addElement('select', 'legacyfiles', get_string('legacyfiles', 'longpage'), $options);
             $mform->setAdvanced('legacyfiles', 1);
         }
@@ -140,40 +185,52 @@ class mod_longpage_mod_form extends moodleform_mod {
         // Grade settings.
         $this->standard_grading_coursemodule_elements();
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $this->standard_coursemodule_elements();
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $this->add_action_buttons();
 
-        //-------------------------------------------------------
+        // -------------------------------------------------------
         $mform->addElement('hidden', 'revision');
         $mform->setType('revision', PARAM_INT);
         $mform->setDefault('revision', 1);
     }
 
-    function data_preprocessing(&$default_values) {
+    /**
+     * Perform minimal validation on the settings form.
+     *
+     * @param array $defaultvalues Default values.
+     */
+    public function data_preprocessing(&$defaultvalues) {
         if ($this->current->instance) {
             $draftitemid = file_get_submitted_draft_itemid('longpage');
-            $default_values['longpage']['format'] = $default_values['contentformat'];
-            $default_values['longpage']['text']   = file_prepare_draft_area($draftitemid, $this->context->id, 'mod_longpage', 'content', 0, longpage_get_editor_options($this->context), $default_values['content']);
-            $default_values['longpage']['itemid'] = $draftitemid;
+            $defaultvalues['longpage']['format'] = $defaultvalues['contentformat'];
+            $defaultvalues['longpage']['text'] = file_prepare_draft_area(
+                $draftitemid,
+                $this->context->id,
+                'mod_longpage',
+                'content',
+                0,
+                longpage_get_editor_options($this->context),
+                $defaultvalues['content']
+            );
+            $defaultvalues['longpage']['itemid'] = $draftitemid;
         }
-        if (!empty($default_values['displayoptions'])) {
-            $displayoptions = unserialize($default_values['displayoptions']);
+        if (!empty($defaultvalues['displayoptions'])) {
+            $displayoptions = unserialize($defaultvalues['displayoptions']);
             if (isset($displayoptions['printintro'])) {
-                $default_values['printintro'] = $displayoptions['printintro'];
+                $defaultvalues['printintro'] = $displayoptions['printintro'];
             }
             if (isset($displayoptions['printheading'])) {
-                $default_values['printheading'] = $displayoptions['printheading'];
+                $defaultvalues['printheading'] = $displayoptions['printheading'];
             }
             if (!empty($displayoptions['popupwidth'])) {
-                $default_values['popupwidth'] = $displayoptions['popupwidth'];
+                $defaultvalues['popupwidth'] = $displayoptions['popupwidth'];
             }
             if (!empty($displayoptions['popupheight'])) {
-                $default_values['popupheight'] = $displayoptions['popupheight'];
+                $defaultvalues['popupheight'] = $displayoptions['popupheight'];
             }
         }
     }
 }
-

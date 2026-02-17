@@ -154,8 +154,8 @@ class reading_progress_services extends base_external {
     public static function get_reading_progress_parameters() {
         return new external_function_parameters(
             [
-                'courseid' => new external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                'longpageid' => new external_value(PARAM_INT, '', VALUE_OPTIONAL),
+                'courseid' => new external_value(PARAM_INT, 'Course ID', VALUE_OPTIONAL),
+                'longpageid' => new external_value(PARAM_INT, 'Longpage ID', VALUE_OPTIONAL),
             ]
         );
     }

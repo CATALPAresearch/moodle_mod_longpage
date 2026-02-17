@@ -33,27 +33,49 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class manage_thread_subscriptions_task extends \core\task\adhoc_task {
+    /**
+     * Execute the task.
+     */
     public function execute() {
         global $DB;
 
         $data = $this->get_custom_data();
         $threadid = $data->threadid;
-        mtrace('Started delivering messages regarding updates of thread '.$threadid.' to subscribers.');
+        mtrace('Started delivering messages regarding updates of thread ' . $threadid . ' to subscribers.');
 
         $subscriptions = $DB->get_records('longpage_thread_subs', ['threadid' => $threadid]);
-        foreach($subscriptions as $subscription) {
+        foreach ($subscriptions as $subscription) {
             $data->subscriberid = $subscription->userid;
-            if ((int) $data->subscriberid === (int) $data->actorid) continue;
+            if ((int) $data->subscriberid === (int) $data->actorid) {
+                continue;
+            }
 
             $message = message_builder::build_message($data);
             message_send($message);
         }
 
-        mtrace('Finished delivering messages regarding updates of thread '.$threadid.' to subscribers.');
+        mtrace('Finished delivering messages regarding updates of thread ' . $threadid . ' to subscribers.');
     }
 
+    /**
+     * Create and queue the manage thread subscriptions task.
+     *
+     * @param int $cmid Course module ID.
+     * @param int $postid Post ID.
+     * @param int $threadid Thread ID.
+     * @param int $actorid Actor user ID.
+     * @param string $action Action type.
+     * @param string $content Content.
+     * @param string $oldcontent Old content.
+     */
     public static function create_manage_thread_subscriptions_task(
-        $cmid, $postid, $threadid, $actorid, $action = post_action::CREATE, $content='', $oldcontent=''
+        $cmid,
+        $postid,
+        $threadid,
+        $actorid,
+        $action = post_action::CREATE,
+        $content = '',
+        $oldcontent = ''
     ) {
         $managepostsubscriptionstask = new manage_thread_subscriptions_task();
         $managepostsubscriptionstask->set_custom_data([

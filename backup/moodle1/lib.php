@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -29,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
  * longpage conversion handler. This resource handler is called by moodle1_mod_resource_handler
  */
 class moodle1_mod_longpage_handler extends moodle1_resource_successor_handler {
-
     /** @var moodle1_file_manager instance */
     protected $fileman = null;
 
@@ -39,14 +37,14 @@ class moodle1_mod_longpage_handler extends moodle1_resource_successor_handler {
      */
     public function process_legacy_resource(array $data, array $raw = null) {
 
-        // get the course module id and context id
+        // Get the course module id and context id.
         $instanceid = $data['id'];
         $cminfo     = $this->get_cminfo($instanceid, 'resource');
         $moduleid   = $cminfo['id'];
         $contextid  = $this->converter->get_contextid(CONTEXT_MODULE, $moduleid);
 
-        // convert the legacy data onto the new longpage record
-        $longpage                       = array();
+        // Convert the legacy data onto the new longpage record.
+        $longpage                       = [];
         $longpage['id']                 = $data['id'];
         $longpage['name']               = $data['name'];
         $longpage['intro']              = $data['intro'];
@@ -54,14 +52,13 @@ class moodle1_mod_longpage_handler extends moodle1_resource_successor_handler {
         $longpage['content']            = $data['alltext'];
 
         if ($data['type'] === 'html') {
-            // legacy Resource of the type Web longpage
+            // Legacy Resource of the type Web longpage.
             $longpage['contentformat'] = FORMAT_HTML;
-
         } else {
-            // legacy Resource of the type Plain text longpage
+            // Legacy Resource of the type Plain text longpage.
             $longpage['contentformat'] = (int)$data['reference'];
 
-            if ($longpage['contentformat'] < 0 or $longpage['contentformat'] > 4) {
+            if ($longpage['contentformat'] < 0 || $longpage['contentformat'] > 4) {
                 $longpage['contentformat'] = FORMAT_MOODLE;
             }
         }
@@ -71,15 +68,15 @@ class moodle1_mod_longpage_handler extends moodle1_resource_successor_handler {
         $longpage['revision']           = 1;
         $longpage['timemodified']       = $data['timemodified'];
 
-        // populate display and displayoptions fields
-        $options = array('printheading' => 1, 'printintro' => 0);
+        // Populate display and displayoptions fields.
+        $options = ['printheading' => 1, 'printintro' => 0];
         if ($data['popup']) {
             $longpage['display'] = RESOURCELIB_DISPLAY_POPUP;
             $rawoptions = explode(',', $data['popup']);
             foreach ($rawoptions as $rawoption) {
-                list($name, $value) = explode('=', trim($rawoption), 2);
-                if ($value > 0 and ($name == 'width' or $name == 'height')) {
-                    $options['popup'.$name] = $value;
+                [$name, $value] = explode('=', trim($rawoption), 2);
+                if ($value > 0 && ($name == 'width' || $name == 'height')) {
+                    $options['popup' . $name] = $value;
                     continue;
                 }
             }
@@ -88,33 +85,33 @@ class moodle1_mod_longpage_handler extends moodle1_resource_successor_handler {
         }
         $longpage['displayoptions'] = serialize($options);
 
-        // get a fresh new file manager for this instance
+        // Get a fresh new file manager for this instance.
         $this->fileman = $this->converter->get_file_manager($contextid, 'mod_longpage');
 
-        // convert course files embedded into the intro
+        // Convert course files embedded into the intro.
         $this->fileman->filearea = 'intro';
         $this->fileman->itemid   = 0;
         $longpage['intro'] = moodle1_converter::migrate_referenced_files($longpage['intro'], $this->fileman);
 
-        // convert course files embedded into the content
+        // Convert course files embedded into the content.
         $this->fileman->filearea = 'content';
         $this->fileman->itemid   = 0;
         $longpage['content'] = moodle1_converter::migrate_referenced_files($longpage['content'], $this->fileman);
 
-        // write longpage.xml
+        // Write longpage.xml.
         $this->open_xml_writer("activities/longpage_{$moduleid}/longpage.xml");
-        $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $moduleid,
-            'modulename' => 'longpage', 'contextid' => $contextid));
-        $this->write_xml('longpage', $longpage, array('/longpage/id'));
+        $this->xmlwriter->begin_tag('activity', ['id' => $instanceid, 'moduleid' => $moduleid,
+            'modulename' => 'longpage', 'contextid' => $contextid]);
+        $this->write_xml('longpage', $longpage, ['/longpage/id']);
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();
 
-        // write inforef.xml for migrated resource file.
+        // Write inforef.xml for migrated resource file.
         $this->open_xml_writer("activities/longpage_{$moduleid}/inforef.xml");
         $this->xmlwriter->begin_tag('inforef');
         $this->xmlwriter->begin_tag('fileref');
         foreach ($this->fileman->get_fileids() as $fileid) {
-            $this->write_xml('file', array('id' => $fileid));
+            $this->write_xml('file', ['id' => $fileid]);
         }
         $this->xmlwriter->end_tag('fileref');
         $this->xmlwriter->end_tag('inforef');

@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activatefunctionalities'] = 'Longpage-Funktionen (de-)aktivieren';
+$string['activatefunctionalitiesexplain'] = 'Longpage-Funktionen für eine Longpage-Instanz (de-)aktivieren';
 $string['configdisplayoptions'] = 'Select all options that should be available, existing settings are not modified. Hold CTRL key to select multiple fields.';
 $string['content'] = 'Longpage Inhalt';
 $string['contentheader'] = 'Inhalt';
@@ -77,31 +79,10 @@ $string['popupheight'] = 'Pop-up Höhe (in Pixeln)';
 $string['popupheightexplain'] = 'Gibt die Standardhöhe von Pop-up Fenstern an.';
 $string['popupwidth'] = 'Pop-up Breite (in Pixeln)';
 $string['popupwidthexplain'] = 'Gibt die Standardbreite von Pop-up Fenstern an.';
-$string['activatefunctionalities'] = 'Longpage-Funktionen (de-)aktivieren';
-$string['activatefunctionalitiesexplain'] = 'Longpage-Funktionen für eine Longpage-Instanz (de-)aktivieren';
-$string['showreadingcomprehension'] = 'Leseverständnis ermitteln und anzeigen';
-$string['showreadingcomprehensionexplain'] = 'Aufgaben zur Ermittlung und Visualisierung des Leseverständnisses anzeigen';
-$string['showreadingprogress'] = 'Lesefortschritt anzeigen';
-$string['showreadingprogressexplain'] = 'Lesefortschrittsbalken anzeigen (Lesefortschritt wird immer geloggt!)';
-$string['showsearch'] = 'Suche anzeigen';
-$string['showsearchexplain'] = 'Suche in Seitenleiste anzeigen';
-$string['showtableofcontents'] = 'Inhaltsverzeichnis anzeigen';
-$string['showtableofcontentsexplain'] = 'Inhaltsverzeichnis in Seitenleiste anzeigen';
-$string['showposts'] = 'Anmerkungen aktivieren';
-$string['showpostsexplain'] = 'Funktionalität zum Erstellen und Lesen von Anmerkungen aktivieren';
-$string['showhighlights'] = 'Markierungen aktivieren';
-$string['showhighlightsexplain'] = 'Funktionalität zum Erstellen und Lesen von Markierungen aktivieren';
-$string['showbookmarks'] = 'Lesezeichen aktivieren';
-$string['showbookmarksexplain'] = 'Funktionalität zum Erstellen und Verwenden von Lesezeichen aktivieren';
-$string['showeditquestionsnoai'] = 'Manuelle Fragenerstellung aktivieren';
-$string['showeditquestionsnoai_desc'] = 'Wenn aktiviert, können Lehrende Fragen manuell erstellen und bearbeiten';
-$string['showeditquestionsai'] = 'KI-gestützte Fragenerstellung aktivieren';
-$string['showeditquestionsai_desc'] = 'Wenn aktiviert, können Lehrende KI-Funktionen zum Erstellen und Bearbeiten von Fragen nutzen';
 $string['printheading'] = 'Titel der Seite anzeigen';
 $string['printheadingexplain'] = 'Seitennamen oberhalb des Inhalts anzeigen?';
 $string['printintro'] = 'Seitenbeschreibung anzeigen?';
 $string['printintroexplain'] = 'Seitenbeschreibung oberhalb des Inhalts anzeigen?';
-
 $string['privacy:annotations'] = 'Annotationen';
 $string['privacy:metadata'] = 'Das Longpage-Modul speichert Benutzerannotationen, Beiträge, Lesefortschritt und Interaktionsdaten.';
 $string['privacy:metadata:longpage_abs_post_prefs'] = 'Absolute Beitragspräferenzen für Empfehlungen.';
@@ -115,7 +96,6 @@ $string['privacy:metadata:longpage_annotations:longpageid'] = 'Die ID der Longpa
 $string['privacy:metadata:longpage_annotations:timecreated'] = 'Der Zeitpunkt, zu dem die Annotation erstellt wurde.';
 $string['privacy:metadata:longpage_annotations:timemodified'] = 'Der Zeitpunkt, zu dem die Annotation zuletzt geändert wurde.';
 $string['privacy:metadata:longpage_annotations:type'] = 'Der Typ der Annotation.';
-
 $string['privacy:metadata:longpage_post_bookmarks'] = 'Informationen über von Benutzern mit Lesezeichen versehene Beiträge.';
 $string['privacy:metadata:longpage_post_bookmarks:postid'] = 'Die ID des Beitrags, der mit einem Lesezeichen versehen wurde.';
 $string['privacy:metadata:longpage_post_bookmarks:timecreated'] = 'Der Zeitpunkt, zu dem das Lesezeichen erstellt wurde.';
@@ -144,14 +124,12 @@ $string['privacy:metadata:longpage_posts:ispublic'] = 'Ob der Beitrag öffentlic
 $string['privacy:metadata:longpage_posts:longpageid'] = 'Die ID der Longpage-Aktivität.';
 $string['privacy:metadata:longpage_posts:timecreated'] = 'Der Zeitpunkt, zu dem der Beitrag erstellt wurde.';
 $string['privacy:metadata:longpage_posts:timemodified'] = 'Der Zeitpunkt, zu dem der Beitrag zuletzt geändert wurde.';
-
 $string['privacy:metadata:longpage_reading_progress'] = 'Informationen über den Lesefortschritt der Benutzer.';
 $string['privacy:metadata:longpage_reading_progress:longpageid'] = 'Die ID der Longpage-Aktivität.';
 $string['privacy:metadata:longpage_reading_progress:scrolltop'] = 'Die Scrollposition.';
 $string['privacy:metadata:longpage_reading_progress:section'] = 'Der Abschnitt, der gelesen wird.';
 $string['privacy:metadata:longpage_reading_progress:timemodified'] = 'Der Zeitpunkt, zu dem der Fortschritt zuletzt aktualisiert wurde.';
 $string['privacy:metadata:longpage_reading_progress:userid'] = 'Die ID des Benutzers.';
-
 $string['privacy:metadata:longpage_rel_post_prefs'] = 'Relative Beitragspräferenzen für Empfehlungen.';
 $string['privacy:metadata:longpage_rel_post_prefs:postid'] = 'Die ID des Beitrags.';
 $string['privacy:metadata:longpage_rel_post_prefs:userid'] = 'Die ID des Benutzers.';
@@ -160,14 +138,36 @@ $string['privacy:metadata:longpage_thread_subs'] = 'Informationen über Thread-A
 $string['privacy:metadata:longpage_thread_subs:threadid'] = 'Die ID des abonnierten Threads.';
 $string['privacy:metadata:longpage_thread_subs:timecreated'] = 'Der Zeitpunkt, zu dem das Abonnement erstellt wurde.';
 $string['privacy:metadata:longpage_thread_subs:userid'] = 'Die ID des Benutzers, der abonniert hat.';
-
 $string['privacy:postbookmarks'] = 'Beitrags-Lesezeichen';
 $string['privacy:postlikes'] = 'Beitrags-"Gefällt mir"';
 $string['privacy:postreadings'] = 'Beitrags-Lesevorgänge';
 $string['privacy:posts'] = 'Beiträge';
 $string['privacy:readingprogress'] = 'Lesefortschritt';
-
 $string['search:activity'] = 'Longpage';
+$string['showbookmarks'] = 'Lesezeichen aktivieren';
+$string['showbookmarksexplain'] = 'Funktionalität zum Erstellen und Verwenden von Lesezeichen aktivieren';
+$string['showeditquestionsai'] = 'KI-gestützte Fragenerstellung aktivieren';
+$string['showeditquestionsai_desc'] = 'Wenn aktiviert, können Lehrende KI-Funktionen zum Erstellen und Bearbeiten von Fragen nutzen';
+$string['showeditquestionsnoai'] = 'Manuelle Fragenerstellung aktivieren';
+$string['showeditquestionsnoai_desc'] = 'Wenn aktiviert, können Lehrende Fragen manuell erstellen und bearbeiten';
+$string['showhighlights'] = 'Markierungen aktivieren';
+$string['showhighlightsexplain'] = 'Funktionalität zum Erstellen und Lesen von Markierungen aktivieren';
+$string['showposts'] = 'Anmerkungen aktivieren';
+$string['showpostsexplain'] = 'Funktionalität zum Erstellen und Lesen von Anmerkungen aktivieren';
+$string['showreadingcomprehension'] = 'Leseverständnis ermitteln und anzeigen';
+$string['showreadingcomprehensionexplain'] = 'Aufgaben zur Ermittlung und Visualisierung des Leseverständnisses anzeigen';
+$string['showreadingprogress'] = 'Lesefortschritt anzeigen';
+$string['showreadingprogressexplain'] = 'Lesefortschrittsbalken anzeigen (Lesefortschritt wird immer geloggt!)';
+$string['showsearch'] = 'Suche anzeigen';
+$string['showsearchexplain'] = 'Suche in Seitenleiste anzeigen';
+$string['showtableofcontents'] = 'Inhaltsverzeichnis anzeigen';
+$string['showtableofcontentsexplain'] = 'Inhaltsverzeichnis in Seitenleiste anzeigen';
+
+
+
+
+
+
 
 // Post form strings
 $string['post_form_action_cancel'] = 'Abbrechen';

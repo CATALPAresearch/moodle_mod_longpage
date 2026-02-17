@@ -58,20 +58,20 @@ class annotation_services extends base_external {
             'selectors' => new \external_multiple_structure(
                 new \external_single_structure([
                     'type' => new \external_value(PARAM_INT),
-                    'startposition' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                    'startcontainer' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
-                    'startoffset' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                    'endposition' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                    'endcontainer' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
-                    'endoffset' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                    'exact' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
-                    'prefix' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
-                    'suffix' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
+                    'startposition' => new \external_value(PARAM_INT, 'Start position', VALUE_OPTIONAL),
+                    'startcontainer' => new \external_value(PARAM_TEXT, 'Start container element', VALUE_OPTIONAL),
+                    'startoffset' => new \external_value(PARAM_INT, 'Start offset within container', VALUE_OPTIONAL),
+                    'endposition' => new \external_value(PARAM_INT, 'End position', VALUE_OPTIONAL),
+                    'endcontainer' => new \external_value(PARAM_TEXT, 'End container element', VALUE_OPTIONAL),
+                    'endoffset' => new \external_value(PARAM_INT, 'End offset within container', VALUE_OPTIONAL),
+                    'exact' => new \external_value(PARAM_TEXT, 'Exact text content', VALUE_OPTIONAL),
+                    'prefix' => new \external_value(PARAM_TEXT, 'Text prefix before selection', VALUE_OPTIONAL),
+                    'suffix' => new \external_value(PARAM_TEXT, 'Text suffix after selection', VALUE_OPTIONAL),
                 ]),
                 '',
                 VALUE_OPTIONAL
             ),
-            'styleclass' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
+            'styleclass' => new \external_value(PARAM_TEXT, 'CSS style class', VALUE_OPTIONAL),
         ];
     }
 
@@ -124,7 +124,7 @@ class annotation_services extends base_external {
                 'target' => self::create_annotation_target_parameters(),
                 'type' => new \external_value(PARAM_INT),
                 'body' => new \external_single_structure(self::create_thread_parameters_base(), '', VALUE_OPTIONAL),
-                'ispublic' => new \external_value(PARAM_BOOL, '', VALUE_DEFAULT),
+                'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_DEFAULT),
             ]),
         ]);
     }
@@ -218,9 +218,9 @@ class annotation_services extends base_external {
     private static function create_thread_parameters_base() {
         return [
             'anonymous' => new \external_value(PARAM_BOOL),
-            'content' => new \external_value(PARAM_TEXT, ''),
-            'ispublic' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
-            'replyrequested' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
+            'content' => new \external_value(PARAM_TEXT, 'Content text'),
+            'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_OPTIONAL),
+            'replyrequested' => new \external_value(PARAM_BOOL, 'Whether a reply was requested', VALUE_OPTIONAL),
         ];
     }
 
@@ -615,7 +615,7 @@ class annotation_services extends base_external {
         return new \external_function_parameters([
             'parameters' => new \external_single_structure([
                 'longpageid' => new \external_value(PARAM_INT),
-                'annotationid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
+                'annotationid' => new \external_value(PARAM_INT, 'ID of the annotation', VALUE_OPTIONAL),
             ]),
         ]);
     }
@@ -679,7 +679,7 @@ class annotation_services extends base_external {
             'id' => new \external_value(PARAM_INT),
             'annotationid' => new \external_value(PARAM_INT),
             'posts' => new \external_multiple_structure(self::get_post_returns()),
-            'replyid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
+            'replyid' => new \external_value(PARAM_INT, 'ID of the reply', VALUE_OPTIONAL),
             'replyrequested' => new \external_value(PARAM_BOOL),
             'subscribedtobyuser' => new \external_value(PARAM_BOOL),
         ], '', VALUE_OPTIONAL);
@@ -722,8 +722,8 @@ class annotation_services extends base_external {
         return new \external_single_structure(array_merge(
             [
                 'id' => new \external_value(PARAM_INT),
-                'creatorid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                'recommendation' => new \external_value(PARAM_FLOAT, '', VALUE_OPTIONAL),
+                'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
+                'recommendation' => new \external_value(PARAM_FLOAT, 'Recommendation score', VALUE_OPTIONAL),
             ],
             omit_keys(self::post_parameters(), ['creatorid']),
             self::get_reactions_to_post_returns(),

@@ -1,4 +1,4 @@
-@mod @mod_page
+@mod @mod_longpage
 Feature: Configure page appearance
   In order to change the appearance of the page resource
   As an admin

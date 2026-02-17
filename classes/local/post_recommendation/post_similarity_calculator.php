@@ -33,9 +33,16 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_similarity_calculator {
+    /** @var int Minimum overlap required for similarity calculation */
     public const MIN_OVERLAP = 3;
+    /** @var float Minimum similarity threshold */
     public const MIN_SIM = 0.3;
 
+    /**
+     * Delete all post similarities for a given page.
+     *
+     * @param int $pageid The page ID
+     */
     public static function delete_similarities($pageid) {
         global $DB;
 
@@ -44,12 +51,18 @@ class post_similarity_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Calculate and save post similarities for a given page.
+     *
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     public static function calculate_and_save_post_similarities($pageid, $batchsize = 100) {
         global $DB;
 
-        $sql = 'SELECT 
+        $sql = 'SELECT
                     ' . $DB->sql_concat('pa.postid', "'_'", 'pb.postid')  . ' AS id,
-                    pa.postid AS postaid, 
+                    pa.postid AS postaid,
                     pb.postid AS postbid
                 FROM {longpage_rel_post_prefs} pa JOIN {longpage_rel_post_prefs} pb
                 ON pa.userid = pb.userid AND pa.postid != pb.postid
@@ -73,12 +86,18 @@ class post_similarity_calculator {
         }
     }
 
+    /**
+     * Calculate and save post similarities for overlapping posts.
+     *
+     * @param array $postpairs Array of post pairs
+     * @param int $pageid The page ID
+     */
     private static function calculate_and_save_post_similarities_for_overlapping_posts($postpairs, $pageid) {
         global $DB;
 
-        $sql = 'SELECT 
+        $sql = 'SELECT
                     pa.userid AS id,
-                    pa.value AS valuea, 
+                    pa.value AS valuea,
                     pb.value AS valueb
                 FROM {longpage_rel_post_prefs} pa JOIN {longpage_rel_post_prefs} pb
                 ON pa.userid = pb.userid
@@ -108,6 +127,14 @@ class post_similarity_calculator {
         }
     }
 
+    /**
+     * Create a post similarity object.
+     *
+     * @param object $postpair The post pair
+     * @param float $similarity The similarity value
+     * @param int $pageid The page ID
+     * @return \stdClass The post similarity object
+     */
     private static function get_post_similarity($postpair, $similarity, $pageid) {
         $postsim = new \stdClass();
         $postsim->longpageid = $pageid;
@@ -117,6 +144,12 @@ class post_similarity_calculator {
         return $postsim;
     }
 
+    /**
+     * Check if similarity has already been calculated for a post pair.
+     *
+     * @param object $postpair The post pair
+     * @return bool True if already calculated, false otherwise
+     */
     private static function has_similarity_already_been_calculated($postpair) {
         global $DB;
 

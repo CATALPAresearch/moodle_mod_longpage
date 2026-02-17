@@ -64,7 +64,7 @@ class questions_bank_services extends base_external {
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
 
-        // Fetch questions tagged for this page
+        // Fetch questions tagged for this page.
         $sql = "SELECT DISTINCT q.id, q.name, q.questiontext, q.qtype
                 FROM {question} q
                 INNER JOIN {tag_instance} ti ON q.id = ti.itemid
@@ -136,7 +136,7 @@ class questions_bank_services extends base_external {
             $question->id
         );
 
-        // Load question-type-specific data
+        // Load question-type-specific data.
         if ($question->qtype === 'multichoice') {
             $result->answers = [];
             foreach ($question->answers as $answer) {

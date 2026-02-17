@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -16,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Backup steps for longpage activity.
+ *
  * @package   mod_longpage
  * @category  backup
  * @copyright 2010 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
@@ -32,32 +33,36 @@ defined('MOODLE_INTERNAL') || die;
  * Define the complete page structure for backup, with file and id annotations
  */
 class backup_longpage_activity_structure_step extends backup_activity_structure_step {
-
+    /**
+     * Define the structure for the backup.
+     *
+     * @return backup_nested_element
+     */
     protected function define_structure() {
 
-        // To know if we are including userinfo
+        // To know if we are including userinfo.
         $userinfo = $this->get_setting_value('userinfo');
 
-        // Define each element separated
-        $page = new backup_nested_element('longpage', array('id'), array(
+        // Define each element separated.
+        $page = new backup_nested_element('longpage', ['id'], [
             'name', 'intro', 'introformat', 'content', 'contentformat',
             'legacyfiles', 'legacyfileslast', 'display', 'displayoptions',
-            'revision', 'timemodified'));
+            'revision', 'timemodified']);
 
-        // Build the tree
-        // (love this)
+        // Build the tree.
+        // (Love this).
 
-        // Define sources
-        $page->set_source_table('longpage', array('id' => backup::VAR_ACTIVITYID));
+        // Define sources.
+        $page->set_source_table('longpage', ['id' => backup::VAR_ACTIVITYID]);
 
-        // Define id annotations
-        // (none)
+        // Define id annotations.
+        // (None).
 
-        // Define file annotations
-        $page->annotate_files('mod_longpage', 'intro', null); // This file areas haven't itemid
-        $page->annotate_files('mod_longpage', 'content', null); // This file areas haven't itemid
+        // Define file annotations.
+        $page->annotate_files('mod_longpage', 'intro', null); // This file areas haven't itemid.
+        $page->annotate_files('mod_longpage', 'content', null); // This file areas haven't itemid.
 
-        // Return the root element (page), wrapped into standard activity structure
+        // Return the root element (page), wrapped into standard activity structure.
         return $this->prepare_activity_structure($page);
     }
 }

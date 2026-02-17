@@ -33,30 +33,50 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class selector {
+    /** @var int Text quote selector type */
     const TYPE_TEXT_QUOTE_SELECTOR = 0;
+    /** @var int Text position selector type */
     const TYPE_TEXT_POSITION_SELECTOR = 1;
+    /** @var int Range selector type */
     const TYPE_RANGE_SELECTOR = 2;
 
+    /** @var string Text quote selector table name */
     const TABLE_NAME_TEXT_QUOTE_SELECTOR = 'longpage_text_quote_selectrs';
+    /** @var string Text position selector table name */
     const TABLE_NAME_TEXT_POSITION_SELECTOR = 'longpage_text_pos_selectors';
+    /** @var string Range selector table name */
     const TABLE_NAME_RANGE_SELECTOR = 'longpage_range_selectors';
 
-    private static $TYPE_TO_TABLE_NAME_MAPPING = array(
+    /** @var array Mapping from type to table name */
+    private static $typetotablenamemapping = [
         self::TYPE_TEXT_QUOTE_SELECTOR => self::TABLE_NAME_TEXT_QUOTE_SELECTOR,
         self::TYPE_TEXT_POSITION_SELECTOR => self::TABLE_NAME_TEXT_POSITION_SELECTOR,
         self::TYPE_RANGE_SELECTOR => self::TABLE_NAME_RANGE_SELECTOR,
-    );
+    ];
 
-    private static $TABLE_NAME_TO_TYPE_MAPPING;
+    /** @var array Mapping from table name to type */
+    private static $tablenametotypemapping;
 
-    static function map_table_name_to_type($table_name) {
-        if (!isset(self::$TABLE_NAME_TO_TYPE_MAPPING)) {
-            self::$TABLE_NAME_TO_TYPE_MAPPING = array_flip(self::$TYPE_TO_TABLE_NAME_MAPPING);
+    /**
+     * Map table name to selector type.
+     *
+     * @param string $tablename The table name
+     * @return int The selector type
+     */
+    public static function map_table_name_to_type($tablename) {
+        if (!isset(self::$tablenametotypemapping)) {
+            self::$tablenametotypemapping = array_flip(self::$typetotablenamemapping);
         }
-        return self::$TABLE_NAME_TO_TYPE_MAPPING[$table_name];
+        return self::$tablenametotypemapping[$tablename];
     }
 
-    static function map_type_to_table_name($type) {
-        return self::$TYPE_TO_TABLE_NAME_MAPPING[$type];
+    /**
+     * Map selector type to table name.
+     *
+     * @param int $type The selector type
+     * @return string The table name
+     */
+    public static function map_type_to_table_name($type) {
+        return self::$typetotablenamemapping[$type];
     }
 }

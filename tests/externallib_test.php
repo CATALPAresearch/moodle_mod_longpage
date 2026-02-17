@@ -57,7 +57,7 @@ final class externallib_test extends externallib_advanced_testcase {
 
         // Test invalid instance id.
         try {
-            mod_page_external::view_page(0);
+            mod_longpage_external::view_page(0);
             $this->fail('Exception expected due to invalid mod_longpage instance id.');
         } catch (moodle_exception $e) {
             $this->assertEquals('invalidrecord', $e->errorcode);
@@ -67,7 +67,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $user = self::getDataGenerator()->create_user();
         $this->setUser($user);
         try {
-            mod_page_external::view_page($page->id);
+            mod_longpage_external::view_page($page->id);
             $this->fail('Exception expected due to not enrolled user.');
         } catch (moodle_exception $e) {
             $this->assertEquals('requireloginerror', $e->errorcode);
@@ -80,15 +80,15 @@ final class externallib_test extends externallib_advanced_testcase {
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
 
-        $result = mod_page_external::view_page($page->id);
-        $result = external_api::clean_returnvalue(mod_page_external::view_page_returns(), $result);
+        $result = mod_longpage_external::view_page($page->id);
+        $result = external_api::clean_returnvalue(mod_longpage_external::view_page_returns(), $result);
 
         $events = $sink->get_events();
         $this->assertCount(1, $events);
         $event = array_shift($events);
 
         // Checking that the event contains the expected values.
-        $this->assertInstanceOf('\mod_page\event\course_module_viewed', $event);
+        $this->assertInstanceOf('\mod_longpage\event\course_module_viewed', $event);
         $this->assertEquals($context, $event->get_context());
         $moodlepage = new \moodle_url('/mod/page/view.php', ['id' => $cm->id]);
         $this->assertEquals($moodlepage, $event->get_url());
@@ -103,7 +103,7 @@ final class externallib_test extends externallib_advanced_testcase {
         course_modinfo::clear_instance_cache();
 
         try {
-            mod_page_external::view_page($page->id);
+            mod_longpage_external::view_page($page->id);
             $this->fail('Exception expected due to missing capability.');
         } catch (moodle_exception $e) {
             $this->assertEquals('requireloginerror', $e->errorcode);
@@ -111,10 +111,10 @@ final class externallib_test extends externallib_advanced_testcase {
     }
 
     /**
-     * Test test_mod_page_get_pages_by_courses
+     * Test test_mod_longpage_get_pages_by_courses
      * @covers ::mod_longpage_get_pages_by_courses
      */
-    public function test_mod_page_get_pages_by_courses(): void {
+    public function test_mod_longpage_get_pages_by_courses(): void {
         global $DB;
 
         $this->resetAfterTest(true);
@@ -149,7 +149,7 @@ final class externallib_test extends externallib_advanced_testcase {
 
         self::setUser($student);
 
-        $returndescription = mod_page_external::get_pages_by_courses_returns();
+        $returndescription = mod_longpage_external::get_pages_by_courses_returns();
 
         // Create what we expect to be returned when querying the two courses.
         $expectedfields = ['id', 'coursemodule', 'course', 'name', 'intro', 'introformat', 'introfiles',
@@ -185,14 +185,14 @@ final class externallib_test extends externallib_advanced_testcase {
         $expectedpages = [$expected2, $expected1];
 
         // Call the external function passing course ids.
-        $result = mod_page_external::get_pages_by_courses([$course2->id, $course1->id]);
+        $result = mod_longpage_external::get_pages_by_courses([$course2->id, $course1->id]);
         $result = external_api::clean_returnvalue($returndescription, $result);
 
         $this->assertEquals($expectedpages, $result['pages']);
         $this->assertCount(0, $result['warnings']);
 
         // Call the external function without passing course id.
-        $result = mod_page_external::get_pages_by_courses();
+        $result = mod_longpage_external::get_pages_by_courses();
         $result = external_api::clean_returnvalue($returndescription, $result);
         $this->assertEquals($expectedpages, $result['pages']);
         $this->assertCount(0, $result['warnings']);
@@ -201,7 +201,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $filename = "file.txt";
         $filerecordinline = [
             'contextid' => context_module::instance($page2->cmid)->id,
-            'component' => 'mod_page',
+            'component' => 'mod_longpage',
             'filearea'  => 'intro',
             'itemid'    => 0,
             'filepath'  => '/',
@@ -211,7 +211,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $timepost = time();
         $fs->create_file_from_string($filerecordinline, 'image contents (not really)');
 
-        $result = mod_page_external::get_pages_by_courses([$course2->id, $course1->id]);
+        $result = mod_longpage_external::get_pages_by_courses([$course2->id, $course1->id]);
         $result = external_api::clean_returnvalue($returndescription, $result);
 
         $this->assertCount(1, $result['pages'][0]['introfiles']);
@@ -222,12 +222,12 @@ final class externallib_test extends externallib_advanced_testcase {
         array_shift($expectedpages);
 
         // Call the external function without passing course id.
-        $result = mod_page_external::get_pages_by_courses();
+        $result = mod_longpage_external::get_pages_by_courses();
         $result = external_api::clean_returnvalue($returndescription, $result);
         $this->assertEquals($expectedpages, $result['pages']);
 
         // Call for the second course we unenrolled the user from, expected warning.
-        $result = mod_page_external::get_pages_by_courses([$course2->id]);
+        $result = mod_longpage_external::get_pages_by_courses([$course2->id]);
         $this->assertCount(1, $result['warnings']);
         $this->assertEquals('1', $result['warnings'][0]['warningcode']);
         $this->assertEquals($course2->id, $result['warnings'][0]['itemid']);

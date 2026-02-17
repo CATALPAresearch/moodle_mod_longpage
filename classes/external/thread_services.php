@@ -85,9 +85,9 @@ class thread_services extends base_external {
     private static function create_thread_parameters_base() {
         return [
             'anonymous' => new \external_value(PARAM_BOOL),
-            'content' => new \external_value(PARAM_TEXT, ''),
-            'ispublic' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
-            'replyrequested' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
+            'content' => new \external_value(PARAM_TEXT, 'Content text'),
+            'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_OPTIONAL),
+            'replyrequested' => new \external_value(PARAM_BOOL, 'Whether a reply was requested', VALUE_OPTIONAL),
         ];
     }
 
@@ -220,7 +220,7 @@ class thread_services extends base_external {
             'id' => new \external_value(PARAM_INT),
             'annotationid' => new \external_value(PARAM_INT),
             'posts' => new \external_multiple_structure(self::get_post_returns()),
-            'replyid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
+            'replyid' => new \external_value(PARAM_INT, 'ID of the reply', VALUE_OPTIONAL),
             'replyrequested' => new \external_value(PARAM_BOOL),
             'subscribedtobyuser' => new \external_value(PARAM_BOOL),
         ], '', VALUE_OPTIONAL);
@@ -355,8 +355,8 @@ class thread_services extends base_external {
         return new \external_single_structure(array_merge(
             [
                 'id' => new \external_value(PARAM_INT),
-                'creatorid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                'recommendation' => new \external_value(PARAM_FLOAT, '', VALUE_OPTIONAL),
+                'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
+                'recommendation' => new \external_value(PARAM_FLOAT, 'Recommendation score', VALUE_OPTIONAL),
             ],
             omit_keys(self::post_parameters(), ['creatorid']),
             self::get_reactions_to_post_returns(),

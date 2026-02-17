@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -30,7 +29,11 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ * Post installation procedure.
+ *
+ * @return bool true on success.
+ */
 function xmldb_longpage_install() {
     global $CFG;
-
 }

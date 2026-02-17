@@ -18,7 +18,7 @@
  * PHPUnit data generator tests
  *
  * @package    mod_longpage
- * @category   phpunit
+ * @category   test
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,26 +30,26 @@ defined('MOODLE_INTERNAL') || die();
  * PHPUnit data generator testcase
  *
  * @package    mod_longpage
- * @category   phpunit
+ * @category   test
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_page_generator_testcase extends advanced_testcase {
-    public function test_generator() {
+final class generator_test extends advanced_testcase {
+    public function test_generator(): void {
         global $DB, $SITE;
 
         $this->resetAfterTest(true);
 
         $this->assertEquals(0, $DB->count_records('page'));
 
-        /** @var mod_page_generator $generator */
-        $generator = $this->getDataGenerator()->get_plugin_generator('mod_page');
-        $this->assertInstanceOf('mod_page_generator', $generator);
+        /** @var mod_longpage_generator $generator */
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_longpage');
+        $this->assertInstanceOf('mod_longpage_generator', $generator);
         $this->assertEquals('page', $generator->get_modulename());
 
-        $generator->create_instance(array('course'=>$SITE->id));
-        $generator->create_instance(array('course'=>$SITE->id));
-        $page = $generator->create_instance(array('course'=>$SITE->id));
+        $generator->create_instance(['course' => $SITE->id]);
+        $generator->create_instance(['course' => $SITE->id]);
+        $page = $generator->create_instance(['course' => $SITE->id]);
         $this->assertEquals(3, $DB->count_records('page'));
 
         $cm = get_coursemodule_from_instance('page', $page->id);

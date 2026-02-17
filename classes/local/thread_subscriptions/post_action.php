@@ -33,7 +33,10 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class post_action {
+    /** @var int Create action */
     const CREATE = 0;
+    /** @var int Delete action */
     const DELETE = 1;
+    /** @var int Update action */
     const UPDATE = 2;
 }

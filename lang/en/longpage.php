@@ -22,6 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['activatefunctionalities'] = '(De-)activate Longpage functionalities';
+$string['activatefunctionalitiesexplain'] = '(De-)activate Longpage functionalities for one Longpage instance';
 $string['configdisplayoptions'] = 'Select all options that should be available, existing settings are not modified. Hold CTRL key to select multiple fields.';
 $string['content'] = 'Longpage content';
 $string['contentheader'] = 'Content';
@@ -85,31 +87,10 @@ $string['popupheight'] = 'Pop-up height (in pixels)';
 $string['popupheightexplain'] = 'Specifies default height of popup windows.';
 $string['popupwidth'] = 'Pop-up width (in pixels)';
 $string['popupwidthexplain'] = 'Specifies default width of popup windows.';
-$string['activatefunctionalities'] = '(De-)activate Longpage functionalities';
-$string['activatefunctionalitiesexplain'] = '(De-)activate Longpage functionalities for one Longpage instance';
-$string['showreadingcomprehension'] = 'Display visualization of reading comprehension';
-$string['showreadingcomprehensionexplain'] = 'Display visualization of reading comprehension';
-$string['showreadingprogress'] = 'Show reading progress';
-$string['showreadingprogressexplain'] = 'Show reading progress bar (reading progress is always logged!)';
-$string['showsearch'] = 'Show search';
-$string['showsearchexplain'] = 'Show search in sidebar';
-$string['showtableofcontents'] = 'Show table of contents';
-$string['showtableofcontentsexplain'] = 'Show table of contents in sidebar';
-$string['showposts'] = 'Enable annotations';
-$string['showpostsexplain'] = 'Enable functionality to create and read annotations';
-$string['showhighlights'] = 'Enable highlights';
-$string['showhighlightsexplain'] = 'Enable functionality to create and read highlights';
-$string['showbookmarks'] = 'Enable bookmarks';
-$string['showbookmarksexplain'] = 'Enable functionality to create and use bookmarks';
-$string['showeditquestionsnoai'] = 'Enable manual question creation';
-$string['showeditquestionsnoai_desc'] = 'If enabled, teachers can use manual question creation features';
-$string['showeditquestionsai'] = 'Enable AI question creation';
-$string['showeditquestionsai_desc'] = 'If enabled, teachers can use AI question creation features';
 $string['printheading'] = 'Display Longpage name';
 $string['printheadingexplain'] = 'Display Longpage name above content?';
 $string['printintro'] = 'Display Longpage description';
 $string['printintroexplain'] = 'Display Longpage description above content?';
-
 $string['privacy:annotations'] = 'Annotations';
 $string['privacy:metadata'] = 'The Longpage module stores user annotations, posts, reading progress, and interaction data.';
 $string['privacy:metadata:longpage_abs_post_prefs'] = 'Absolute post preferences for recommendations.';
@@ -123,7 +104,6 @@ $string['privacy:metadata:longpage_annotations:longpageid'] = 'The ID of the lon
 $string['privacy:metadata:longpage_annotations:timecreated'] = 'The time when the annotation was created.';
 $string['privacy:metadata:longpage_annotations:timemodified'] = 'The time when the annotation was last modified.';
 $string['privacy:metadata:longpage_annotations:type'] = 'The type of annotation.';
-
 $string['privacy:metadata:longpage_post_bookmarks'] = 'Information about posts bookmarked by users.';
 $string['privacy:metadata:longpage_post_bookmarks:postid'] = 'The ID of the post that was bookmarked.';
 $string['privacy:metadata:longpage_post_bookmarks:timecreated'] = 'The time when the bookmark was created.';
@@ -152,17 +132,12 @@ $string['privacy:metadata:longpage_posts:ispublic'] = 'Whether the post is publi
 $string['privacy:metadata:longpage_posts:longpageid'] = 'The ID of the longpage activity.';
 $string['privacy:metadata:longpage_posts:timecreated'] = 'The time when the post was created.';
 $string['privacy:metadata:longpage_posts:timemodified'] = 'The time when the post was last modified.';
-
 $string['privacy:metadata:longpage_reading_progress'] = 'Information about user reading progress.';
 $string['privacy:metadata:longpage_reading_progress:longpageid'] = 'The ID of the longpage activity.';
 $string['privacy:metadata:longpage_reading_progress:scrolltop'] = 'The scroll position.';
 $string['privacy:metadata:longpage_reading_progress:section'] = 'The section being read.';
 $string['privacy:metadata:longpage_reading_progress:timemodified'] = 'The time when the progress was last updated.';
 $string['privacy:metadata:longpage_reading_progress:userid'] = 'The ID of the user.';
-
-
-
-
 $string['privacy:metadata:longpage_rel_post_prefs'] = 'Relative post preferences for recommendations.';
 $string['privacy:metadata:longpage_rel_post_prefs:postid'] = 'The ID of the post.';
 $string['privacy:metadata:longpage_rel_post_prefs:userid'] = 'The ID of the user.';
@@ -171,18 +146,43 @@ $string['privacy:metadata:longpage_thread_subs'] = 'Information about thread sub
 $string['privacy:metadata:longpage_thread_subs:threadid'] = 'The ID of the thread that was subscribed to.';
 $string['privacy:metadata:longpage_thread_subs:timecreated'] = 'The time when the subscription was created.';
 $string['privacy:metadata:longpage_thread_subs:userid'] = 'The ID of the user who subscribed.';
-
-
-
-
-
 $string['privacy:postbookmarks'] = 'Post Bookmarks';
 $string['privacy:postlikes'] = 'Post Likes';
 $string['privacy:postreadings'] = 'Post Readings';
 $string['privacy:posts'] = 'Posts';
 $string['privacy:readingprogress'] = 'Reading Progress';
-
 $string['search:activity'] = 'longpage';
+$string['showbookmarks'] = 'Enable bookmarks';
+$string['showbookmarksexplain'] = 'Enable functionality to create and use bookmarks';
+$string['showeditquestionsai'] = 'Enable AI question creation';
+$string['showeditquestionsai_desc'] = 'If enabled, teachers can use AI question creation features';
+$string['showeditquestionsnoai'] = 'Enable manual question creation';
+$string['showeditquestionsnoai_desc'] = 'If enabled, teachers can use manual question creation features';
+$string['showhighlights'] = 'Enable highlights';
+$string['showhighlightsexplain'] = 'Enable functionality to create and read highlights';
+$string['showposts'] = 'Enable annotations';
+$string['showpostsexplain'] = 'Enable functionality to create and read annotations';
+$string['showreadingcomprehension'] = 'Display visualization of reading comprehension';
+$string['showreadingcomprehensionexplain'] = 'Display visualization of reading comprehension';
+$string['showreadingprogress'] = 'Show reading progress';
+$string['showreadingprogressexplain'] = 'Show reading progress bar (reading progress is always logged!)';
+$string['showsearch'] = 'Show search';
+$string['showsearchexplain'] = 'Show search in sidebar';
+$string['showtableofcontents'] = 'Show table of contents';
+$string['showtableofcontentsexplain'] = 'Show table of contents in sidebar';
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Post form strings
 $string['post_form_action_cancel'] = 'Cancel';

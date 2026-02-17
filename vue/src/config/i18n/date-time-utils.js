@@ -14,32 +14,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    mod_page
+ * @package    mod_longpage
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 const NOW = new Date();
 
 const StartDateTime = Object.freeze({
-    TODAY: new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate()),
-    THIS_YEAR: new Date(NOW.getFullYear(), 0),
-    THIS_DECADE: new Date(Math.floor(NOW.getFullYear() / 10) * 10, 0),
+  TODAY: new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate()),
+  THIS_YEAR: new Date(NOW.getFullYear(), 0),
+  THIS_DECADE: new Date(Math.floor(NOW.getFullYear() / 10) * 10, 0),
 });
 
 export const getDateTimeFormat = (dateTime) => {
-    if (dateTime < StartDateTime.THIS_DECADE) return 'dateTime';
+  if (dateTime < StartDateTime.THIS_DECADE) return "dateTime";
 
-    if (dateTime < StartDateTime.THIS_YEAR) return 'dateTimeWithoutCentury';
+  if (dateTime < StartDateTime.THIS_YEAR) return "dateTimeWithoutCentury";
 
-    if (dateTime < StartDateTime.TODAY) return 'dateTimeWithoutYear';
+  if (dateTime < StartDateTime.TODAY) return "dateTimeWithoutYear";
 
-    return 'time';
+  return "time";
 };
 
 export const getDateFormat = (dateTime) => {
-    if (dateTime < StartDateTime.THIS_DECADE) return 'date';
+  if (dateTime < StartDateTime.THIS_DECADE) return "date";
 
-    if (dateTime < StartDateTime.THIS_YEAR) return 'dateWithoutCentury';
+  if (dateTime < StartDateTime.THIS_YEAR) return "dateWithoutCentury";
 
-    return 'dateWithoutYear';
+  return "dateWithoutYear";
 };

@@ -33,7 +33,10 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class annotation_type {
+    /** @var int Highlight annotation type */
     const HIGHLIGHT = 0;
+    /** @var int Post annotation type */
     const POST = 1;
+    /** @var int Bookmark annotation type */
     const BOOKMARK = 2;
 }

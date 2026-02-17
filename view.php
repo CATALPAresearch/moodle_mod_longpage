@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,55 +23,57 @@
  */
 
 require('../../config.php');
-require_once($CFG->dirroot.'/mod/longpage/lib.php');
-require_once($CFG->dirroot.'/mod/longpage/locallib.php');
-require_once($CFG->libdir.'/completionlib.php');
+require_once($CFG->dirroot . '/mod/longpage/lib.php');
+require_once($CFG->dirroot . '/mod/longpage/locallib.php');
+require_once($CFG->libdir . '/completionlib.php');
 require_once("$CFG->libdir/formslib.php");
-//header("Access-Control-Allow-Origin: *");
 
-$id      = optional_param('id', 0, PARAM_INT); // Course Module ID
-$p       = optional_param('p', 0, PARAM_INT);  // Page instance ID
+$id      = optional_param('id', 0, PARAM_INT); // Course Module ID.
+$p       = optional_param('p', 0, PARAM_INT);  // Page instance ID.
 $inpopup = optional_param('inpopup', 0, PARAM_BOOL);
 
 if ($p) {
-    if (!$page = $DB->get_record('longpage', array('id'=>$p))) {
-        print_error('invalidaccessparameter');
+    if (!$page = $DB->get_record('longpage', ['id' => $p])) {
+        throw new moodle_exception('invalidaccessparameter');
     }
     $cm = get_coursemodule_from_instance('longpage', $page->id, $page->course, false, MUST_EXIST);
-
 } else {
     if (!$cm = get_coursemodule_from_id('longpage', $id)) {
-        print_error('invalidcoursemodule');
+        throw new moodle_exception('invalidcoursemodule');
     }
-    $page = $DB->get_record('longpage', array('id'=>$cm->instance), '*', MUST_EXIST);
+    $page = $DB->get_record('longpage', ['id' => $cm->instance], '*', MUST_EXIST);
 }
 
-$course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $cm->course], '*', MUST_EXIST);
 
 require_course_login($course, true, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/longpage:view', $context);
 
-$scrolltop = $DB->get_field_sql("SELECT scrolltop FROM {longpage_reading_progress} WHERE userid = :userid AND longpageid = :longpageid ORDER BY timemodified DESC LIMIT 1",
+$scrolltop = $DB->get_field_sql(
+    "SELECT scrolltop FROM {longpage_reading_progress} " .
+    "WHERE userid = :userid AND longpageid = :longpageid " .
+    "ORDER BY timemodified DESC LIMIT 1",
     ['userid' => $USER->id, 'longpageid' => $page->id]
 );
 
 // Completion and trigger events.
 longpage_view($page, $course, $cm, $context);
 
-$PAGE->set_url('/mod/longpage/view.php', array('id' => $cm->id));
+$PAGE->set_url('/mod/longpage/view.php', ['id' => $cm->id]);
 $PAGE->requires->css('/mod/longpage/styles.css', true);
 
-$options = empty($page->displayoptions) ? array() : unserialize($page->displayoptions);
+$options = empty($page->displayoptions) ?
+    [] :
+    unserialize($page->displayoptions);
 
-if ($inpopup and $page->display == RESOURCELIB_DISPLAY_POPUP) {
+if ($inpopup && $page->display == RESOURCELIB_DISPLAY_POPUP) {
     $PAGE->set_pagelayout('popup');
-    $PAGE->set_title($course->shortname.': '.$page->name);
+    $PAGE->set_title($course->shortname . ': ' . $page->name);
     $PAGE->set_heading($course->fullname);
 } else {
-    $PAGE->set_title($course->shortname.': '.$page->name);
+    $PAGE->set_title($course->shortname . ': ' . $page->name);
     $PAGE->set_heading($course->fullname);
-    //$PAGE->set_activity_record($page);
 }
 
 $PAGE->set_secondary_navigation(false);
@@ -84,13 +85,22 @@ set_user_preference('drawer-open-nav', false);
 echo $OUTPUT->header();
 
 /**
- * @param $page
- * @param $context
- * @return content
+ * Get formatted page content.
+ *
+ * @param object $page Page object.
+ * @param context $context Context object.
+ * @return string Formatted content.
  */
 function get_formatted_page_content($page, $context) {
-    $content = file_rewrite_pluginfile_urls($page->content, 'pluginfile.php', $context->id, 'mod_longpage', 'content', $page->revision);
-    $formatoptions = new stdClass;
+    $content = file_rewrite_pluginfile_urls(
+        $page->content,
+        'pluginfile.php',
+        $context->id,
+        'mod_longpage',
+        'content',
+        $page->revision
+    );
+    $formatoptions = new stdClass();
     $formatoptions->noclean = true;
     $formatoptions->context = $context;
     return format_text($content, $page->contentformat, $formatoptions);
@@ -100,44 +110,60 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     $content = get_formatted_page_content($page, $context);
 
     if (!isset($options['printheading']) || !empty($options['printheading'])) {
-        echo '<h2 style="display:inline;">'.format_string($page->name).'</h2>';
+        echo '<h2 style="display:inline;">' . format_string($page->name) . '</h2>';
     }
     if (!isset($options['printintro']) || !empty($options['printintro'])) {
-        echo $OUTPUT->box(format_module_intro('longpage', $page, $cm->id), 'generalbox', 'intro');
+        echo $OUTPUT->box(
+            format_module_intro('longpage', $page, $cm->id),
+            'generalbox',
+            'intro'
+        );
     }
-    echo '<div class="dropdown" style="display: inline;">
-            <button class="btn btm-sm dropdown-toggle" type="button" id="dropdownPages" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="padding: 0; background: none;"></button>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownPages" style="width: 300px;">';
-    $pages = get_all_instances_in_courses("longpage", array($course->id => $course));
+    echo '<div class="dropdown" style="display: inline;">' .
+        '<button class="btn btm-sm dropdown-toggle" type="button" ' .
+        'id="dropdownPages" data-toggle="dropdown" ' .
+        'aria-haspopup="true" aria-expanded="false" ' .
+        'style="padding: 0; background: none;"></button>' .
+        '<div class="dropdown-menu dropdown-menu-right" ' .
+        'aria-labelledby="dropdownPages" style="width: 300px;">';
+    $pages = get_all_instances_in_courses("longpage", [$course->id => $course]);
     foreach ($pages as $p) {
         $pcm = get_coursemodule_from_instance('longpage', $p->id, $course->id);
         $cxt = context_module::instance($cm->id);
         if (!has_capability('mod/longpage:view', $cxt)) {
             continue;
         }
-        if ($pcm->id != $cm->id)
-        {
-            echo '<a class="dropdown-item" href="/mod/longpage/view.php?id='.$pcm->id.'" target="_blank">'.$p->name.'</a>';
+        if ($pcm->id != $cm->id) {
+            echo '<a class="dropdown-item" href="/mod/longpage/view.php?id=' . $pcm->id . '" target="_blank">' . $p->name . '</a>';
         }
-    }    
-            
+    }
+
     echo    '</div>
         </div>';
     // Hidden form needed for embedding questions.
-    $embedform = new MoodleQuickForm('embedform', 'POST', '', '', ['style' => 'width: 0; height: 0; overflow: hidden']);
+    $embedform = new MoodleQuickForm(
+        'embedform',
+        'POST',
+        '',
+        '',
+        ['style' => 'width: 0; height: 0; overflow: hidden']
+    );
     $embedform->addElement('textarea', 'embedform', 'embedform');
     $embedform->display();
 
-    //get tags
+    // Get tags.
     $tags = \core_tag_tag::get_item_tags('core', 'course_modules', $id);
-    $tagstr = array();
+    $tagstr = [];
     foreach ($tags as $tag) {
         $tagstr[] = $tag->rawname;
     }
 
-    echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
+    echo '<div id="longpage-app-container" class="border-top border-bottom" ' .
+        'data-moodle-release="' . $CFG->release . '" ' .
+        'data-content="' . htmlspecialchars($content, ENT_QUOTES, 'UTF-8') . '">';
     echo '<div class="row no-gutters vh-50">';
-    echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
+    echo '<div class="spinner-border m-auto " role="status">' .
+        '<span class="sr-only">' . get_string('loading') . '</span></div>';
     echo '</div></div>';
     echo '<div id="longpage-tmp" style="display:none;" lang="de">';
     echo $page->content;
@@ -151,19 +177,19 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             $page->id,
             format_string($page->name),
             $USER->id,
-            $content,
             $scrolltop,
             !empty($page->showreadingprogress),
-            !empty($page->showreadingcomprehension), //$USER->id % 2 == 1 || has_capability('mod/longpage:addinstance', $context), //hardcoded for WS2023
+            // Hardcoded for WS2023.
+            !empty($page->showreadingcomprehension),
             !empty($page->showsearch),
             !empty($page->showtableofcontents),
             !empty($page->showposts),
             !empty($page->showhighlights),
             !empty($page->showbookmarks),
             !empty($page->showeditquestionsnoai),
-            !empty($page->showeditquestionsai),   
+            !empty($page->showeditquestionsai),
             $tagstr,
-            is_siteadmin()
+            is_siteadmin(),
         ]
     );
 } else {
@@ -172,7 +198,5 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     redirect($url);
 }
 
-// echo '<p class="mt-3 text-center text-xs" lang="de">'.get_string('lastmodified').': '.userdate($page->timemodified).'</p>';
 
 echo $OUTPUT->footer();
-

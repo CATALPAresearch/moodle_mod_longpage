@@ -34,8 +34,14 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_page_generator extends testing_module_generator {
-
+class mod_longpage_generator extends testing_module_generator {
+    /**
+     * Create a new instance of the module.
+     *
+     * @param array|null $record
+     * @param array|null $options
+     * @return stdClass
+     */
     public function create_instance($record = null, array $options = null) {
         global $CFG;
         require_once($CFG->dirroot . '/lib/resourcelib.php');

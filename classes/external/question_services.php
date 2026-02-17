@@ -190,7 +190,11 @@ class question_services extends base_external {
         $coursecontext = \context_course::instance($course->id);
         $result = [];
 
-        preg_match_all('/<iframe[\S\s]+class="filter_embedquestion-iframe[\S\s]+id="(?<catid>\S+)\/(?<qid>\S+)"/iU', $page->content, $matches);
+        preg_match_all(
+            '/<iframe[\S\s]+class="filter_embedquestion-iframe[\S\s]+id="(?<catid>\S+)\/(?<qid>\S+)"/iU',
+            $page->content,
+            $matches
+        );
         $len = count($matches[1]);
         $sum = 0;
 
@@ -231,7 +235,11 @@ class question_services extends base_external {
                                 AND qas.timecreated > ?
                                 ORDER BY qas.timecreated DESC
                                 LIMIT 5) alias",
-                [$USER->id, $question->id, date_format(date_sub(date_create(), DateInterval::createFromDateString('3 months')), 'U')]
+                [
+                    $USER->id,
+                    $question->id,
+                    date_format(date_sub(date_create(), DateInterval::createFromDateString('3 months')), 'U'),
+                ]
             );
 
             $sum += $avgfraction;
@@ -486,7 +494,8 @@ class question_services extends base_external {
      * @return object
      */
     protected static function chat($systemcontent, $usercontent) {
-        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczYmUyMGFiLWI4YjYtNDNmNS05YmZjLWIzMDU1OGZkODZiYyJ9.7QCdTgHAPVvTJgkbr7NLxYcO4iUTwlL4ai6rfw_neXE";
+        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczYmUyMGFiLWI4YjYtNDNmNS05YmZjLWIz"
+            . "MDU1OGZkODZiYyJ9.7QCdTgHAPVvTJgkbr7NLxYcO4iUTwlL4ai6rfw_neXE";
         $url = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
         $backupurl = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
         $model = 'llama3.1:latest';
@@ -583,7 +592,14 @@ class question_services extends base_external {
      * @param string $selectedparagraphs Selected paragraphs
      * @return array
      */
-    public static function create_question($longpageid, $position, $useai = true, $existingquestions = '', $selectedtext = '', $selectedparagraphs = '') {
+    public static function create_question(
+        $longpageid,
+        $position,
+        $useai = true,
+        $existingquestions = '',
+        $selectedtext = '',
+        $selectedparagraphs = ''
+    ) {
         global $CFG, $DB, $USER;
 
         $now = new DateTime();
@@ -610,12 +626,18 @@ class question_services extends base_external {
 
         $coursecontext = \context_course::instance($course->id);
         if ($useai) {
-            $category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated']);
+            $category = $DB->get_record(
+                'question_categories',
+                ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated']
+            );
             if (!$category) {
                 throw new Exception("Category with idnumber 'aigenerated' not found.");
             }
         } else {
-            $category = $DB->get_record('question_categories', ['contextid' => $coursecontext->id, 'idnumber' => 'manuallygenerated']);
+            $category = $DB->get_record(
+                'question_categories',
+                ['contextid' => $coursecontext->id, 'idnumber' => 'manuallygenerated']
+            );
             if (!$category) {
                 throw new Exception("Category with idnumber 'manuallygenerated' not found.");
             }
@@ -653,11 +675,13 @@ class question_services extends base_external {
             $textcontent = $toplevel->textContent;
 
             if ($selectedtext !== '') {
-                $textcontent = "The complete text is: '" . $textcontent . "' You should create a question based on the following excerpt: '" . $selectedtext . "'";
+                $textcontent = "The complete text is: '" . $textcontent
+                    . "' You should create a question based on the following excerpt: '" . $selectedtext . "'";
             }
 
             if ($selectedparagraphs !== '') {
-                $textcontent .= " The following text is from the context and should be considered for the question and answer options: '" . $textfromselected . "'";
+                $textcontent .= " The following text is from the context and should be considered for the"
+                    . " question and answer options: '" . $textfromselected . "'";
             }
 
             $qtypes = ['multichoice'];
@@ -665,44 +689,40 @@ class question_services extends base_external {
 
             switch ($qtype) {
                 case 'multichoice':
-                    $explanation = "Please write one multiple choice question with one correct answer and multiple wrong answers in German language in GIFT format on the following text. GIFT format uses equal sign for right answers and tilde sign for wrong answers at the beginning of answers. For example: " .
-                        "'::Question title:: Question text { " .
-                        "=Correct answer 1 " .
-                        "~Wrong answer 1 " .
-                        "~Wrong answer 2 " .
-                        "~Wrong answer 3 " .
-                        "}' " .
-                        "Do not forget any equal or tilde sign! Only one correct answer is allowed! Question title and question text are mandatory and different from each other!";
+                    $explanation = "Please write one multiple choice question with one correct answer and multiple "
+                        . "wrong answers in German language in GIFT format on the following text. GIFT format uses "
+                        . "equal sign for right answers and tilde sign for wrong answers at the beginning of answers. "
+                        . "For example: '::Question title:: Question text { =Correct answer 1 ~Wrong answer 1 "
+                        . "~Wrong answer 2 ~Wrong answer 3 }' Do not forget any equal or tilde sign! Only one correct "
+                        . "answer is allowed! Question title and question text are mandatory and different from each other!";
                     break;
                 case 'multiresponse':
-                    $explanation = "Please write one multiple choice question with multiple correct answers in German language in GIFT format on the following text. GIFT format uses a tilde and percent sign at the beginning of answers, followed by a positive grade in percent for correct answers and a negative grade in negative percent with minus sign for wrong answers. All positive grades must sum up to 100%. For example: " .
-                        "'::Question title:: Question text { " .
-                        "~%-100% Wrong answer 1 " .
-                        "~%50% Correct answer 1 " .
-                        "~%50% Correct answer 2 " .
-                        "~%-100% Wrong answer 2 " .
-                        "}' " .
-                        "Do not forget any tilde or percent sign! ";
+                    $explanation = "Please write one multiple choice question with multiple correct answers in German "
+                        . "language in GIFT format on the following text. GIFT format uses a tilde and percent sign "
+                        . "at the beginning of answers, followed by a positive grade in percent for correct answers "
+                        . "and a negative grade in negative percent with minus sign for wrong answers. All positive "
+                        . "grades must sum up to 100%. For example: '::Question title:: Question text { ~%-100% Wrong "
+                        . "answer 1 ~%50% Correct answer 1 ~%50% Correct answer 2 ~%-100% Wrong answer 2 }' Do not "
+                        . "forget any tilde or percent sign! ";
                     break;
                 case 'match':
-                    $explanation = "Please write one matching question in German language in GIFT format on the following text. GIFT format uses an equal sign at the beginning of answers and and arrow sign for assigning matching pairs. For example: " .
-                        "'::Question title:: Question text { " .
-                        "=match 1 -> match 1 " .
-                        "=match 2 -> match 2 " .
-                        "=match 3 -> match 3 " .
-                        "}' " .
-                        "The matches should be concepts of only a few words. " .
-                        "Do not forget any equal or arrow sign! ";
+                    $explanation = "Please write one matching question in German language in GIFT format on the "
+                        . "following text. GIFT format uses an equal sign at the beginning of answers and and arrow "
+                        . "sign for assigning matching pairs. For example: '::Question title:: Question text { "
+                        . "=match 1 -> match 1 =match 2 -> match 2 =match 3 -> match 3 }' The matches should be "
+                        . "concepts of only a few words. Do not forget any equal or arrow sign! ";
                     break;
                 default:
                     $explanation = '';
             }
 
             if ($existingquestions !== '') {
-                $explanation .= "The following questions are already created and should not be created again: '" . $existingquestions . "' ";
+                $explanation .= "The following questions are already created and should not be "
+                    . "created again: '" . $existingquestions . "' ";
             }
 
-            $explanation .= 'Please write the question in the right format! Output only in GIFT format! Do not forget question title and question text!';
+            $explanation .= 'Please write the question in the right format! Output only in GIFT format! '
+                . 'Do not forget question title and question text!';
             $maxtries = 5;
 
             for ($i = 0; $i < $maxtries; $i++) {
@@ -747,7 +767,7 @@ class question_services extends base_external {
                     }
                     break;
                 } catch (\Throwable $th) {
-                    error_log('Create Question Error: ' . $th->getMessage());
+                    debugging('Create Question Error: ' . $th->getMessage());
                     if ($i >= $maxtries - 1) {
                         throw $th;
                     }
@@ -915,7 +935,15 @@ class question_services extends base_external {
      * @param int $optionnumber Option number
      * @return array
      */
-    public static function edit_question($longpageid, $questionid, $action, $qubaid, $useai = true, $text = '', $optionnumber = -1) {
+    public static function edit_question(
+        $longpageid,
+        $questionid,
+        $action,
+        $qubaid,
+        $useai = true,
+        $text = '',
+        $optionnumber = -1
+    ) {
         global $DB, $USER;
 
         $now = new DateTime();
@@ -944,7 +972,10 @@ class question_services extends base_external {
         $question->qtype = $question->qtype->name();
         $question->generalfeedback = ['text' => $question->generalfeedback, 'format' => $question->generalfeedbackformat];
         get_question_options($question);
-        $question->questiontext = ['text' => $optionnumber != -1 || $action != 'edit' ? $question->questiontext : $text, 'format' => $question->questiontextformat];
+        $question->questiontext = [
+            'text' => $optionnumber != -1 || $action != 'edit' ? $question->questiontext : $text,
+            'format' => $question->questiontextformat,
+        ];
         $question->fraction = [];
         $question->feedback = [];
         $question->answer = $question->answers;
@@ -973,7 +1004,8 @@ class question_services extends base_external {
             $question->fraction[$key] = $answer->fraction;
             $question->feedback[$key] = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
             $aw = [
-                'text' => $action === 'edit' && $optionnumber != -1 && $key == $order[$optionnumber] ? $text : $answer->answer,
+                'text' => $action === 'edit' && $optionnumber != -1 && $key == $order[$optionnumber]
+                    ? $text : $answer->answer,
                 'format' => $answer->answerformat,
             ];
             $aw->feedback = ['text' => $answer->feedback, 'format' => $answer->feedbackformat];
@@ -992,7 +1024,13 @@ class question_services extends base_external {
                 return "'" . $answer['text'] . "'";
             }, $question->answer));
             if ($useai) {
-                $result = self::chat($text, "Please write a new distractor in German language for the following question to the given text. Question: '" . $question->questiontext['text'] . "' The distractor should be different from the following answers: " . $answers . ". Give only the distractor text without any additional information.");
+                $result = self::chat(
+                    $text,
+                    "Please write a new distractor in German language for the following question to the given "
+                        . "text. Question: '" . $question->questiontext['text'] . "' The distractor should be "
+                        . "different from the following answers: " . $answers . ". Give only the distractor text "
+                        . "without any additional information."
+                );
                 $answertext = $result->message->content;
             } else {
                 $answertext = 'Falsche Antwort';
@@ -1000,30 +1038,27 @@ class question_services extends base_external {
             $question->answer[$key] = ['text' => $answertext, 'format' => 1];
             $question->fraction[$key] = 0;
             $question->feedback[$key] = ['text' => '', 'format' => 1];
-        } elseif ($action === 'rephrase') {
+        } else if ($action === 'rephrase') {
             if ($optionnumber != -1) {
                 $answers = implode(', ', array_map(function ($answer) {
                     return "'" . $answer['text'] . "'";
                 }, $question->answer));
                 $result = self::chat(
                     $text,
-                    "Please rephrase the following answer for the following question in German language for the given text. Question: '" .
-                        $question->questiontext['text'] .
-                        "' Answer to rephrase: '" .
-                        $question->answer[$order[$optionnumber]]['text'] .
-                        "' The rephrased answer should be different from the following answers: " .
-                        $answers .
-                        '. Give only the rephrased answer text without any additional information. Keep it short.'
+                    "Please rephrase the following answer for the following question in German language for the "
+                        . "given text. Question: '" . $question->questiontext['text'] . "' Answer to rephrase: '"
+                        . $question->answer[$order[$optionnumber]]['text'] . "' The rephrased answer should be "
+                        . "different from the following answers: " . $answers . '. Give only the rephrased answer '
+                        . 'text without any additional information. Keep it short.'
                 );
                 $question->answer[$order[$optionnumber]] = ['text' => $result->message->content, 'format' => 1];
             } else {
                 $result = self::chat(
                     $text,
-                    "Please rephrase the following question in German language for the given text with the following given answers. Question to rephrase: '" .
-                        $question->questiontext['text'] .
-                        "' Given answers: " .
-                        $answers .
-                        '. Give only the rephrased question text without any additional information. Keep it short.'
+                    "Please rephrase the following question in German language for the given text with the "
+                        . "following given answers. Question to rephrase: '" . $question->questiontext['text']
+                        . "' Given answers: " . $answers . '. Give only the rephrased question text without any '
+                        . 'additional information. Keep it short.'
                 );
                 $question->questiontext = ['text' => $result->message->content, 'format' => 1];
             }
@@ -1065,7 +1100,10 @@ class question_services extends base_external {
             ]);
 
             return [
-                'response' => json_encode(['questionid' => $created->id, 'qubaid' => $qubaid, 'text' => $text], JSON_UNESCAPED_UNICODE),
+                'response' => json_encode(
+                    ['questionid' => $created->id, 'qubaid' => $qubaid, 'text' => $text],
+                    JSON_UNESCAPED_UNICODE
+                ),
             ];
         }
 
@@ -1323,4 +1361,3 @@ class question_services extends base_external {
         return \question_bank::get_qtype($qtype)->save_question($q, clone $q);
     }
 }
-

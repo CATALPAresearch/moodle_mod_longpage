@@ -23,7 +23,6 @@
  */
 
 namespace mod_longpage\event;
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The mod_longpage course module viewed event class.
@@ -34,7 +33,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_module_viewed extends \core\event\course_module_viewed {
-
     /**
      * Init method.
      */
@@ -44,8 +42,12 @@ class course_module_viewed extends \core\event\course_module_viewed {
         $this->data['objecttable'] = 'longpage';
     }
 
+    /**
+     * Return the mapping for object ID to database table.
+     *
+     * @return array
+     */
     public static function get_objectid_mapping() {
-        return array('db' => 'longpage', 'restore' => 'longpage');
+        return ['db' => 'longpage', 'restore' => 'longpage'];
     }
 }
-

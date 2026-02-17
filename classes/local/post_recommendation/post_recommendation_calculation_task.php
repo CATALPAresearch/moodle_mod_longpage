@@ -34,68 +34,76 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_recommendation_calculation_task extends \core\task\adhoc_task {
+    /**
+     * Execute the task.
+     */
     public function execute() {
         $data = $this->get_custom_data();
         $pageid = $data->longpageid;
-        mtrace('Started calculating recommendations for posts on page '.$pageid.'.');
+        mtrace('Started calculating recommendations for posts on page ' . $pageid . '.');
 
-        mtrace('Deleting obsolete recommendations of posts on page '.$pageid.'.');
+        mtrace('Deleting obsolete recommendations of posts on page ' . $pageid . '.');
         post_recommendation_calculator::delete_recommendations($pageid);
 
-        mtrace('Deleting obsolete similarities of posts on page '.$pageid.'.');
+        mtrace('Deleting obsolete similarities of posts on page ' . $pageid . '.');
         post_similarity_calculator::delete_similarities($pageid);
 
-        mtrace('Deleting obsolete novelties of posts on page '.$pageid.'.');
+        mtrace('Deleting obsolete novelties of posts on page ' . $pageid . '.');
         post_novelty_calculator::delete_post_novelties($pageid);
 
-        mtrace('Deleting obsolete relative preferences for posts on page '.$pageid.'.');
+        mtrace('Deleting obsolete relative preferences for posts on page ' . $pageid . '.');
         post_preference_calculator::delete_relative_preferences($pageid);
 
-        mtrace('Deleting obsolete preference profiles of users on page '.$pageid.'.');
+        mtrace('Deleting obsolete preference profiles of users on page ' . $pageid . '.');
         post_preference_calculator::delete_preference_profiles($pageid);
 
-        mtrace('Deleting obsolete absolute preferences for posts on page '.$pageid.'.');
+        mtrace('Deleting obsolete absolute preferences for posts on page ' . $pageid . '.');
         post_preference_calculator::delete_absolute_preferences($pageid);
 
-        mtrace('Calculating absolute preferences for posts on page '.$pageid.'.');
+        mtrace('Calculating absolute preferences for posts on page ' . $pageid . '.');
         post_preference_calculator::calculate_and_save_absolute_preferences($pageid);
 
-        mtrace('Calculating preference profiles of users on page '.$pageid.'.');
+        mtrace('Calculating preference profiles of users on page ' . $pageid . '.');
         post_preference_calculator::calculate_and_save_preference_profiles($pageid);
 
-        mtrace('Calculating average preference of users on page '.$pageid.'.');
+        mtrace('Calculating average preference of users on page ' . $pageid . '.');
         post_preference_calculator::calculate_and_save_avg_preference($pageid);
 
-        mtrace('Calculating relative preferences for posts on page '.$pageid.'.');
+        mtrace('Calculating relative preferences for posts on page ' . $pageid . '.');
         post_preference_calculator::calculate_and_save_relative_preferences($pageid);
 
-        mtrace('Deleting absolute preferences for posts on page '.$pageid.' to save disc space.');
+        mtrace('Deleting absolute preferences for posts on page ' . $pageid . ' to save disc space.');
         post_preference_calculator::delete_absolute_preferences($pageid);
 
-        mtrace('Calculating similarities of posts on page '.$pageid.'.');
+        mtrace('Calculating similarities of posts on page ' . $pageid . '.');
         post_similarity_calculator::calculate_and_save_post_similarities($pageid);
 
-        mtrace('Calculating novelties of posts on page '.$pageid.'.');
+        mtrace('Calculating novelties of posts on page ' . $pageid . '.');
         post_novelty_calculator::calculate_and_save_post_novelties($pageid);
 
-        mtrace('Calculating recommendations of posts on page '.$pageid.'.');
+        mtrace('Calculating recommendations of posts on page ' . $pageid . '.');
         post_recommendation_calculator::calculate_and_save_recommendations($pageid);
 
-        mtrace('Deleting similarities of posts on page '.$pageid.' to save disc space.');
+        mtrace('Deleting similarities of posts on page ' . $pageid . ' to save disc space.');
         post_similarity_calculator::delete_similarities($pageid);
 
-        mtrace('Deleting novelties of posts on page '.$pageid.' to save disc space.');
+        mtrace('Deleting novelties of posts on page ' . $pageid . ' to save disc space.');
         post_novelty_calculator::delete_post_novelties($pageid);
 
-        mtrace('Deleting relative preferences for posts on page '.$pageid.' to save disc space.');
+        mtrace('Deleting relative preferences for posts on page ' . $pageid . ' to save disc space.');
         post_preference_calculator::delete_relative_preferences($pageid);
 
-        mtrace('Deleting preference profiles of users on page '.$pageid.' to save disc space.');
+        mtrace('Deleting preference profiles of users on page ' . $pageid . ' to save disc space.');
         post_preference_calculator::delete_preference_profiles($pageid);
 
-        mtrace('Calculation of recommendations for posts on page '.$pageid.' successfully finished.');
+        mtrace('Calculation of recommendations for posts on page ' . $pageid . ' successfully finished.');
     }
 
+    /**
+     * Create task from page ID and queue it.
+     *
+     * @param int $pageid Page ID
+     */
     public static function create_from_pageid_and_queue($pageid) {
         $postrecommcalctask = new post_recommendation_calculation_task();
         $postrecommcalctask->set_custom_data(['longpageid' => $pageid]);
@@ -103,6 +111,11 @@ class post_recommendation_calculation_task extends \core\task\adhoc_task {
         \core\task\manager::queue_adhoc_task($postrecommcalctask, true);
     }
 
+    /**
+     * Get next task run time.
+     *
+     * @return int
+     */
     private static function get_next_task_run_time() {
         $time = new \DateTime("now", \core_date::get_server_timezone_object());
         $time->add(new \DateInterval("P1D"));

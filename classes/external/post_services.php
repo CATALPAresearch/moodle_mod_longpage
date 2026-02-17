@@ -249,8 +249,8 @@ class post_services extends base_external {
         return new \external_single_structure(array_merge(
             [
                 'id' => new \external_value(PARAM_INT),
-                'creatorid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
-                'recommendation' => new \external_value(PARAM_FLOAT, '', VALUE_OPTIONAL),
+                'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
+                'recommendation' => new \external_value(PARAM_FLOAT, 'Recommendation score', VALUE_OPTIONAL),
             ],
             omit_keys(self::post_parameters(), ['creatorid']),
             self::get_reactions_to_post_returns(),
@@ -330,9 +330,9 @@ class post_services extends base_external {
             'threadid' => new \external_value(PARAM_INT),
             'creatorid' => new \external_value(PARAM_INT),
             'anonymous' => new \external_value(PARAM_BOOL),
-            'content' => new \external_value(PARAM_TEXT, ''),
-            'ispublic' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
-            'islocked' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
+            'content' => new \external_value(PARAM_TEXT, 'Content text'),
+            'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_OPTIONAL),
+            'islocked' => new \external_value(PARAM_BOOL, 'Whether the item is locked', VALUE_OPTIONAL),
         ];
     }
 
@@ -388,9 +388,9 @@ class post_services extends base_external {
                 self::id_parameter(),
                 pick_keys(self::post_parameters(), ['anonymous', 'ispublic', 'islocked']),
                 [
-                    'content' => new \external_value(PARAM_TEXT, '', VALUE_OPTIONAL),
-                    'markedasrequestedreply' => new \external_value(PARAM_BOOL, '', VALUE_OPTIONAL),
-                    'creatorid' => new \external_value(PARAM_INT, '', VALUE_OPTIONAL),
+                    'content' => new \external_value(PARAM_TEXT, 'Content text', VALUE_OPTIONAL),
+                    'markedasrequestedreply' => new \external_value(PARAM_BOOL, 'Whether marked as requested reply', VALUE_OPTIONAL),
+                    'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
                 ]
             )),
         ]);

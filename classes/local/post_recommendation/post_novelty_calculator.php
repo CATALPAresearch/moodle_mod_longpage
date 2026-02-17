@@ -38,6 +38,12 @@ require_once("$CFG->dirroot/mod/longpage/locallib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_novelty_calculator {
+    /**
+     * Calculate and save post novelties.
+     *
+     * @param int $pageid Page ID
+     * @param int $batchsize Batch size for processing
+     */
     public static function calculate_and_save_post_novelties($pageid, $batchsize = 100) {
         global $DB;
 
@@ -73,6 +79,11 @@ class post_novelty_calculator {
         }
     }
 
+    /**
+     * Delete post novelties.
+     *
+     * @param int $pageid Page ID
+     */
     public static function delete_post_novelties($pageid) {
         global $DB;
 
@@ -81,6 +92,12 @@ class post_novelty_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Get total number of page users.
+     *
+     * @param int $pageid Page ID
+     * @return int
+     */
     private static function get_total_no_of_page_users($pageid) {
         return count(\get_page_users_ids($pageid));
     }

@@ -14,24 +14,44 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// author: Marc Burchart <marc.burchart@fernuni-hagen.de>
+/**
+ * Blocking class for policy acceptance.
+ *
+ * @package    mod_longpage
+ * @copyright  Marc Burchart <marc.burchart@fernuni-hagen.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 namespace mod_longpage;
 
 defined('MOODLE_INTERNAL') || die();
 
-class blocking
-{
-    public static function tool_policy_accepted()
-    {
+/**
+ * Blocking class for policy acceptance.
+ *
+ * @copyright  Marc Burchart <marc.burchart@fernuni-hagen.de>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class blocking {
+    /**
+     * Check if tool policy is accepted.
+     *
+     * @return bool
+     */
+    public static function tool_policy_accepted() {
 
         global $DB, $USER;
         require_login();
         if (isset($_SESSION['policy_accepted']) && $_SESSION['policy_accepted'] === true) {
-            //return true;
+            return true;
         }
-        $version = 6; // local_niels: 11  aple: 6
-        $res = $DB->get_record("tool_policy_acceptances", array("policyversionid" => $version, "userid" => (int)$USER->id), "status");
+        // Local_niels: 11, aple: 6.
+        $version = 6;
+        $res = $DB->get_record(
+            "tool_policy_acceptances",
+            ["policyversionid" => $version, "userid" => (int)$USER->id],
+            "status"
+        );
 
         if (isset($res->status) && (int)$res->status == 1) {
             $_SESSION['policy_accepted'] = true;

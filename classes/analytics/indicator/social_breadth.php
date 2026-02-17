@@ -34,7 +34,6 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class social_breadth extends activity_base {
-
     /**
      * Returns the name.
      *
@@ -42,14 +41,25 @@ class social_breadth extends activity_base {
      *
      * @return \lang_string
      */
-    public static function get_name() : \lang_string {
+    public static function get_name(): \lang_string {
         return new \lang_string('indicator:socialbreadth', 'mod_longpage');
     }
 
+    /**
+     * Returns the indicator type.
+     *
+     * @return string
+     */
     public function get_indicator_type() {
         return self::INDICATOR_SOCIAL;
     }
 
+    /**
+     * Returns the social breadth level.
+     *
+     * @param \cm_info $cm
+     * @return int
+     */
     public function get_social_breadth_level(\cm_info $cm) {
         return self::SOCIAL_LEVEL_1;
     }

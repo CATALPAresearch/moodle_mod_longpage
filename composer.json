@@ -1,0 +1,10 @@
+{
+    "require-dev": {
+        "moodlehq/moodle-cs": "^3.7"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

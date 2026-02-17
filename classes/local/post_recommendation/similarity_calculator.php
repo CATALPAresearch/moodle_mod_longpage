@@ -33,17 +33,41 @@ defined('MOODLE_INTERNAL') || die();
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class similarity_calculator {
-    static public function cosine($a, $b) {
+    /**
+     * Calculate cosine similarity.
+     *
+     * @param array $a First vector
+     * @param array $b Second vector
+     * @return float
+     */
+    public static function cosine($a, $b) {
         return self::dot_product($a, $b) / (self::magnitude($a) * self::magnitude($b));
     }
 
-    static private function dot_product($a, $b) {
-        $products = array_map(function($a, $b) { return $a * $b; }, $a, $b);
+    /**
+     * Calculate dot product.
+     *
+     * @param array $a First vector
+     * @param array $b Second vector
+     * @return float
+     */
+    private static function dot_product($a, $b) {
+        $products = array_map(function ($a, $b) {
+            return $a * $b;
+        }, $a, $b);
         return array_sum($products);
     }
 
-    static private function magnitude($point) {
-        $squares = array_map(function($x) { return pow($x, 2); }, $point);
+    /**
+     * Calculate magnitude of a vector.
+     *
+     * @param array $point Vector
+     * @return float
+     */
+    private static function magnitude($point) {
+        $squares = array_map(function ($x) {
+            return pow($x, 2);
+        }, $point);
         return sqrt(array_sum($squares));
     }
 }

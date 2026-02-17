@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -25,15 +24,15 @@
 
 require('../../config.php');
 
-$id = required_param('id', PARAM_INT); // course id
+$id = required_param('id', PARAM_INT); // Course id.
 
-$course = $DB->get_record('course', array('id'=>$id), '*', MUST_EXIST);
+$course = $DB->get_record('course', ['id' => $id], '*', MUST_EXIST);
 
 require_course_login($course, true);
 $PAGE->set_pagelayout('incourse');
 
 // Trigger instances list viewed event.
-$event = \mod_longpage\event\course_module_instance_list_viewed::create(array('context' => context_course::instance($course->id)));
+$event = \mod_longpage\event\course_module_instance_list_viewed::create(['context' => context_course::instance($course->id)]);
 $event->add_record_snapshot('course', $course);
 $event->trigger();
 
@@ -43,8 +42,8 @@ $strname         = get_string('name');
 $strintro        = get_string('moduleintro');
 $strlastmodified = get_string('lastmodified');
 
-$PAGE->set_url('/mod/longpage/index.php', array('id' => $course->id));
-$PAGE->set_title($course->shortname.': '.$strpages);
+$PAGE->set_url('/mod/longpage/index.php', ['id' => $course->id]);
+$PAGE->set_title($course->shortname . ': ' . $strpages);
 $PAGE->set_heading($course->fullname);
 $PAGE->navbar->add($strpages);
 echo $OUTPUT->header();
@@ -60,12 +59,12 @@ $table = new html_table();
 $table->attributes['class'] = 'generaltable mod_index';
 
 if ($usesections) {
-    $strsectionname = get_string('sectionname', 'format_'.$course->format);
-    $table->head  = array ($strsectionname, $strname, $strintro);
-    $table->align = array ('center', 'left', 'left');
+    $strsectionname = get_string('sectionname', 'format_' . $course->format);
+    $table->head  = [$strsectionname, $strname, $strintro];
+    $table->align = ['center', 'left', 'left'];
 } else {
-    $table->head  = array ($strlastmodified, $strname, $strintro);
-    $table->align = array ('left', 'left', 'left');
+    $table->head  = [$strlastmodified, $strname, $strintro];
+    $table->align = ['left', 'left', 'left'];
 }
 
 $modinfo = get_fast_modinfo($course);
@@ -84,15 +83,15 @@ foreach ($pages as $page) {
             $currentsection = $page->section;
         }
     } else {
-        $printsection = '<span class="smallinfo">'.userdate($page->timemodified)."</span>";
+        $printsection = '<span class="smallinfo">' . userdate($page->timemodified) . "</span>";
     }
 
-    $class = $page->visible ? '' : 'class="dimmed"'; // hidden modules are dimmed
+    $class = $page->visible ? '' : 'class="dimmed"'; // Hidden modules are dimmed.
 
-    $table->data[] = array (
+    $table->data[] = [
         $printsection,
-        "<a $class href=\"view.php?id=$cm->id\">".format_string($page->name)."</a>",
-        format_module_intro('longpage', $page, $cm->id));
+        "<a $class href=\"view.php?id=$cm->id\">" . format_string($page->name) . "</a>",
+        format_module_intro('longpage', $page, $cm->id)];
 }
 
 echo html_writer::table($table);

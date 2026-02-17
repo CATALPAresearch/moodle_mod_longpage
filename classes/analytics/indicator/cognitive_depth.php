@@ -26,8 +26,13 @@ namespace mod_longpage\analytics\indicator;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * Cognitive depth indicator.
+ *
+ * @copyright 2017 David Monllao {@link http://www.davidmonllao.com}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class cognitive_depth extends activity_base {
-
     /**
      * Returns the name.
      *
@@ -35,14 +40,25 @@ class cognitive_depth extends activity_base {
      *
      * @return \lang_string
      */
-    public static function get_name() : \lang_string {
+    public static function get_name(): \lang_string {
         return new \lang_string('indicator:cognitivedepth', 'mod_longpage');
     }
 
+    /**
+     * Get indicator type.
+     *
+     * @return string
+     */
     public function get_indicator_type() {
         return self::INDICATOR_COGNITIVE;
     }
 
+    /**
+     * Get cognitive depth level.
+     *
+     * @param \cm_info $cm Course module info
+     * @return int
+     */
     public function get_cognitive_depth_level(\cm_info $cm) {
         return self::COGNITIVE_LEVEL_1;
     }

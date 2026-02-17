@@ -37,8 +37,17 @@ require_once("$CFG->dirroot/mod/longpage/locallib.php");
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class post_preference_calculator {
+    /**
+     * Minimum number of preferences required per user.
+     */
     public const MIN_PREFERENCES_PER_USER = 3;
 
+    /**
+     * Calculate and save relative preferences for all users.
+     *
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     public static function calculate_and_save_relative_preferences($pageid, $batchsize = 100) {
         global $DB;
 
@@ -46,7 +55,12 @@ class post_preference_calculator {
         $fields = 'userid, avg, count';
         while (true) {
             $prefprofiles = $DB->get_records(
-                'longpage_post_pref_profiles', ['longpageid' => $pageid], 'id ASC', $fields, $limitfrom, $batchsize
+                'longpage_post_pref_profiles',
+                ['longpageid' => $pageid],
+                'id ASC',
+                $fields,
+                $limitfrom,
+                $batchsize
             );
             if (!count($prefprofiles)) {
                 break;
@@ -63,6 +77,13 @@ class post_preference_calculator {
         }
     }
 
+    /**
+     * Calculate and save relative preferences for a specific user with profile.
+     *
+     * @param object $prefprofile User preference profile
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     private static function calculate_and_save_relative_preferences_for_user_with_profile($prefprofile, $pageid, $batchsize = 100) {
         global $DB;
 
@@ -71,7 +92,12 @@ class post_preference_calculator {
         $limitfrom = 0;
         while (true) {
             $abspreferences = $DB->get_records(
-                'longpage_abs_post_prefs', $conditions, 'id ASC', $fields, $limitfrom, $batchsize,
+                'longpage_abs_post_prefs',
+                $conditions,
+                'id ASC',
+                $fields,
+                $limitfrom,
+                $batchsize,
             );
             if (count($abspreferences) < self::MIN_PREFERENCES_PER_USER) {
                 break;
@@ -88,11 +114,16 @@ class post_preference_calculator {
         }
     }
 
+    /**
+     * Calculate and save average preference for a page.
+     *
+     * @param int $pageid The page ID
+     */
     public static function calculate_and_save_avg_preference($pageid) {
         global $DB;
 
         $sql = 'SELECT COALESCE(AVG(avg), 0.5) AS avg
-                FROM {longpage_post_pref_profiles} 
+                FROM {longpage_post_pref_profiles}
                 WHERE longpageid = ?';
         $avgpostpreference = $DB->get_field_sql($sql, ['longpageid' => $pageid]);
         $transaction = $DB->start_delegated_transaction();
@@ -100,6 +131,12 @@ class post_preference_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Calculate and save preference profiles for all users.
+     *
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     public static function calculate_and_save_preference_profiles($pageid, $batchsize = 100) {
         $limitfrom = 0;
         while (true) {
@@ -116,13 +153,19 @@ class post_preference_calculator {
         }
     }
 
+    /**
+     * Calculate and save preference profiles for specific users.
+     *
+     * @param array $userids Array of user IDs
+     * @param int $pageid The page ID
+     */
     public static function calculate_and_save_preference_profiles_for_users($userids, $pageid) {
         global $DB;
 
         $profiles = [];
 
         $sql = 'SELECT AVG(value) AS avg, COUNT(*) as count
-                FROM {longpage_abs_post_prefs} 
+                FROM {longpage_abs_post_prefs}
                 WHERE userid = ? AND longpageid = ?';
         foreach ($userids as $userid) {
             $profile = $DB->get_record_sql($sql, [$userid, $pageid]);
@@ -139,6 +182,13 @@ class post_preference_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Check if user participated in a thread.
+     *
+     * @param int $threadid The thread ID
+     * @param int $userid The user ID
+     * @return bool True if user participated, false otherwise
+     */
     private static function did_user_participate_in_thread($threadid, $userid) {
         global $DB;
 
@@ -151,6 +201,15 @@ class post_preference_calculator {
         return false;
     }
 
+    /**
+     * Get preference profile object for a user.
+     *
+     * @param int $userid The user ID
+     * @param int $pageid The page ID
+     * @param float $avg Average preference value
+     * @param int $count Number of preferences
+     * @return object Preference profile object
+     */
     public static function get_preference_profile($userid, $pageid, $avg, $count) {
         $profile = new \stdClass();
         $profile->userid = $userid;
@@ -161,6 +220,11 @@ class post_preference_calculator {
         return $profile;
     }
 
+    /**
+     * Delete all absolute preferences for a page.
+     *
+     * @param int $pageid The page ID
+     */
     public static function delete_absolute_preferences($pageid) {
         global $DB;
 
@@ -169,6 +233,11 @@ class post_preference_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Delete all preference profiles for a page.
+     *
+     * @param int $pageid The page ID
+     */
     public static function delete_preference_profiles($pageid) {
         global $DB;
 
@@ -177,6 +246,11 @@ class post_preference_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Delete all relative preferences for a page.
+     *
+     * @param int $pageid The page ID
+     */
     public static function delete_relative_preferences($pageid) {
         global $DB;
 
@@ -185,6 +259,12 @@ class post_preference_calculator {
         $transaction->allow_commit();
     }
 
+    /**
+     * Calculate and save absolute preferences for all posts.
+     *
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     public static function calculate_and_save_absolute_preferences($pageid, $batchsize = 100) {
         global $DB;
 
@@ -208,6 +288,13 @@ class post_preference_calculator {
         }
     }
 
+    /**
+     * Calculate and save absolute preferences for a specific post.
+     *
+     * @param object $post The post object
+     * @param int $pageid The page ID
+     * @param int $batchsize The batch size for processing
+     */
     public static function calculate_and_save_absolute_preferences_for_post($post, $pageid, $batchsize = 100) {
         $limitfrom = 0;
         while (true) {
@@ -227,6 +314,13 @@ class post_preference_calculator {
         }
     }
 
+    /**
+     * Calculate and save absolute preferences for a specific post and user.
+     *
+     * @param object $post The post object
+     * @param int $userid The user ID
+     * @param int $pageid The page ID
+     */
     private static function calculate_and_save_absolute_preferences_for_post_and_user($post, $userid, $pageid) {
         global $DB;
 
@@ -238,14 +332,21 @@ class post_preference_calculator {
 
         $preference = self::get_absolute_preference($post, $userid, $pageid);
 
-        if((int) $preference->value == 1)
-        {
+        if ((int) $preference->value == 1) {
             $transaction = $DB->start_delegated_transaction();
             $DB->insert_record('longpage_abs_post_prefs', (array) $preference);
             $transaction->allow_commit();
-        }        
+        }
     }
 
+    /**
+     * Get absolute preference object for a post and user.
+     *
+     * @param object $post The post object
+     * @param int $userid The user ID
+     * @param int $pageid The page ID
+     * @return object Absolute preference object
+     */
     private static function get_absolute_preference($post, $userid, $pageid) {
         $preference = new \stdClass();
         $preference->longpageid = $pageid;
@@ -255,6 +356,13 @@ class post_preference_calculator {
         return $preference;
     }
 
+    /**
+     * Get post preference value for a user.
+     *
+     * @param object $post The post object
+     * @param int $userid The user ID
+     * @return int Preference value (1 if user likes/bookmarked/participated, 0 otherwise)
+     */
     private static function get_post_preference_of_user($post, $userid) {
         global $DB;
 
@@ -267,8 +375,16 @@ class post_preference_calculator {
         return $userlikespost || $userbookmarkedpost || $userparticipatedinthread || $usersubscribedtothread ? 1 : 0;
     }
 
+    /**
+     * Map absolute preferences to relative preferences.
+     *
+     * @param object $prefprofile User preference profile
+     * @param int $pageid The page ID
+     * @param array $abspreferences Array of absolute preferences
+     * @return array Array of relative preferences
+     */
     private static function map_abs_prefs_to_rel_prefs($prefprofile, $pageid, $abspreferences) {
-        return array_map(function($abspreference) use ($prefprofile, $pageid) {
+        return array_map(function ($abspreference) use ($prefprofile, $pageid) {
             $relpreference = new \stdClass();
             $relpreference->longpageid = $pageid;
             $relpreference->postid = $abspreference->postid;
