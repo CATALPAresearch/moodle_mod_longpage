@@ -4,21 +4,49 @@
 
 _Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle.org/dev/Activity_modules) for providing long and structured texts in HTML for courses paired up with functions to navigate, annotate and co-read the text with other users. It is based on the [Page](https://docs.moodle.org/310/en/Page_resource) or [mod_longpage module](https://docs.moodle.org/310/en/Page_resource) which is part of the standard installation of Moodle. _Page_ by itself simply allows for providing texts included in a Moodle page with no further functionality attached. _Longpage_ can be seen as an extension of _Page_ with is to be used as a replacement of _Page_ for providing users with extra functionality. The main features _Longpage_ adds on top of _Page_ are:
 
-- reading-friendly design,
-- automatic prediction and inclusion of time necessary for reading a chapter, section etc.,
-- automatic saving of last scroll position to be able to continue reading at the position where the text was last left,
-- automatic creation of interactive table of contents showing current reading position and allowing users to jump among sections of the text provided,
-- ability to highlight text in four different colors and underline text in red or black,
-- ability to set a bookmark for a selection of text to remember that selection and jump back to it,
-- ability to add a note to a selection of text that can contain mathematical formulas expressed in [TeX notation](https://docs.moodle.org/310/en/Using_TeX_Notation),
-- ability to share notes among users publicly and anonymously,
-- ability to start thread-based discussions from notes shared and contribute to them, e.g., answer a question by another user,
-- ability to subscribe to notifications regarding changes in threads, especially new posts/notes by other users,
-- ability to bookmark notes,
-- ability to like notes,
-- automatic determination if post has been read by user and ability to mark notes as read or unread,
-- ability to filter threads and posts by a set of filters regarding content, author, number of likes, status (read, liked, subscribed to, bookmarked), time created or last modified,
-- ability to sort threads by time last modified or created, position of anchor in text, relevance based on novelty, [collaborative filtering](https://en.wikipedia.org/wiki/Collaborative_filtering) and reading progress of user.
+**Enhanced Reading Experience**
+
+- _Reading-friendly design_ optimized for long-form content
+- _Automatic reading time prediction_ for chapters and sections
+- _Auto-save scroll position_ to continue reading where you left off
+- _Interactive table of contents_ showing current position and section navigation
+- _Mobile-responsive interface_ for reading on any device
+
+**Annotation & Highlighting**
+
+- _Multi-color highlighting_ in four different colors
+- _Text underlining_ in red or black
+- _Bookmark functionality_ for text selections with quick jump-back
+- _Rich note-taking_ with mathematical formulas (TeX notation support)
+- _Persistent annotations_ saved across sessions
+
+**Collaboration & Social Features**
+
+- _Public note sharing_ with anonymous options
+- _Thread-based discussions_ starting from shared notes
+- _Notification subscriptions_ for thread updates and new posts
+- _Question-answer functionality_ for peer learning
+- _Community-driven content interaction_
+
+**Discussion Management**
+
+- _Like/rating system_ for community notes
+- _Read/unread status tracking_ for posts and notes
+- _Advanced filtering options_ by content, author, likes, status, and timestamps
+- _Flexible sorting_ by time, position, relevance, and reading progress
+
+**Analytics & Intelligence**
+
+- _Reading progress tracking_ based on scroll behavior
+- _Collaborative filtering_ for post content recommendations
+- _Relevance-based sorting_
+
+**Educational Integration**
+
+- _Embedded reading comprehension questions_ with interactive sidebar
+- _Progress reporting_ and assessment tools
+- _Course-wide analytics_ for instructors
+- _Integration with Moodle gradebook_ and completion tracking
 
 ## Installation
 
@@ -26,9 +54,7 @@ Before you can install the plugin you should have a proper Moodle installation r
 
 On installing the plugin itself:
 
-1. Clone this repository and rename the folder to `page`.
-
-The _Longpage_ plugin just downloaded is going to replace the _Page_ plugin probably already installed in your Moodle installation. Inside Moodle the _Longpage_ plugin also goes under the name _Page_ so don't wonder if you don't find the name _Longpage_ mentioned anywhere except in the code. Since the _Longpage_ plugin is currently lacking update scripts - feel free to add some ;) - but alters database tables already created by Moodle or, more specifically, the _Page_ plugin, e.g. adding a column, you cannot simply replace the _Page_ plugin by the _Longpage_ plugin since tables would not be altered and you would end up in an inconsistent state unable to use the plugin. Instead you have to install the already installed _Page_ plugin first and, then, do a fresh install of the _Longpage_ plugin.
+1. Clone this repository and rename the folder to `longpage`.
 
 2. To uninstall the _Page_ plugin probably already installed, go to the folder your Moodle installation is located in and run
 
@@ -72,7 +98,7 @@ To contribute to the plugin you should study the [Moodle documentation on plugin
 npm run watch
 ```
 
-inside the `vue` directory. From then on [Webpack](https://webpack.js.org/), the bundler used for this project, is going to watch all the files in `vue` and its direct and indirect subdirectories. Whenever a file changes, a new (developmental) version of `amd/app-lazy.min.js` which is the bundle that contains all html, css and javascript of the SPA. You then have to reload the page inside the browser if you are currently on it to view changes you made to the SPA.
+inside the `vue` directory. From then on [Webpack](https://webpack.js.org/), the bundler used for this project, is going to watch all the files in `vue` and its direct and indirect subdirectories. Whenever a file changes, a new (developmental) version of `amd/build/app-lazy.min.js` which is the bundle that contains all html, css and javascript of the SPA. You then have to reload the page inside the browser if you are currently on it to view changes you made to the SPA.
 
 When deploying to production, you run
 
@@ -81,6 +107,64 @@ npm run build
 ```
 
 to let Webpack bundle up a production ready version of the plugin. IMPORTANT: Do not use `npm run watch` to build for production since it lacks some optimizations that Webpack applies, i.e. in order to make the bundle smaller in size.
+
+## Credits
+
+This software uses the following open source packages:
+[vue.js](https://vuejs.org/),
+[vuex](https://vuex.vuejs.org/),
+[vue-router](https://router.vuejs.org/),
+
+## Related Moodle Plugins
+
+- [mod_page](https://github.com/moodle/moodle/tree/master/mod/page) - Moodle core plugin
+- [mod_pdfannotator](https://moodle.org/plugins/mod_pdfannotator) - Moodle plugin for presenting and annotating PDF files.
+
+## Citation
+
+**Cite this software:**
+
+```
+@misc{Seidel2024-MoodleLongpage,
+	title = {Longpage - {A} {Moodle} activity plugin designed to assist learners with reading extended texts.},
+	url = {https://github.com/CATALPAresearch/mod_longpage},
+	doi = {10.17605/OSF.IO/VBCTW},
+	author = {Seidel, Niels and Stritzinger, Adrian and Menze, Dennis and Friedrich, Konstantin},
+	year = {2024},
+	keywords = {P-APLE-II, software},
+}
+```
+
+## Research articles and datasets about Longpage
+
+**Peer-reviewed papers**
+
+- Menze, D., Seidel, N., & Radović, S. (2025). Dynamic Reading Comprehension Visualization in Digital Course Texts. Proceedings of the 17th International Conference on Computer Supported Education - Volume 1: CSEDU, 266–273. https://doi.org/10.5220/0013216100003932
+- Seidel, N., Stritzinger, A., Menze, D., & Friedrich, K. (2024). Longpage - A Moodle activity plugin designed to assist learners with reading extended texts. https://doi.org/10.17605/OSF.IO/VBCTW
+- Seidel, N., & Menze, D. (2024). Von der Analyse zur adaptiven Unterstützung beim Lesen. Informatik Spektrum, 47(2), in print. https://doi.org/10.1007/s00287-024-01572-0
+- Seidel, N., Dürhager, R., Goldammer, M., Henze, A., Langenbrink, F., Otto, J., & Stirling, V. (2023). Shared listening experience for hyperaudio textbooks. DELFI 2023 – Die 212 Fachtagung Bildungstec Hnologien Der Gesellschaft Für Informatik e.V., 123–128. https://doi.org/10.18420/delfi2023-21
+- Menze, D. (2022). Support for Reading Comprehension in Digital Course Texts. FernUniversität in Hagen.
+  Menze, D., Seidel, N., & Kasakowskij, R. (2022). Interaction of reading and assessment behavior. In P. A. Henning, M. Striewe, & M. Wölfel (Eds.), DELFI 2022 – Die 21. Fachtagung Bildungstechnologien der Gesellschaft für Informatik e.V. (pp. 27–38). Gesellschaft für Informatik. https://doi.org/10.18420/delfi2022-011
+- Seidel, N., & Menze, D. (2022). Interactions of reading and assessment activities. In S. Sosnovsky, P. Brusilovsky, & A. Lan (Eds.), 4th Workshop on Intelligent Textbooks, 2022 (pp. 64–76). CEUR-WS. http://ceur-ws.org/Vol-3192/
+
+**Datasets/Software:**
+
+- Seidel, N., Stritzinger, A., Menze, D., & Friedrich, K. (2024). Longpage - A Moodle activity plugin designed to assist learners with reading extended texts. https://doi.org/10.17605/OSF.IO/VBCTW
+- Seidel, N., & Menze, D. (2022). Data and Analysis of Reading and Assessment Activities in Moodle. Zenodo. https://doi.org/10.5281/zenodo.7300070
+
+## You may also like ...
+
+- [format_serial3](https//github.com/catalparesearch/format_serial3) - Learning Analytics Dashboard for Moodle Courses
+- [mod_usenet](https//github.com/catalparesearch/mod_usenet) - Usenet client for Moodle
+- [local_ari](https//github.com/catalparesearch/local_ari) - Adaptation Rule Interface
+- [mod_hypercast](https://github.com/nise/mod_hypercast) - Hyperaudio player for course texts supporting audio cues, text2speech conversion, text comments, and collaborative listining experiences
+
+## Contributors
+
+- Niels Seidel (project lead)
+- Adrian Stritzinger
+- Dennis Menze
+- Konstantin Friedrich
 
 ## Licence
 
