@@ -92,10 +92,14 @@ class utility_services extends base_external {
                 $transaction = $DB->start_delegated_transaction();
                 $res2 = $DB->insert_record("longpage_reading_progress", (array) $s);
                 $transaction->allow_commit();
-                debugging('scrolldb good');
+                // Log success only if debug mode is enabled
+                if ($CFG->debugdeveloper) {
+                    error_log('Longpage: Reading progress saved successfully');
+                }
             } catch (Exception $e) {
                 $transaction->rollback($e);
-                debugging('scrolldb failed');
+                // Always log errors for troubleshooting
+                error_log('Longpage: Failed to save reading progress - ' . $e->getMessage());
             }
         }
         return ['response' => json_encode($res)];

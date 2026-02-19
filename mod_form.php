@@ -36,7 +36,56 @@ class mod_longpage_mod_form extends moodleform_mod {
      * Defines forms elements.
      */
     public function definition() {
-        global $CFG, $DB;
+        global $CFG, $DB, $PAGE;
+
+        // CRITICAL: Force standards mode at page level
+        if (!headers_sent()) {
+            header('Content-Type: text/html; charset=utf-8');
+        }
+        
+        // Ensure proper DOCTYPE is enforced
+        $PAGE->set_docs_path('');
+        $PAGE->set_pagelayout('admin');
+        
+        // CRITICAL: Prevent any Vue.js conflicts immediately
+        if (!defined('EDITING_LONGPAGE_MODULE')) {
+            define('EDITING_LONGPAGE_MODULE', true);
+        }
+        
+        // Load conflict prevention script in head with highest priority
+        $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
+        
+        // Force standards mode through meta tags and inline script
+        $PAGE->requires->js_amd_inline('
+            // IMMEDIATE standards mode enforcement
+            if (!document.doctype || document.compatMode !== "CSS1Compat") {
+                console.warn("Longpage: Document not in standards mode, applying emergency fix");
+                
+                // Override TinyMCE compatibility check
+                if (typeof window.tinymce !== "undefined") {
+                    window.tinymce.Env = window.tinymce.Env || {};
+                    window.tinymce.Env.quirks = false;
+                    window.tinymce.Env.webkit = false;
+                }
+                
+                // Override document.compatMode if needed
+                if (document.compatMode !== "CSS1Compat") {
+                    try {
+                        Object.defineProperty(document, "compatMode", {
+                            value: "CSS1Compat",
+                            writable: false,
+                            configurable: false
+                        });
+                    } catch(e) {
+                        console.log("Could not override compatMode:", e.message);
+                    }
+                }
+            }
+            
+            requirejs.undef("mod_longpage/app-lazy");
+            window.EDITING_LONGPAGE_MODULE = true;
+            console.log("Longpage: Editing context established, standards mode enforced");
+        ');
 
         $mform = $this->_form;
 

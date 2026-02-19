@@ -169,15 +169,34 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     echo $page->content;
     echo '</div>';
 
-    $PAGE->requires->js_call_amd(
-        'mod_longpage/app-lazy',
-        'init',
-        [
-            $course->id,
-            $page->id,
-            format_string($page->name),
-            $USER->id,
-            $scrolltop,
+    // Completely prevent Vue.js application from loading during form editing to prevent TinyMCE conflicts
+    $is_form_context = (
+        strpos($_SERVER['REQUEST_URI'], 'modedit.php') !== false ||
+        strpos($_SERVER['REQUEST_URI'], 'mod_form.php') !== false ||
+        strpos($_SERVER['HTTP_REFERER'] ?? '', 'modedit.php') !== false ||
+        optional_param('edit', 0, PARAM_BOOL) ||
+        optional_param('update', 0, PARAM_INT) > 0 ||
+        $PAGE->user_is_editing()
+    );
+    
+    // Additional check: don't load if we're in course module editing context
+    if (isset($cm) && !$is_form_context) {
+        $context_check = context_module::instance($cm->id);
+        $is_form_context = $is_form_context || has_capability('moodle/course:manageactivities', $context_check) && 
+                          (strpos($_SERVER['REQUEST_URI'], 'update') !== false);
+    }
+    
+    // Only load Vue.js application for normal content viewing
+    if (!$is_form_context && !defined('EDITING_LONGPAGE_MODULE') && !isset($_GET['update'])) {
+        $PAGE->requires->js_call_amd(
+            'mod_longpage/app-lazy',
+            'init',
+            [
+                $course->id,
+                $page->id,
+                format_string($page->name),
+                $USER->id,
+                $scrolltop,
             !empty($page->showreadingprogress),
             // Hardcoded for WS2023.
             !empty($page->showreadingcomprehension),
@@ -192,6 +211,7 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             is_siteadmin(),
         ]
     );
+    }  // End conditional Vue.js loading to prevent TinyMCE conflicts
 } else {
     echo "Umleitung";
     $url = new moodle_url('/mod/longpage/blocking-redirect.php');

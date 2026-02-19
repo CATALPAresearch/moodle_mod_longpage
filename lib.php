@@ -378,8 +378,27 @@ function longpage_delete_instance($id) {
  * @return cached_cm_info Info to customise main page display
  */
 function longpage_get_coursemodule_info($coursemodule) {
-    global $CFG, $DB;
+    global $CFG, $DB, $PAGE, $OUTPUT;
     require_once("$CFG->libdir/resourcelib.php");
+
+    // Prevent Vue.js conflicts in any editing context
+    if (strpos($_SERVER['REQUEST_URI'], 'modedit.php') !== false || 
+        strpos($_SERVER['REQUEST_URI'], 'course/modedit.php') !== false) {
+        
+        // Force proper DOCTYPE and standards mode
+        if (!headers_sent()) {
+            header('Content-Type: text/html; charset=utf-8');
+            header('X-UA-Compatible: IE=edge');
+        }
+        
+        // Ensure output uses proper HTML5 DOCTYPE
+        $PAGE->set_docs_path('');
+        
+        $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
+        if (!defined('EDITING_LONGPAGE_MODULE')) {
+            define('EDITING_LONGPAGE_MODULE', true);
+        }
+    }
 
     if (
         !$page = $DB->get_record(
@@ -827,4 +846,30 @@ function longpage_update_grades($longpage, $grades = []): void {
     require_once($CFG->libdir . '/gradelib.php');
 
     longpage_grade_item_update($longpage, $grades);
+}
+
+/**
+ * Called before the mod form is displayed - ensure conflict prevention
+ */
+function longpage_coursemodule_edit_form_preprocess(&$form, $mform) {
+    global $PAGE;
+    
+    // Always load conflict prevention when editing longpage modules
+    $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
+    if (!defined('EDITING_LONGPAGE_MODULE')) {
+        define('EDITING_LONGPAGE_MODULE', true);
+    }
+}
+
+/**
+ * Called when course module form is being built
+ */
+function longpage_pluginfile_edit_form_setup() {
+    global $PAGE;
+    
+    // Additional safety net for form editing
+    $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
+    if (!defined('EDITING_LONGPAGE_MODULE')) {
+        define('EDITING_LONGPAGE_MODULE', true);
+    }
 }

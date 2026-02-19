@@ -68,6 +68,8 @@ class reading_progress_services extends base_external {
         self::validate_cm_context($pageid);
 
         try {
+            global $CFG;  // Add global reference for CFG
+            
             $transaction = $DB->start_delegated_transaction();
             $DB->insert_record('longpage_reading_progress', [
                 'longpageid' => $pageid,
@@ -79,10 +81,15 @@ class reading_progress_services extends base_external {
                 'sectionhash' => $sectionhash,
             ]);
             $transaction->allow_commit();
-            debugging('updatescroll good cid ' . $courseid);
+            
+            // Log success only if debug mode is enabled
+            if (!empty($CFG->debugdeveloper)) {
+                error_log('Longpage: Reading progress updated successfully for course ' . $courseid);
+            }
         } catch (Exception $e) {
             $transaction->rollback($e);
-            debugging('updatescroll failed');
+            // Always log errors for troubleshooting
+            error_log('Longpage: Failed to update reading progress - ' . $e->getMessage());
         }
     }
 

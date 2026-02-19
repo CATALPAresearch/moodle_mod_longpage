@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Longpage Modedit Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        .test-button {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .test-button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔧 Longpage TinyMCE Debug Tool - Modedit Context</h1>
+    <p><strong>Current Location:</strong> <code id="current-url"></code></p>
+
+    <div id="context-check" class="section"></div>
+    <div id="script-status" class="section"></div>
+    <div id="vue-status" class="section"></div>
+    <div id="editor-status" class="section"></div>
+    <div id="conflict-analysis" class="section"></div>
+
+    <div class="section">
+        <h3>🧪 Manual Tests</h3>
+        <button class="test-button" onclick="testTinyMCEInit()">Test TinyMCE Init</button>
+        <button class="test-button" onclick="testVueBlocking()">Test Vue Blocking</button>
+        <button class="test-button" onclick="testConflictPrevention()">Test Conflict Prevention</button>
+        <div id="test-results" style="margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        // Set current URL
+        document.getElementById('current-url').textContent = window.location.href;
+
+        // Check if we're in the right context
+        function checkContext() {
+            const contextDiv = document.getElementById('context-check');
+            const url = window.location.href;
+            const isModedit = url.includes('modedit.php');
+            const hasUpdate = url.includes('update=');
+
+            let contextClass = 'info';
+            let contextMsg = '';
+
+            if (isModedit && hasUpdate) {
+                contextClass = 'success';
+                contextMsg = '✅ Correct context: Module editing page detected';
+            } else if (isModedit) {
+                contextClass = 'warning';
+                contextMsg = '⚠️ Partial context: modedit.php but no update parameter';
+            } else {
+                contextClass = 'error';
+                contextMsg = '❌ Wrong context: Not on module edit page';
+            }
+
+            contextDiv.className = `section ${contextClass}`;
+            contextDiv.innerHTML = `<h3>📍 Context Check</h3><p>${contextMsg}</p>`;
+        }
+
+        // Check script loading status
+        function checkScriptStatus() {
+            const scriptDiv = document.getElementById('script-status');
+            const scripts = Array.from(document.scripts);
+            const editorFixLoaded = scripts.some(script => script.src.includes('editor_fix.js'));
+            const editingFlag = window.EDITING_LONGPAGE_MODULE;
+
+            let status = [];
+
+            status.push(`<div class="status-item">
+        <strong>Editor Fix Script:</strong> 
+        ${editorFixLoaded ? '<span style="color: green;">✅ Loaded</span>' : '<span style="color: red;">❌ Not Found</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>Editing Flag:</strong> 
+        ${editingFlag ? '<span style="color: green;">✅ Set</span>' : '<span style="color: red;">❌ Not Set</span>'}
+    </div>`);
+
+            const statusClass = (editorFixLoaded && editingFlag) ? 'success' : 'error';
+
+            scriptDiv.className = `section ${statusClass}`;
+            scriptDiv.innerHTML = `<h3>📜 Script Status</h3>${status.join('')}`;
+        }
+
+        // Check Vue.js status
+        function checkVueStatus() {
+            const vueDiv = document.getElementById('vue-status');
+            const hasVue = !!window.Vue;
+            const hasRequireJS = !!window.require;
+            const hasAMD = hasRequireJS && window.require.defined;
+            const hasLongpageApp = hasRequireJS && hasAMD && window.require.defined('mod_longpage/app-lazy');
+
+            let status = [];
+
+            status.push(`<div class="status-item">
+        <strong>Vue.js Available:</strong> 
+        ${hasVue ? '<span style="color: orange;">⚠️ Yes (potential conflict)</span>' : '<span style="color: green;">✅ No</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>RequireJS Available:</strong> 
+        ${hasRequireJS ? '<span style="color: blue;">ℹ️ Yes</span>' : '<span style="color: gray;">No</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>Longpage App Module:</strong> 
+        ${hasLongpageApp ? '<span style="color: red;">❌ Loaded (conflict!)</span>' : '<span style="color: green;">✅ Not loaded</span>'}
+    </div>`);
+
+            const statusClass = (!hasVue && !hasLongpageApp) ? 'success' : 'warning';
+
+            vueDiv.className = `section ${statusClass}`;
+            vueDiv.innerHTML = `<h3>⚡ Vue.js Status</h3>${status.join('')}`;
+        }
+
+        // Check editor status
+        function checkEditorStatus() {
+            const editorDiv = document.getElementById('editor-status');
+            const hasJQuery = !!window.jQuery || !!window.$;
+            const hasTinyMCE = !!window.tinyMCE || !!window.tinymce;
+            const hasMoodle = !!window.M;
+            const standardsMode = document.compatMode === 'CSS1Compat';
+
+            let status = [];
+
+            status.push(`<div class="status-item">
+        <strong>Document Mode:</strong> 
+        ${standardsMode ? '<span style="color: green;">✅ Standards Mode</span>' : '<span style="color: red;">❌ Quirks Mode</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>jQuery Available:</strong> 
+        ${hasJQuery ? '<span style="color: green;">✅ Yes</span>' : '<span style="color: red;">❌ No</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>TinyMCE Available:</strong> 
+        ${hasTinyMCE ? '<span style="color: green;">✅ Yes</span>' : '<span style="color: red;">❌ No</span>'}
+    </div>`);
+
+            status.push(`<div class="status-item">
+        <strong>Moodle Core:</strong> 
+        ${hasMoodle ? '<span style="color: green;">✅ Yes</span>' : '<span style="color: red;">❌ No</span>'}
+    </div>`);
+
+            // Check for embedquestion plugins
+            let embedButtons = 0;
+            if (hasJQuery) {
+                embedButtons = (window.jQuery || window.$)('.atto_embedquestion_button').length;
+            }
+
+            status.push(`<div class="status-item">
+        <strong>Embedquestion Buttons:</strong> 
+        ${embedButtons > 0 ? '<span style="color: red;">❌ ' + embedButtons + ' found (conflict!)</span>' : '<span style="color: green;">✅ None found</span>'}
+    </div>`);
+
+            const statusClass = (standardsMode && !embedButtons) ? 'success' : 'error';
+
+            editorDiv.className = `section ${statusClass}`;
+            editorDiv.innerHTML = `<h3>📝 Editor Status</h3>${status.join('')}`;
+        }
+
+        // Analyze potential conflicts
+        function analyzeConflicts() {
+            const conflictDiv = document.getElementById('conflict-analysis');
+            let conflicts = [];
+            let solutions = [];
+
+            // Check for common conflict sources
+            if (window.Vue) {
+                conflicts.push('Vue.js is loaded and may interfere with TinyMCE');
+                solutions.push('Ensure Vue.js is blocked in editing contexts');
+            }
+
+            if (window.require && window.require.defined && window.require.defined('mod_longpage/app-lazy')) {
+                conflicts.push('Longpage Vue app module is loaded');
+                solutions.push('Use require.undef() to unload the module');
+            }
+
+            if (document.compatMode !== 'CSS1Compat') {
+                conflicts.push('Document is not in standards mode');
+                solutions.push('Add proper DOCTYPE and meta tags');
+            }
+
+            const hasEmbedButtons = window.jQuery && window.jQuery('.atto_embedquestion_button').length > 0;
+            if (hasEmbedButtons) {
+                conflicts.push('Atto embedquestion buttons are present');
+                solutions.push('Hide and disable embedquestion buttons');
+            }
+
+            let analysis = '';
+            if (conflicts.length === 0) {
+                analysis = '<div style="color: green;">✅ No obvious conflicts detected!</div>';
+            } else {
+                analysis = '<div style="color: red;"><strong>Potential Conflicts:</strong></div><ul>';
+                conflicts.forEach(conflict => {
+                    analysis += `<li>${conflict}</li>`;
+                });
+                analysis += '</ul>';
+
+                analysis += '<div style="color: blue; margin-top: 10px;"><strong>Suggested Solutions:</strong></div><ul>';
+                solutions.forEach(solution => {
+                    analysis += `<li>${solution}</li>`;
+                });
+                analysis += '</ul>';
+            }
+
+            const conflictClass = conflicts.length === 0 ? 'success' : 'error';
+
+            conflictDiv.className = `section ${conflictClass}`;
+            conflictDiv.innerHTML = `<h3>🔍 Conflict Analysis</h3>${analysis}`;
+        }
+
+        // Manual test functions
+        function testTinyMCEInit() {
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div class="info"><strong>Testing TinyMCE initialization...</strong></div>';
+
+            setTimeout(() => {
+                let result = '';
+
+                if (window.tinyMCE || window.tinymce) {
+                    try {
+                        const editor = window.tinyMCE || window.tinymce;
+                        result = '<div class="success">✅ TinyMCE can be initialized</div>';
+                    } catch (e) {
+                        result = `<div class="error">❌ TinyMCE initialization error: ${e.message}</div>`;
+                    }
+                } else {
+                    result = '<div class="error">❌ TinyMCE is not available</div>';
+                }
+
+                resultsDiv.innerHTML = result;
+            }, 500);
+        }
+
+        function testVueBlocking() {
+            const resultsDiv = document.getElementById('test-results');
+
+            if (window.EDITING_LONGPAGE_MODULE) {
+                resultsDiv.innerHTML = '<div class="success">✅ Vue.js blocking is active</div>';
+            } else {
+                resultsDiv.innerHTML = '<div class="error">❌ Vue.js blocking is not active</div>';
+            }
+        }
+
+        function testConflictPrevention() {
+            const resultsDiv = document.getElementById('test-results');
+
+            const hasScript = Array.from(document.scripts).some(script => script.src.includes('editor_fix.js'));
+            const hasFlag = !!window.EDITING_LONGPAGE_MODULE;
+            const standardsMode = document.compatMode === 'CSS1Compat';
+
+            if (hasScript && hasFlag && standardsMode) {
+                resultsDiv.innerHTML = '<div class="success">✅ Conflict prevention is working correctly</div>';
+            } else {
+                let missing = [];
+                if (!hasScript) missing.push('editor_fix.js script');
+                if (!hasFlag) missing.push('EDITING_LONGPAGE_MODULE flag');
+                if (!standardsMode) missing.push('standards mode');
+
+                resultsDiv.innerHTML = `<div class="error">❌ Conflict prevention incomplete. Missing: ${missing.join(', ')}</div>`;
+            }
+        }
+
+        // Run all checks when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            checkContext();
+            checkScriptStatus();
+            checkVueStatus();
+            checkEditorStatus();
+            analyzeConflicts();
+        });
+
+        console.log('Longpage Modedit Debug Tool loaded');
+    </script>
+
+</body>
+
+</html>

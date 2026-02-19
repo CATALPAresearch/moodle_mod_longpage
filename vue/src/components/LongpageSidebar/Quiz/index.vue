@@ -1160,13 +1160,31 @@ export default {
       };
 
       $(".embedExistingQuestion").on("click", function () {
+        // Check if we're in a form editing context (where TinyMCE is active)
+        if (
+          window.EDITING_LONGPAGE_MODULE ||
+          window.location.href.indexOf("modedit.php") !== -1
+        ) {
+          console.log(
+            "Longpage: Skipping atto button trigger in editing context",
+          );
+          return false;
+        }
+
         $("#id_embedform").val("");
         $("#id_embedformeditable").text("");
         $("#id_embedformeditable").data(
           "position",
           $(this).parent().index(".embedQuestion"),
         );
-        $(".atto_embedquestion_button").trigger("click");
+
+        // Only trigger atto button if embedquestion is available and we're not editing
+        if (
+          $(".atto_embedquestion_button").length > 0 &&
+          !window.EDITING_LONGPAGE_MODULE
+        ) {
+          $(".atto_embedquestion_button").trigger("click");
+        }
       });
 
       var modalAdded = false;

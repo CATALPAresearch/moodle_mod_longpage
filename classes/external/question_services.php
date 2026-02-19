@@ -767,7 +767,11 @@ class question_services extends base_external {
                     }
                     break;
                 } catch (\Throwable $th) {
-                    debugging('Create Question Error: ' . $th->getMessage());
+                    global $CFG;
+                    // Log error properly instead of using debugging()
+                    if (!empty($CFG->debugdeveloper)) {
+                        error_log('Longpage: Create Question Error - ' . $th->getMessage());
+                    }
                     if ($i >= $maxtries - 1) {
                         throw $th;
                     }

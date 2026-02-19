@@ -50,13 +50,12 @@ class activity extends \core_search\base_activity {
             $cm = $this->get_cm($this->get_module_name(), $record->id, $record->course);
             $context = \context_module::instance($cm->id);
         } catch (\dml_missing_record_exception $ex) {
-            // Notify it as we run here as admin, we should see everything.
-            debugging('Error retrieving ' . $this->areaid . ' ' . $record->id . ' document, not all required data is available: ' .
-                $ex->getMessage(), DEBUG_DEVELOPER);
+            // Log error properly instead of using debugging() for production stability
+            error_log('Longpage Search: Missing record error for ' . $this->areaid . ' ' . $record->id . ' - ' . $ex->getMessage());
             return false;
         } catch (\dml_exception $ex) {
-            // Notify it as we run here as admin, we should see everything.
-            debugging('Error retrieving ' . $this->areaid . ' ' . $record->id . ' document: ' . $ex->getMessage(), DEBUG_DEVELOPER);
+            // Log error properly instead of using debugging() for production stability  
+            error_log('Longpage Search: Database error for ' . $this->areaid . ' ' . $record->id . ' - ' . $ex->getMessage());
             return false;
         }
 

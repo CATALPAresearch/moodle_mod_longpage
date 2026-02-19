@@ -172,6 +172,27 @@ class longpage_content_file_info extends file_info_stored {
  */
 function longpage_get_editor_options($context) {
     global $CFG;
-    return ['subdirs' => 1, 'maxbytes' => $CFG->maxbytes, 'maxfiles' => -1, 'changeformat' => 1,
-            'context' => $context, 'noclean' => 1, 'trusttext' => 0];
+    return [
+        'subdirs' => 1, 
+        'maxbytes' => $CFG->maxbytes, 
+        'maxfiles' => -1, 
+        'changeformat' => 1,
+        'context' => $context, 
+        'noclean' => 1, 
+        'trusttext' => 0,
+        // Prevent conflicts with embedquestion and Vue.js
+        'atto:toolbar' => 'collapse = collapse\n' .
+                          'style1 = title, bold, italic\n' .
+                          'list = unorderedlist, orderedlist\n' .
+                          'links = link\n' .
+                          'files = image, media, managefiles\n' .
+                          'style2 = underline, strike, subscript, superscript\n' .
+                          'align = align\n' .
+                          'indent = indent\n' .
+                          'insert = equation, charmap, table, clear\n' .
+                          'undo = undo\n' .
+                          'accessibility = accessibilitychecker, accessibilityhelper\n' .
+                          'other = html',
+        'autosave' => false
+    ];
 }
