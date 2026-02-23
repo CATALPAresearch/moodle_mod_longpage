@@ -1039,7 +1039,7 @@ export default {
       function embedIframeCode(iframecode, btn, openEditMode = false) {
         if (iframecode == "error") {
           alert(
-            "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+            "xxx Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
           );
           return;
         }
@@ -1338,20 +1338,34 @@ export default {
                 .join(", "),
             },
             done: function (data) {
+              console.log(0);
+              console.log(1, data);
               let result = JSON.parse(data.response);
+              console.log(2, result);
               removePin();
+              console.log(3);
               removeModalWait(__this);
+              console.log(4);
               embedIframeCode(result["iframecode"], btn);
+              console.log(5);
               console.log(result["log"]);
               addToast("Aufgabe wurde erstellt.");
+              console.log(6);
             },
             fail: function (e) {
+              console.error("create_question failed:", e);
+              console.log("Error details:", {
+                message: e.message,
+                errorcode: e.errorcode,
+                debuginfo: e.debuginfo,
+                isAdmin: _this.context.isAdmin,
+              });
               removeModalWait(__this);
               if (_this.context.isAdmin) {
                 addToast(e.message, 10000, true);
               } else {
                 addToast(
-                  "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.",
+                  "yyy Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.",
                   5000,
                   true,
                 );

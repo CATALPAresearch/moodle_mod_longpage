@@ -169,9 +169,25 @@ class longpage_content_file_info extends file_info_stored {
  *
  * @param object $context Context object
  * @return array Editor options
+ * atto:toolbar options are not used by atto. FixMe.
+ * 
  */
 function longpage_get_editor_options($context) {
     global $CFG;
+    
+    $toolbar = <<<EOT
+collapse = collapse, embedquestion, html
+style1 = title, bold, italic
+list = unorderedlist, orderedlist, indent
+links = link
+files = emojipicker, image, media, recordrtc, managefiles, h5p
+style2 = underline, strike, subscript, superscript
+align = align
+insert = equation, charmap, table, clear
+undo = undo
+accessibility = accessibilitychecker, accessibilityhelper
+EOT;
+    
     return [
         'subdirs' => 1, 
         'maxbytes' => $CFG->maxbytes, 
@@ -180,19 +196,7 @@ function longpage_get_editor_options($context) {
         'context' => $context, 
         'noclean' => 1, 
         'trusttext' => 0,
-        // Prevent conflicts with embedquestion and Vue.js
-        'atto:toolbar' => 'collapse = collapse\n' .
-                          'style1 = title, bold, italic\n' .
-                          'list = unorderedlist, orderedlist\n' .
-                          'links = link\n' .
-                          'files = image, media, managefiles\n' .
-                          'style2 = underline, strike, subscript, superscript\n' .
-                          'align = align\n' .
-                          'indent = indent\n' .
-                          'insert = equation, charmap, table, clear\n' .
-                          'undo = undo\n' .
-                          'accessibility = accessibilitychecker, accessibilityhelper\n' .
-                          'other = html',
+        'atto:toolbar' => $toolbar,
         'autosave' => false
     ];
 }

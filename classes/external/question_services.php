@@ -625,22 +625,47 @@ class question_services extends base_external {
         require_capability('mod/longpage:modannotations', $context);
 
         $coursecontext = \context_course::instance($course->id);
-        if ($useai) {
-            $category = $DB->get_record(
-                'question_categories',
-                ['contextid' => $coursecontext->id, 'idnumber' => 'aigenerated']
-            );
-            if (!$category) {
-                throw new Exception("Category with idnumber 'aigenerated' not found.");
+        
+        // Auto-create question categories if they don't exist
+        $idnumber = $useai ? 'aigenerated' : 'manuallygenerated';
+        $categoryname = $useai ? 'AI Generated Questions' : 'Manually Generated Questions';
+        
+        $category = $DB->get_record(
+            'question_categories',
+            ['contextid' => $coursecontext->id, 'idnumber' => $idnumber]
+        );
+        
+        if (!$category) {
+            // Get or create top-level category for the course
+            $topcat = $DB->get_record('question_categories', [
+                'contextid' => $coursecontext->id,
+                'parent' => 0
+            ]);
+            
+            if (!$topcat) {
+                // Create top-level category if it doesn't exist
+                $topcat = new \stdClass();
+                $topcat->contextid = $coursecontext->id;
+                $topcat->parent = 0;
+                $topcat->name = 'top';
+                $topcat->info = '';
+                $topcat->infoformat = FORMAT_HTML;
+                $topcat->stamp = make_unique_id_code();
+                $topcat->sortorder = 999;
+                $topcat->id = $DB->insert_record('question_categories', $topcat);
             }
-        } else {
-            $category = $DB->get_record(
-                'question_categories',
-                ['contextid' => $coursecontext->id, 'idnumber' => 'manuallygenerated']
-            );
-            if (!$category) {
-                throw new Exception("Category with idnumber 'manuallygenerated' not found.");
-            }
+            
+            // Create the category
+            $category = new \stdClass();
+            $category->contextid = $coursecontext->id;
+            $category->parent = $topcat->id;
+            $category->name = $categoryname;
+            $category->idnumber = $idnumber;
+            $category->info = 'Questions for longpage module';
+            $category->infoformat = FORMAT_HTML;
+            $category->stamp = make_unique_id_code();
+            $category->sortorder = 999;
+            $category->id = $DB->insert_record('question_categories', $category);
         }
 
         $options = ['noclean' => true, 'filter' => false];
