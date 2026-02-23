@@ -46,12 +46,14 @@
       <longpage-sidebar class="col-auto" />
     </div>
     <!-- <CourseRecommendation></CourseRecommendation> -->
-    <ReadingTime v-if="context.showreadingprogress"></ReadingTime>
+    RTIME_: {{ context.showreadingtime }} .. {{ context }}
+    <ReadingTime v-if="context.showreadingtime"></ReadingTime>
     <ReadingProgress :context="context"> </ReadingProgress>
   </div>
 </template>
 
 <script>
+console.log("[APP.VUE LOADED]");
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -111,7 +113,7 @@ export default {
   data() {
     return {
       eventListeners: [],
-      pageReady: false,
+      pageReady: false, // Wait for page-ready event
       // readingTimeEstimator: new ReadingTimeEstimator(
       //   toIdSelector(LONGPAGE_CONTENT_ID)
       // ),
@@ -128,6 +130,21 @@ export default {
         : null;
     },
     ...mapGetters({ context: GET.LONGPAGE_CONTEXT }),
+  },
+  watch: {
+    context: {
+      handler(newVal) {
+        console.log(
+          "[APP.VUE WATCH] context changed, showreadingtime:",
+          newVal?.showreadingtime,
+          "type:",
+          typeof newVal?.showreadingtime,
+        );
+        console.log("[APP.VUE WATCH] Full context:", newVal);
+      },
+      immediate: true,
+      deep: true,
+    },
   },
   mounted() {
     EventBus.subscribe("page-ready", () => {

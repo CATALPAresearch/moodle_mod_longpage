@@ -28,8 +28,8 @@ import { GET } from "./types";
 import moodleAjax from "core/ajax";
 import moodleStorage from "core/localstorage";
 
-export const initStore = (longpageContext) =>
-  createStore({
+export const initStore = (longpageContext) => {
+  return createStore({
     modules: {
       AnnotationModule,
       PostModule,
@@ -80,3 +80,6 @@ export const initStore = (longpageContext) =>
       },
     },
   });
+};
+
+export default initStore;

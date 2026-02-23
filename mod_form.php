@@ -151,6 +151,14 @@ class mod_longpage_mod_form extends moodleform_mod {
 
         $mform->addElement(
             'advcheckbox',
+            'showreadingtime',
+            get_string('showreadingtime', 'longpage')
+        );
+        $mform->setType('showreadingtime', PARAM_BOOL);
+        $mform->setDefault('showreadingtime', $config->showreadingtime);
+
+        $mform->addElement(
+            'advcheckbox',
             'showreadingcomprehension',
             get_string('showreadingcomprehension', 'longpage')
         );
@@ -234,6 +242,25 @@ class mod_longpage_mod_form extends moodleform_mod {
                 $defaultvalues['content']
             );
             $defaultvalues['longpage']['itemid'] = $draftitemid;
+            
+            // Explicitly set checkbox values for proper form loading.
+            $checkboxes = [
+                'showreadingprogress',
+                'showreadingtime',
+                'showreadingcomprehension',
+                'showsearch',
+                'showtableofcontents',
+                'showposts',
+                'showhighlights',
+                'showbookmarks',
+                'showeditquestionsnoai',
+                'showeditquestionsai'
+            ];
+            foreach ($checkboxes as $checkbox) {
+                if (isset($defaultvalues[$checkbox])) {
+                    $defaultvalues[$checkbox] = (int)$defaultvalues[$checkbox];
+                }
+            }
         }
-        if (!empty($defaultvalues['displayoptions'])) {
-    
+    }
+}

@@ -18,21 +18,18 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {EventBus} from '@/lib/event-bus';
+import { EventBus } from "@/lib/event-bus";
 
 let timeout = null;
 
-new MutationObserver((_, observer) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-        observer.disconnect();
-        setTimeout(() => {
-            EventBus.publish('page-ready');
-        });
-    }, 500);
+new MutationObserver(() => {
+  if (timeout) clearTimeout(timeout);
+  timeout = setTimeout(() => {
+    EventBus.publish("page-ready");
+  }, 500);
 }).observe(document, {
-    childList: true,
-    attributes: true,
-    characterData: true,
-    subtree: true,
+  childList: true,
+  attributes: true,
+  characterData: true,
+  subtree: true,
 });

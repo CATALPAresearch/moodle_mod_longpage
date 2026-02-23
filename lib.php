@@ -238,6 +238,24 @@ function longpage_add_instance($data, $mform = null) {
         $data->contentformat = $data->longpage['format'];
     }
 
+    // Debug logging for checkbox values.
+    error_log('[LONGPAGE ADD] Before processing - showreadingtime: ' . 
+              (isset($data->showreadingtime) ? var_export($data->showreadingtime, true) : 'NOT SET'));
+
+    // Process boolean fields - advcheckbox sends 0 or 1, use value directly.
+    $data->showreadingprogress = !empty($data->showreadingprogress) ? 1 : 0;
+    $data->showreadingtime = !empty($data->showreadingtime) ? 1 : 0;
+    $data->showreadingcomprehension = !empty($data->showreadingcomprehension) ? 1 : 0;
+    $data->showsearch = !empty($data->showsearch) ? 1 : 0;
+    $data->showtableofcontents = !empty($data->showtableofcontents) ? 1 : 0;
+    $data->showposts = !empty($data->showposts) ? 1 : 0;
+    $data->showhighlights = !empty($data->showhighlights) ? 1 : 0;
+    $data->showbookmarks = !empty($data->showbookmarks) ? 1 : 0;
+    $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
+    $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
+
+    error_log('[LONGPAGE ADD] After processing - showreadingtime: ' . $data->showreadingtime);
+
     if (!$data->id = $DB->insert_record('longpage', $data)) {
         throw new moodle_exception('errorinsertingrecord', 'mod_longpage');
     }
@@ -303,15 +321,23 @@ function longpage_update_instance($data, $mform) {
     $data->content       = $data->longpage['text'];
     $data->contentformat = $data->longpage['format'];
 
-    $data->showreadingprogress = !empty($data->showreadingprogress);
-    $data->showreadingcomprehension = !empty($data->showreadingcomprehension);
-    $data->showsearch = !empty($data->showsearch);
-    $data->showtableofcontents = !empty($data->showtableofcontents);
-    $data->showposts = !empty($data->showposts);
-    $data->showhighlights = !empty($data->showhighlights);
-    $data->showbookmarks = !empty($data->showbookmarks);
-    $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai);
-    $data->showeditquestionsai = !empty($data->showeditquestionsai);
+    // Debug logging for checkbox values.
+    error_log('[LONGPAGE UPDATE] Before processing - showreadingtime: ' . 
+              (isset($data->showreadingtime) ? var_export($data->showreadingtime, true) : 'NOT SET'));
+
+    // Process boolean fields - advcheckbox sends 0 or 1, use value directly.
+    $data->showreadingprogress = !empty($data->showreadingprogress) ? 1 : 0;
+    $data->showreadingtime = !empty($data->showreadingtime) ? 1 : 0;
+    $data->showreadingcomprehension = !empty($data->showreadingcomprehension) ? 1 : 0;
+    $data->showsearch = !empty($data->showsearch) ? 1 : 0;
+    $data->showtableofcontents = !empty($data->showtableofcontents) ? 1 : 0;
+    $data->showposts = !empty($data->showposts) ? 1 : 0;
+    $data->showhighlights = !empty($data->showhighlights) ? 1 : 0;
+    $data->showbookmarks = !empty($data->showbookmarks) ? 1 : 0;
+    $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
+    $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
+
+    error_log('[LONGPAGE UPDATE] After processing - showreadingtime: ' . $data->showreadingtime);
 
     $DB->update_record('longpage', $data);
 

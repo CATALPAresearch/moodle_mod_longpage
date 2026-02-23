@@ -27,7 +27,8 @@ defined('MOODLE_INTERNAL') || die;
 /**
  * Custom admin setting to display available Ollama models
  */
-class admin_setting_longpage_models extends admin_setting {
+if (!class_exists('admin_setting_longpage_models')) {
+    class admin_setting_longpage_models extends admin_setting {
     
     public function __construct() {
         parent::__construct(
@@ -212,6 +213,7 @@ class admin_setting_longpage_models extends admin_setting {
         return $html;
     }
 }
+}
 
 if ($ADMIN->fulltree) {
     require_once("$CFG->libdir/resourcelib.php");
@@ -246,6 +248,12 @@ if ($ADMIN->fulltree) {
         'longpage/showreadingprogress',
         get_string('showreadingprogress', 'longpage'),
         get_string('showreadingprogress', 'longpage'),
+        1
+    ));
+    $settings->add(new admin_setting_configcheckbox(
+        'longpage/showreadingtime',
+        get_string('showreadingtime', 'longpage'),
+        get_string('showreadingtime', 'longpage'),
         1
     ));
     $settings->add(new admin_setting_configcheckbox(

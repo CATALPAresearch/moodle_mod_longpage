@@ -179,8 +179,8 @@ $string['showpostsexplain'] = 'Funktionalität zum Erstellen und Lesen von Anmer
 $string['showreadingcomprehension'] = 'Leseverständnis ermitteln und anzeigen';
 $string['showreadingcomprehensionexplain'] = 'Aufgaben zur Ermittlung und Visualisierung des Leseverständnisses anzeigen';
 $string['showreadingprogress'] = 'Lesefortschritt anzeigen';
-$string['showreadingprogressexplain'] = 'Lesefortschrittsbalken anzeigen (Lesefortschritt wird immer geloggt!)';
-$string['showsearch'] = 'Suche anzeigen';
+$string['showreadingprogressexplain'] = 'Lesefortschrittsbalken anzeigen (Lesefortschritt wird immer geloggt!)';$string['showreadingtime'] = 'Geschätzte Lesezeit anzeigen';
+$string['showreadingtimeexplain'] = 'Geschätzte Lesezeit für jeden Abschnitt anzeigen';$string['showsearch'] = 'Suche anzeigen';
 $string['showsearchexplain'] = 'Suche in Seitenleiste anzeigen';
 $string['showtableofcontents'] = 'Inhaltsverzeichnis anzeigen';
 $string['showtableofcontentsexplain'] = 'Inhaltsverzeichnis in Seitenleiste anzeigen';
