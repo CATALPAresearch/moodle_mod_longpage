@@ -63,18 +63,9 @@ longpage_view($page, $course, $cm, $context);
 $PAGE->set_url('/mod/longpage/view.php', ['id' => $cm->id]);
 $PAGE->requires->css('/mod/longpage/styles.css', true);
 
-$options = empty($page->displayoptions) ?
-    [] :
-    unserialize($page->displayoptions);
-
-if ($inpopup && $page->display == RESOURCELIB_DISPLAY_POPUP) {
-    $PAGE->set_pagelayout('popup');
-    $PAGE->set_title($course->shortname . ': ' . $page->name);
-    $PAGE->set_heading($course->fullname);
-} else {
-    $PAGE->set_title($course->shortname . ': ' . $page->name);
-    $PAGE->set_heading($course->fullname);
-}
+// Longpage always uses standard display mode (no popup).
+$PAGE->set_title($course->shortname . ': ' . $page->name);
+$PAGE->set_heading($course->fullname);
 
 $PAGE->set_secondary_navigation(false);
 $PAGE->activityheader->disable();
@@ -109,16 +100,13 @@ function get_formatted_page_content($page, $context) {
 if (mod_longpage\blocking::tool_policy_accepted() == true) {
     $content = get_formatted_page_content($page, $context);
 
-    if (!isset($options['printheading']) || !empty($options['printheading'])) {
-        echo '<h2 style="display:inline;">' . format_string($page->name) . '</h2>';
-    }
-    if (!isset($options['printintro']) || !empty($options['printintro'])) {
-        echo $OUTPUT->box(
-            format_module_intro('longpage', $page, $cm->id),
-            'generalbox',
-            'intro'
-        );
-    }
+    // Always display heading and intro for longpage.
+    echo '<h2 style="display:inline;">' . format_string($page->name) . '</h2>';
+    echo $OUTPUT->box(
+        format_module_intro('longpage', $page, $cm->id),
+        'generalbox',
+        'intro'
+    );
     echo '<div class="dropdown" style="display: inline;">' .
         '<button class="btn btm-sm dropdown-toggle" type="button" ' .
         'id="dropdownPages" data-toggle="dropdown" ' .

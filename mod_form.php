@@ -128,39 +128,9 @@ class mod_longpage_mod_form extends moodleform_mod {
         // -------------------------------------------------------
         $mform->addElement('header', 'appearancehdr', get_string('appearance'));
 
-        if ($this->current->instance) {
-            $options = resourcelib_get_displayoptions(
-                explode(',', $config->displayoptions),
-                $this->current->display
-            );
-        } else {
-            $options = resourcelib_get_displayoptions(explode(',', $config->displayoptions));
-        }
-        if (count($options) == 1) {
-            $mform->addElement('hidden', 'display');
-            $mform->setType('display', PARAM_INT);
-            reset($options);
-            $mform->setDefault('display', key($options));
-        } else {
-            $mform->addElement('select', 'display', get_string('displayselect', 'longpage'), $options);
-            $mform->setDefault('display', $config->display);
-        }
-
-        if (array_key_exists(RESOURCELIB_DISPLAY_POPUP, $options)) {
-            $mform->addElement('text', 'popupwidth', get_string('popupwidth', 'longpage'), ['size' => 3]);
-            if (count($options) > 1) {
-                $mform->disabledIf('popupwidth', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
-            }
-            $mform->setType('popupwidth', PARAM_INT);
-            $mform->setDefault('popupwidth', $config->popupwidth);
-
-            $mform->addElement('text', 'popupheight', get_string('popupheight', 'longpage'), ['size' => 3]);
-            if (count($options) > 1) {
-                $mform->disabledIf('popupheight', 'display', 'noteq', RESOURCELIB_DISPLAY_POPUP);
-            }
-            $mform->setType('popupheight', PARAM_INT);
-            $mform->setDefault('popupheight', $config->popupheight);
-        }
+        // Simplified display options - always use standard display
+        $mform->addElement('hidden', 'display', RESOURCELIB_DISPLAY_OPEN);
+        $mform->setType('display', PARAM_INT);
 
         $mform->addElement(
             'advcheckbox',
@@ -223,7 +193,6 @@ class mod_longpage_mod_form extends moodleform_mod {
         $mform->setType('showeditquestionsai', PARAM_BOOL);
         $mform->setDefault('showeditquestionsai', $config->showeditquestionsai);
 
-        // Add legacy files flag only if used.
         if (isset($this->current->legacyfiles) && $this->current->legacyfiles != RESOURCELIB_LEGACYFILES_NO) {
             $options = [RESOURCELIB_LEGACYFILES_DONE   => get_string('legacyfilesdone', 'longpage'),
                              RESOURCELIB_LEGACYFILES_ACTIVE => get_string('legacyfilesactive', 'longpage')];
@@ -267,19 +236,4 @@ class mod_longpage_mod_form extends moodleform_mod {
             $defaultvalues['longpage']['itemid'] = $draftitemid;
         }
         if (!empty($defaultvalues['displayoptions'])) {
-            $displayoptions = unserialize($defaultvalues['displayoptions']);
-            if (isset($displayoptions['printintro'])) {
-                $defaultvalues['printintro'] = $displayoptions['printintro'];
-            }
-            if (isset($displayoptions['printheading'])) {
-                $defaultvalues['printheading'] = $displayoptions['printheading'];
-            }
-            if (!empty($displayoptions['popupwidth'])) {
-                $defaultvalues['popupwidth'] = $displayoptions['popupwidth'];
-            }
-            if (!empty($displayoptions['popupheight'])) {
-                $defaultvalues['popupheight'] = $displayoptions['popupheight'];
-            }
-        }
-    }
-}
+    

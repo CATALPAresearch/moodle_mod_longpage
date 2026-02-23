@@ -24,6 +24,28 @@
 
 $string['activatefunctionalities'] = 'Longpage-Funktionen (de-)aktivieren';
 $string['activatefunctionalitiesexplain'] = 'Longpage-Funktionen für eine Longpage-Instanz (de-)aktivieren';
+
+// AI question generation settings.
+$string['aiquestiongeneration'] = 'KI-Konfiguration';
+$string['aiquestiongenerationexplain'] = 'Konfigurieren Sie die KI-gestützte Fragenerstellung mit Ollama LLM-Server';
+$string['enableai'] = 'KI-Fragenerstellung aktivieren';
+$string['enableai_desc'] = 'Ermöglicht Lehrenden, Leseaufgaben mit KI zu erstellen';
+$string['aiurl'] = 'Primäre LLM-Server-URL';
+$string['aiurl_desc'] = 'Die URL des Ollama-API-Endpunkts (z.B. http://server:11434/api/chat)';
+$string['aiurlbackup'] = 'Backup LLM-Server-URL';
+$string['aiurlbackup_desc'] = 'Ausweich-URL, falls der primäre Server nicht verfügbar ist';
+$string['aimodel'] = 'KI-Modellname';
+$string['aimodel_desc'] = 'Das zu verwendende Ollama-Modell für die Fragenerstellung (z.B. llama3.1:latest, mistral:latest)';
+$string['aitoken'] = 'Autorisierungstoken';
+$string['aitoken_desc'] = 'Optional: JWT-Token oder API-Schlüssel für die Authentifizierung';
+$string['aitimeout'] = 'Anfrage-Timeout';
+$string['aitimeout_desc'] = 'Maximale Wartezeit in Sekunden für KI-Antwort (Standard: 180)';
+$string['availablemodels'] = 'Verfügbare Modelle';
+$string['availablemodels_desc'] = 'Auf dem konfigurierten Ollama-Server erkannte Modelle';
+$string['checkavailablemodels'] = 'Verfügbare Modelle auf dem Server prüfen';
+$string['configure_url_first'] = 'Bitte konfigurieren Sie zuerst die LLM-Server-URL oben';
+$string['invalid_url'] = 'Ungültiges URL-Format';
+$string['refreshmodels'] = 'Modellliste aktualisieren';
 $string['configdisplayoptions'] = 'Select all options that should be available, existing settings are not modified. Hold CTRL key to select multiple fields.';
 $string['content'] = 'Longpage Inhalt';
 $string['contentheader'] = 'Inhalt';
@@ -324,3 +346,16 @@ $string['quiz_button_previousQuestion'] = 'Vorherige Aufgabe';
 $string['quiz_button_nextQuestion'] = 'Nächste Aufgabe';
 $string['quiz_message_loadingQuestions'] = 'Aufgaben werden geladen...';
 $string['quiz_message_loadFailed'] = 'Aufgaben konnten nicht geladen werden';
+
+// Check models page
+$string['aiurl_notconfigured'] = 'LLM-Server-URL ist nicht konfiguriert. Bitte konfigurieren Sie diese in den Plugin-Einstellungen.';
+$string['checking_models_at'] = 'Verfügbare Modelle werden geprüft unter: {$a}';
+$string['connection_error'] = 'Verbindungsfehler: {$a}';
+$string['http_error'] = 'HTTP-Fehlercode: {$a}';
+$string['models_found'] = '{$a} Modell(e) auf dem Server gefunden';
+$string['model_name'] = 'Modellname';
+$string['model_size'] = 'Größe';
+$string['model_modified'] = 'Zuletzt geändert';
+$string['copy_model_name'] = 'Kopieren Sie den Modellnamen aus der obigen Tabelle und fügen Sie ihn in die Einstellung "KI-Modellname" ein.';
+$string['no_models_found'] = 'Keine Modelle auf dem Server gefunden';
+$string['back_to_settings'] = 'Zurück zu den Einstellungen';

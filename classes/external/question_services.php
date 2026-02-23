@@ -494,12 +494,31 @@ class question_services extends base_external {
      * @return object
      */
     protected static function chat($systemcontent, $usercontent) {
-        $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjczYmUyMGFiLWI4YjYtNDNmNS05YmZjLWIz"
-            . "MDU1OGZkODZiYyJ9.7QCdTgHAPVvTJgkbr7NLxYcO4iUTwlL4ai6rfw_neXE";
-        $url = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
-        $backupurl = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
-        $model = 'llama3.1:latest';
-        $authorization = '';
+        // Check if AI is enabled
+        $aienabled = get_config('longpage', 'enableai');
+        if (!$aienabled) {
+            throw new Exception('AI question generation is disabled. Please enable it in plugin settings.');
+        }
+        
+        // Get configuration from plugin settings
+        $url = get_config('longpage', 'aiurl');
+        $backupurl = get_config('longpage', 'aiurlbackup');
+        $model = get_config('longpage', 'aimodel');
+        $token = get_config('longpage', 'aitoken');
+        $timeout = (int)get_config('longpage', 'aitimeout') ?: 180;
+        
+        // Set defaults if settings are empty
+        if (empty($url)) {
+            $url = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
+        }
+        if (empty($backupurl)) {
+            $backupurl = $url;
+        }
+        if (empty($model)) {
+            $model = 'llama3.1:latest';
+        }
+        
+        $authorization = !empty($token) ? 'Authorization: Bearer ' . $token : '';
 
         $systemcontent = str_replace("\n", '', $systemcontent);
         $systemcontent = str_replace("\r", '', $systemcontent);
@@ -527,7 +546,7 @@ class question_services extends base_external {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 180);
+        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
         $res = curl_exec($ch);
         if (curl_errno($ch)) {
             curl_setopt($ch, CURLOPT_URL, $backupurl);

@@ -24,6 +24,28 @@
 
 $string['activatefunctionalities'] = '(De-)activate Longpage functionalities';
 $string['activatefunctionalitiesexplain'] = '(De-)activate Longpage functionalities for one Longpage instance';
+
+// AI question generation settings.
+$string['aiquestiongeneration'] = 'AI Configuration';
+$string['aiquestiongenerationexplain'] = 'Configure AI-powered question generation using Ollama LLM server';
+$string['enableai'] = 'Enable AI question generation';
+$string['enableai_desc'] = 'Allow teachers to generate reading comprehension questions using AI';
+$string['aiurl'] = 'Primary LLM server URL';
+$string['aiurl_desc'] = 'The URL of the Ollama API endpoint (e.g., http://server:11434/api/chat)';
+$string['aiurlbackup'] = 'Backup LLM server URL';
+$string['aiurlbackup_desc'] = 'Fallback URL if the primary server is unavailable';
+$string['aimodel'] = 'AI model name';
+$string['aimodel_desc'] = 'The Ollama model to use for question generation (e.g., llama3.1:latest, mistral:latest)';
+$string['aitoken'] = 'Authorization token';
+$string['aitoken_desc'] = 'Optional: JWT token or API key for authentication';
+$string['aitimeout'] = 'Request timeout';
+$string['aitimeout_desc'] = 'Maximum time in seconds to wait for AI response (default: 180)';
+$string['availablemodels'] = 'Available models';
+$string['availablemodels_desc'] = 'Models detected on the configured Ollama server';
+$string['checkavailablemodels'] = 'Check available models on server';
+$string['configure_url_first'] = 'Please configure the LLM server URL above first';
+$string['invalid_url'] = 'Invalid URL format';
+$string['refreshmodels'] = 'Refresh models list';
 $string['configdisplayoptions'] = 'Select all options that should be available, existing settings are not modified. Hold CTRL key to select multiple fields.';
 $string['content'] = 'Longpage content';
 $string['contentheader'] = 'Content';
@@ -339,3 +361,16 @@ $string['quiz_button_previousQuestion'] = 'Previous question';
 $string['quiz_button_nextQuestion'] = 'Next question';
 $string['quiz_message_loadingQuestions'] = 'Loading questions...';
 $string['quiz_message_loadFailed'] = 'Unable to load questions';
+
+// Check models page
+$string['aiurl_notconfigured'] = 'LLM Server URL is not configured. Please configure it in the plugin settings.';
+$string['checking_models_at'] = 'Checking available models at: {$a}';
+$string['connection_error'] = 'Connection error: {$a}';
+$string['http_error'] = 'HTTP error code: {$a}';
+$string['models_found'] = '{$a} model(s) found on server';
+$string['model_name'] = 'Model Name';
+$string['model_size'] = 'Size';
+$string['model_modified'] = 'Last Modified';
+$string['copy_model_name'] = 'Copy the model name from the table above and paste it into the "AI model name" setting.';
+$string['no_models_found'] = 'No models found on server';
+$string['back_to_settings'] = 'Back to settings';
