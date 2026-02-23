@@ -53,7 +53,6 @@
 </template>
 
 <script>
-console.log("[APP.VUE LOADED]");
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -134,13 +133,7 @@ export default {
   watch: {
     context: {
       handler(newVal) {
-        console.log(
-          "[APP.VUE WATCH] context changed, showreadingtime:",
-          newVal?.showreadingtime,
-          "type:",
-          typeof newVal?.showreadingtime,
-        );
-        console.log("[APP.VUE WATCH] Full context:", newVal);
+        // Context updated
       },
       immediate: true,
       deep: true,
