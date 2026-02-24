@@ -374,3 +374,27 @@ $string['features_downloadPDF_errorMessage'] = 'PDF-Export fehlgeschlagen. Bitte
 
 // Content edit warning
 $string['contenteditwarning'] = 'Die Bearbeitung des Textes kann dazu führen, dass Annotationen wie farbliche Hervorhebungen oder Lesezeichen nicht mehr an der vorgesehenen Position angezeigt werden.';
+
+// Teacher Dashboard
+$string['features_teacherDashboard_label'] = 'Lehrenden-Dashboard';
+$string['features_teacherDashboard_button'] = 'Statistik';
+$string['features_teacherDashboard_title'] = 'Lehrenden-Dashboard';
+$string['features_teacherDashboard_loading'] = 'Analysedaten werden geladen...';
+$string['features_teacherDashboard_errorLoading'] = 'Fehler beim Laden der Analysedaten.';
+$string['features_teacherDashboard_weeklyActivityTitle'] = 'Wöchentliche Aktivität';
+$string['features_teacherDashboard_userEngagementTitle'] = 'Nutzerengagement';
+$string['features_teacherDashboard_readingDistributionTitle'] = 'Leseposition-Verteilung';
+$string['features_teacherDashboard_chartLabels_views'] = 'Seitenaufrufe';
+$string['features_teacherDashboard_chartLabels_searches'] = 'Suchen';
+$string['features_teacherDashboard_chartLabels_tocuses'] = 'Inhaltsverz.-Nutzung';
+$string['features_teacherDashboard_chartLabels_quizattempts'] = 'Aufgabenversuche';
+$string['features_teacherDashboard_chartLabels_highlights'] = 'Markierungen';
+$string['features_teacherDashboard_chartLabels_posts'] = 'Beiträge';
+$string['features_teacherDashboard_chartLabels_bookmarks'] = 'Lesezeichen';
+$string['features_teacherDashboard_chartLabels_uniqueUsers'] = 'Eindeutige Nutzer';
+$string['features_teacherDashboard_chartLabels_avgTimeMinutes'] = 'Durchschn. Zeit (Min.)';
+$string['features_teacherDashboard_chartLabels_users'] = 'Nutzer';
+$string['features_teacherDashboard_chartLabels_minutes'] = 'Minuten';
+$string['features_teacherDashboard_chartLabels_readingEvents'] = 'Leseereignisse';
+$string['features_teacherDashboard_chartLabels_textPosition'] = 'Textposition';
+$string['features_teacherDashboard_chartLabels_eventCount'] = 'Anzahl Ereignisse';

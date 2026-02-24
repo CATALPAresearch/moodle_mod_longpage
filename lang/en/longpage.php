@@ -389,3 +389,27 @@ $string['features_downloadPDF_errorMessage'] = 'PDF export failed. Please try ag
 
 // Content edit warning
 $string['contenteditwarning'] = 'Editing the text may cause annotations such as colour highlights or bookmarks to no longer appear in the intended position.';
+
+// Teacher Dashboard
+$string['features_teacherDashboard_label'] = 'Teacher Dashboard';
+$string['features_teacherDashboard_button'] = 'Analytics';
+$string['features_teacherDashboard_title'] = 'Teacher Dashboard';
+$string['features_teacherDashboard_loading'] = 'Loading analytics data...';
+$string['features_teacherDashboard_errorLoading'] = 'Failed to load analytics data.';
+$string['features_teacherDashboard_weeklyActivityTitle'] = 'Weekly Activity';
+$string['features_teacherDashboard_userEngagementTitle'] = 'User Engagement';
+$string['features_teacherDashboard_readingDistributionTitle'] = 'Reading Position Distribution';
+$string['features_teacherDashboard_chartLabels_views'] = 'Page Views';
+$string['features_teacherDashboard_chartLabels_searches'] = 'Searches';
+$string['features_teacherDashboard_chartLabels_tocuses'] = 'TOC Uses';
+$string['features_teacherDashboard_chartLabels_quizattempts'] = 'Quiz Attempts';
+$string['features_teacherDashboard_chartLabels_highlights'] = 'Highlights';
+$string['features_teacherDashboard_chartLabels_posts'] = 'Posts';
+$string['features_teacherDashboard_chartLabels_bookmarks'] = 'Bookmarks';
+$string['features_teacherDashboard_chartLabels_uniqueUsers'] = 'Unique Users';
+$string['features_teacherDashboard_chartLabels_avgTimeMinutes'] = 'Avg Time (min)';
+$string['features_teacherDashboard_chartLabels_users'] = 'Users';
+$string['features_teacherDashboard_chartLabels_minutes'] = 'Minutes';
+$string['features_teacherDashboard_chartLabels_readingEvents'] = 'Reading Events';
+$string['features_teacherDashboard_chartLabels_textPosition'] = 'Text Position';
+$string['features_teacherDashboard_chartLabels_eventCount'] = 'Event Count';

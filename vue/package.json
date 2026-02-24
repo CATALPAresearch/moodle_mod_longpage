@@ -21,6 +21,7 @@
     "@juggle/resize-observer": "3.2.0",
     "autosize": "4.0.2",
     "bootstrap-slider": "11.0.2",
+    "chart.js": "^4.5.1",
     "deep-rename-keys": "0.2.1",
     "dom-anchor-text-position": "5.0.0",
     "dom-anchor-text-quote": "4.0.2",

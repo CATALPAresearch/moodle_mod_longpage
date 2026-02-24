@@ -21,6 +21,7 @@
           v-html="content"
         />
         <div class="pdf-download-floating">
+          <TeacherDashboard />
           <DownloadPDF />
         </div>
         <div
@@ -84,6 +85,7 @@ import ReadingProgress from "@/components/Features/ReadingProgress";
 import ReadingTime from "@/components/Features/ReadingTime";
 import CourseRecommendation from "@/components/Features/CourseRecommendations";
 import DownloadPDF from "@/components/Features/DownloadPDF";
+import TeacherDashboard from "@/components/Features/TeacherDashboard";
 
 export default {
   name: "App",
@@ -95,6 +97,7 @@ export default {
     CourseRecommendation,
     ReadingTime,
     DownloadPDF,
+    TeacherDashboard,
   },
   props: {
     content: { type: String, required: true },

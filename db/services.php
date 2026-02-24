@@ -319,4 +319,20 @@ $functions = [
         'capabilities' => 'mod/longpage:view',
         'ajax' => true,
     ],
+    'mod_longpage_get_dashboard_analytics' => [
+        'classname' => 'mod_longpage\\external\\analytics_services',
+        'methodname' => 'get_dashboard_analytics',
+        'description' => 'Get analytics data for teacher dashboard',
+        'type' => 'read',
+        'capabilities' => 'mod/longpage:modannotations',
+        'ajax' => true,
+    ],
+    'mod_longpage_get_available_semesters' => [
+        'classname' => 'mod_longpage\\external\\analytics_services',
+        'methodname' => 'get_available_semesters',
+        'description' => 'Get available semesters for analytics filtering',
+        'type' => 'read',
+        'capabilities' => 'mod/longpage:modannotations',
+        'ajax' => true,
+    ],
 ];
