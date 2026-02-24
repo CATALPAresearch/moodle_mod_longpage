@@ -378,3 +378,11 @@ $string['model_modified'] = 'Last Modified';
 $string['copy_model_name'] = 'Copy the model name from the table above and paste it into the "AI model name" setting.';
 $string['no_models_found'] = 'No models found on server';
 $string['back_to_settings'] = 'Back to settings';
+
+// PDF download feature
+$string['features_downloadPDF_label'] = 'Download page as PDF';
+$string['features_downloadPDF_button'] = 'PDF';
+$string['features_downloadPDF_generating'] = '...';
+$string['features_downloadPDF_annotationsSummaryTitle'] = 'Annotations and Comments';
+$string['features_downloadPDF_unknownAuthor'] = 'Unknown';
+$string['features_downloadPDF_errorMessage'] = 'PDF export failed. Please try again.';

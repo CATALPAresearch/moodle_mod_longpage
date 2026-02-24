@@ -363,3 +363,11 @@ $string['model_modified'] = 'Zuletzt geändert';
 $string['copy_model_name'] = 'Kopieren Sie den Modellnamen aus der obigen Tabelle und fügen Sie ihn in die Einstellung "KI-Modellname" ein.';
 $string['no_models_found'] = 'Keine Modelle auf dem Server gefunden';
 $string['back_to_settings'] = 'Zurück zu den Einstellungen';
+
+// PDF download feature
+$string['features_downloadPDF_label'] = 'Seite als PDF herunterladen';
+$string['features_downloadPDF_button'] = 'PDF';
+$string['features_downloadPDF_generating'] = '...';
+$string['features_downloadPDF_annotationsSummaryTitle'] = 'Anmerkungen und Kommentare';
+$string['features_downloadPDF_unknownAuthor'] = 'Unbekannt';
+$string['features_downloadPDF_errorMessage'] = 'PDF-Export fehlgeschlagen. Bitte versuchen Sie es erneut.';

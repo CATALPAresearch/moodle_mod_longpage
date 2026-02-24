@@ -26,6 +26,8 @@
     "dom-anchor-text-quote": "4.0.2",
     "driver.js": "^1.3.1",
     "fuse.js": "6.4.6",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
     "lodash": "^4.17.23",
     "scroll-into-view-if-needed": "2.2.26",
     "tagin": "^1.2.0",
