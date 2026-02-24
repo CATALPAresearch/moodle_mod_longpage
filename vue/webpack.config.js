@@ -143,30 +143,33 @@ module.exports = (env, options) => {
             // Delete specific files
             const buildDir = path.resolve(__dirname, "../amd/build");
             const srcDir = path.resolve(__dirname, "../amd/src");
-            
+
             // Delete app-lazy.min.js
             const mainBuildFile = path.join(buildDir, "app-lazy.min.js");
             if (fs.existsSync(mainBuildFile)) {
               fs.unlinkSync(mainBuildFile);
             }
-            
+
             // Delete all *.app-lazy.js files in build
             if (fs.existsSync(buildDir)) {
               fs.readdirSync(buildDir)
                 .filter((file) => file.endsWith(".app-lazy.js"))
                 .forEach((file) => fs.unlinkSync(path.join(buildDir, file)));
             }
-            
+
             // Delete app-lazy.js in src
             const srcFile = path.join(srcDir, "app-lazy.js");
             if (fs.existsSync(srcFile)) {
               fs.unlinkSync(srcFile);
             }
           });
-          
+
           // Copy built file to amd/src after emit is complete
           compiler.hooks.afterEmit.tap("CopyToSrc", () => {
-            const srcPath = path.resolve(__dirname, "../amd/build/app-lazy.min.js");
+            const srcPath = path.resolve(
+              __dirname,
+              "../amd/build/app-lazy.min.js",
+            );
             const destPath = path.resolve(__dirname, "../amd/src/app-lazy.js");
             if (fs.existsSync(srcPath)) {
               fs.copyFileSync(srcPath, destPath);
