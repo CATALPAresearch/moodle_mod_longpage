@@ -53,6 +53,7 @@ export const init = async (
   showeditquestionsai,
   tags,
   isAdmin,
+  initialData = null,
 ) => {
   try {
     const store = initStore({
@@ -76,12 +77,25 @@ export const init = async (
       isAdmin: Boolean(isAdmin),
     });
 
-    // Load ALL language strings from PHP backend
-    const lang = document
-      .getElementsByTagName("html")[0]
-      .getAttribute("lang")
-      .replace(/-/g, "_");
-    await store.dispatch("loadComponentStrings", lang);
+    // Use pre-loaded data if available, otherwise fall back to AJAX
+    let lang;
+    if (initialData && initialData.i18nStrings) {
+      // Use inline data from PHP - no AJAX needed
+      lang = initialData.lang || "de";
+      store.commit("setStrings", initialData.i18nStrings);
+      store.commit("SET_USER_ROLES", initialData.userRoles || []);
+      store.commit(
+        "SET_USER_CAN_MOD_ANNOTATION",
+        { canmodannotations: initialData.canModAnnotations }
+      );
+    } else {
+      // Fallback: Load strings from PHP backend via AJAX
+      lang = document
+        .getElementsByTagName("html")[0]
+        .getAttribute("lang")
+        .replace(/-/g, "_");
+      await store.dispatch("loadComponentStrings", lang);
+    }
     i18n.global.setLocaleMessage(lang, store.state.strings);
 
     const tmpElement = document.getElementById("longpage-tmp");

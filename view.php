@@ -148,6 +148,38 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
         $tagstr[] = $tag->rawname;
     }
 
+    // Pre-load data to avoid AJAX calls on startup.
+    // 1. User roles for this module context.
+    $userroles = [];
+    foreach (role_get_names($context) as $role) {
+        $userroles[] = [
+            'id' => (int)$role->id,
+            'localname' => $role->localname,
+            'shortname' => $role->shortname,
+        ];
+    }
+
+    // 2. Check if user can modify annotations.
+    $canmodannotations = has_capability('mod/longpage:modannotations', $context);
+
+    // 3. Load all i18n strings for mod_longpage.
+    $stringman = get_string_manager();
+    $lang = current_language();
+    $allstrings = $stringman->load_component_strings('mod_longpage', $lang);
+    // Transform keys: colons to underscores for Vue i18n compatibility.
+    $i18nstrings = [];
+    foreach ($allstrings as $key => $value) {
+        $i18nstrings[str_replace(':', '_', $key)] = $value;
+    }
+
+    // Bundle initial data for Vue app.
+    $initialdata = [
+        'userRoles' => $userroles,
+        'canModAnnotations' => $canmodannotations,
+        'i18nStrings' => $i18nstrings,
+        'lang' => $lang,
+    ];
+
     echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
     echo '<div class="row no-gutters vh-50">';
     echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
@@ -177,7 +209,8 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             !empty($page->showeditquestionsnoai),
             !empty($page->showeditquestionsai),
             $tagstr,
-            is_siteadmin()
+            is_siteadmin(),
+            $initialdata
         ]
     );
 } else {

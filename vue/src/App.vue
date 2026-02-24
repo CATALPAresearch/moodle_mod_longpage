@@ -178,9 +178,12 @@ export default {
       }, 100);
     }
 
-    this[ACT.FETCH_USER_ROLES]();
+    // Only fetch user roles and canMod if not pre-loaded from PHP
+    if (!this.$store.state.UserModule.userRoles.length) {
+      this[ACT.FETCH_USER_ROLES]();
+      this[ACT.USER_CAN_MOD_ANNOTATION]();
+    }
     this[ACT.FETCH_ENROLLED_USERS]();
-    this[ACT.USER_CAN_MOD_ANNOTATION]();
     this[ACT.FETCH_ANNOTATIONS]();
 
     // Log bootstrap interactions
