@@ -15,7 +15,7 @@
               : $t(
                   postIntern.likedByUser
                     ? 'post.action.rmLike'
-                    : 'post.action.like'
+                    : 'post.action.like',
                 )
           "
           :aria-label="
@@ -24,7 +24,7 @@
               : $t(
                   postIntern.likedByUser
                     ? 'post.action.rmLike'
-                    : 'post.action.like'
+                    : 'post.action.like',
                 )
           "
           :class="[postIntern.likedByUser ? 'fa-thumbs-up' : 'fa-thumbs-o-up']"
@@ -226,7 +226,8 @@ export default {
             handler: this.censorPost,
             text: this.$i18n.t("post.action.admindelete"),
           });
-        } else {     // } else if (!this.post.isPublic) {
+        } else {
+          // } else if (!this.post.isPublic) {
           // case for private annotation+post written by unenrolled admin user
           items.push({
             iconClasses: ["fa", "fa-pencil", "fa-fw"],
@@ -260,16 +261,16 @@ export default {
           text: this.$i18n.t(
             `post.action.${
               this.post.readByUser ? "markAsUnread" : "markAsRead"
-            }`
+            }`,
           ),
         });
       }
 
       items.push({
-            iconClasses: ["fa", "fa-link", "fa-fw"],
-            handler: this.copyLink,
-            text: this.$i18n.t("post.action.copyLink"),
-          });
+        iconClasses: ["fa", "fa-link", "fa-fw"],
+        handler: this.copyLink,
+        text: this.$i18n.t("post.action.copyLink"),
+      });
 
       return items;
     },
@@ -301,7 +302,7 @@ export default {
   },
   mounted: function () {},
   methods: {
-    ...mapActions([
+    ...mapActions("post", [
       ACT.CREATE_POST,
       ACT.DELETE_POST,
       ACT.UPDATE_POST,
@@ -355,9 +356,15 @@ export default {
       this[ACT.TOGGLE_THREAD_SUBSCRIPTION](this.post.threadId);
     },
     copyLink() {
-      navigator.clipboard.writeText(window.location.origin + window.location.pathname + window.location.search + "#post-" + this.post.id);
+      navigator.clipboard.writeText(
+        window.location.origin +
+          window.location.pathname +
+          window.location.search +
+          "#post-" +
+          this.post.id,
+      );
       alert(this.$i18n.t("post.action.copyLinkMessage"));
-    }
+    },
   },
 };
 </script>

@@ -17,18 +17,19 @@
         'shadow-up': arrowDirection === ArrowDirection.UP,
       }"
     >
-      <div
-        v-if="context.showhighlights"
-        v-for="(option, index) in highlightingOptions"
-        :key="index"
-        class="annotation-toolbar-item dot"
-        :class="[option]"
-        :title="$t('content.annotationToolbar.createHighlight')"
-        :aria-label="$t('content.annotationToolbar.createHighlight')"
-        @click.prevent="$emit('highlight-clicked', option)"
-      >
-        A
-      </div>
+      <template v-if="context.showhighlights">
+        <div
+          v-for="(option, index) in highlightingOptions"
+          :key="index"
+          class="annotation-toolbar-item dot"
+          :class="[option]"
+          :title="$t('content.annotationToolbar.createHighlight')"
+          :aria-label="$t('content.annotationToolbar.createHighlight')"
+          @click.prevent="$emit('highlight-clicked', option)"
+        >
+          A
+        </div>
+      </template>
       <div v-if="context.showbookmarks" class="annotation-toolbar-item dot">
         <i
           :title="$t('content.annotationToolbar.createBookmark')"

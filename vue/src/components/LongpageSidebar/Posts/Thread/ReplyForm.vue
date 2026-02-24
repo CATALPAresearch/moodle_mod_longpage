@@ -54,7 +54,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions([ACT.CREATE_POST]),
+    ...mapActions("post", [ACT.CREATE_POST]),
     createPost() {
       this[ACT.CREATE_POST]({ threadId: this.thread.id });
     },

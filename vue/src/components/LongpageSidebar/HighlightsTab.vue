@@ -169,7 +169,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions([ACT.DELETE_ANNOTATION]),
+    ...mapActions("annotation", [ACT.DELETE_ANNOTATION]),
     resetSelection() {
       this.selectedHighlights = [];
     },

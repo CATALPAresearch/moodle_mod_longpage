@@ -178,7 +178,8 @@ abstract class base_external extends \external_api {
         $post->likedbyuser = $DB->record_exists('longpage_post_likes', ['postid' => $post->id, 'userid' => $USER->id]);
         $post->bookmarkedbyuser = $DB->record_exists('longpage_post_bookmarks', ['postid' => $post->id, 'userid' => $USER->id]);
         $post->readbyuser = $DB->record_exists('longpage_post_readings', ['postid' => $post->id, 'userid' => $USER->id]);
-        $post->likecount = $DB->count_records('longpage_post_likes', ['postid' => $post->id]);
+        $post->likescount = $DB->count_records('longpage_post_likes', ['postid' => $post->id]);
+        $post->readingscount = $DB->count_records('longpage_post_readings', ['postid' => $post->id]);
     }
 
     /**

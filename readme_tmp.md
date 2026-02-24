@@ -7,8 +7,6 @@ Impact: ~200-500ms blocking time depending on backend response
 Solution: Load critical strings only, defer rest to on-demand
 Estimated Savings: 200-500ms faster initial render
 
-
-
 8. Remove jQuery $(document).ready (Low Impact)
 
 Current: Quiz component uses $(document).ready() (line 612)

@@ -18,17 +18,17 @@
       :id="LONGPAGE_SIDEBAR_TAB_CONTENT"
       class="col h-100"
     >
-      <component
-        :is="tab.key"
-        v-for="tab in tabs"
-        v-if="
-          heavyComponentsReady || (tab.key !== 'quiz' && tab.key !== 'posts')
-        "
-        v-show="tab.key === tabOpenedKey"
-        :id="tab.id"
-        :key="tab.key"
-        class="fade show h-100"
-      />
+      <template v-for="tab in tabs" :key="tab.key">
+        <component
+          :is="tab.key"
+          v-if="
+            heavyComponentsReady || (tab.key !== 'quiz' && tab.key !== 'posts')
+          "
+          v-show="tab.key === tabOpenedKey"
+          :id="tab.id"
+          class="fade show h-100"
+        />
+      </template>
     </div>
     <div
       :id="LONGPAGE_SIDEBAR_TAB"

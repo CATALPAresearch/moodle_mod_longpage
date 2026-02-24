@@ -265,7 +265,7 @@ module.exports = (env, options) => {
           extractComments: false,
           terserOptions: {
             compress: {
-              drop_console: true, // Remove all console.* calls
+              //drop_console: true, // Remove all console.* calls
               drop_debugger: true, // Remove debugger statements
               pure_funcs: ["console.log", "console.info", "console.debug"], // Remove specific functions
               passes: 2, // Multiple compression passes
@@ -275,6 +275,10 @@ module.exports = (env, options) => {
             },
             format: {
               comments: false, // Remove all comments
+              ascii_only: true, // Escape non-ASCII characters
+            },
+            output: {
+              comments: false, // Double-ensure no comments
             },
           },
         }),

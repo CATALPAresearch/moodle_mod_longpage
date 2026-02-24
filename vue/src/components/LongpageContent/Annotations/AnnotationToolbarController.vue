@@ -165,11 +165,17 @@ export default {
       }
     },
     async createBookmark() {
-      await this.loadAnnotationModule();
-      this[ACT.CREATE_ANNOTATION]({
-        target: await this.getAnnotationTarget(),
-        type: AnnotationType.BOOKMARK,
-      });
+      try {
+        await this.loadAnnotationModule();
+        const target = await this.getAnnotationTarget();
+        console.log("Creating bookmark with target:", target);
+        this[ACT.CREATE_ANNOTATION]({
+          target,
+          type: AnnotationType.BOOKMARK,
+        });
+      } catch (error) {
+        console.error("Failed to create bookmark:", error);
+      }
     },
     async createPost() {
       await this.loadAnnotationModule();
@@ -182,17 +188,36 @@ export default {
       });
     },
     async createHighlight(styleClass) {
-      await this.loadAnnotationModule();
-      this[ACT.CREATE_ANNOTATION]({
-        target: await this.getAnnotationTarget(styleClass),
-        styleClass,
-        type: AnnotationType.HIGHLIGHT,
-      });
+      try {
+        await this.loadAnnotationModule();
+        const target = await this.getAnnotationTarget(styleClass);
+        console.log(
+          "Creating highlight with target:",
+          target,
+          "styleClass:",
+          styleClass,
+        );
+        this[ACT.CREATE_ANNOTATION]({
+          target,
+          styleClass,
+          type: AnnotationType.HIGHLIGHT,
+        });
+      } catch (error) {
+        console.error("Failed to create highlight:", error);
+      }
     },
     async getAnnotationTarget(styleClass) {
+      if (!this.selectedRanges || this.selectedRanges.length === 0) {
+        console.error("No text selected for annotation");
+        throw new Error("No text selected");
+      }
       const selectorsInSelectors = await Promise.all(
         this.selectedRanges.map(this.getSelectors),
       );
+      if (!selectorsInSelectors[0]) {
+        console.error("Failed to get selectors for annotation");
+        throw new Error("Failed to get selectors");
+      }
       this.cleanUpAnnotationText(selectorsInSelectors, this.selectedRanges[0]);
       return new AnnotationTarget({
         selectors: selectorsInSelectors[0],

@@ -122,9 +122,11 @@ export default {
       }
     },
     [ACT.CREATE_ANNOTATION]({ commit, dispatch, getters }, params = {}) {
+      console.log("CREATE_ANNOTATION action called with params:", params);
       const annotation =
         getters[GET.ANNOTATION](params.id) ||
         getters[GET.NEW_ANNOTATION](params);
+      console.log("Created annotation object:", annotation);
       dispatch(ACT.REPLACE_OR_ADD_ANNOTATION, annotation);
       if (annotation.type === AnnotationType.POST) {
         dispatch(`post/${ACT.REPLACE_OR_ADD_THREAD}`, annotation.body, {
@@ -138,11 +140,16 @@ export default {
         if (!annotation.body.root.content) return;
       }
 
+      console.log(
+        "Calling CREATE_ANNOTATION with args:",
+        MappingService.mapAnnotationToArgs(annotation),
+      );
       ajax.call([
         {
           methodname: MoodleWSMethods.CREATE_ANNOTATION,
           args: MappingService.mapAnnotationToArgs(annotation),
           done: (response) => {
+            console.log("CREATE_ANNOTATION succeeded:", response);
             const annotationUpdate = MappingService.mapResponseToAnnotation(
               response.annotation,
             );
