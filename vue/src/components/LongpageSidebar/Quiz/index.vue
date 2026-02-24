@@ -357,8 +357,7 @@ import SidebarTab from "@/components/LongpageSidebar/SidebarTab";
 import ajax from "core/ajax";
 import Fragment from "core/fragment";
 import { EventBus } from "@/lib/event-bus";
-import "mark.js/dist/jquery.mark.min.js";
-import "bootstrap/js/dist/tooltip";
+import "theme_boost/bootstrap/tooltip";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
 import { set } from "lodash";
@@ -453,7 +452,14 @@ export default {
               var len = 0;
               var repeat = 0;
 
-              $(".reading-progress").tooltip("dispose");
+              // Safely dispose tooltips (Moodle's Bootstrap requires initialization check)
+              $(".reading-progress").each(function() {
+                try {
+                  $(this).tooltip("dispose");
+                } catch(e) {
+                  // Tooltip not initialized, skip
+                }
+              });
               $(".wrapper[data-reading-comprehension-count]").each(
                 function (index, paragraph) {
                   var progress = $(paragraph).find(".reading-progress");
@@ -515,8 +521,14 @@ export default {
                   "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " +
                     rc +
                     " %.<br>Klicken Sie für eine Übersicht der Aufgaben.",
-                )
-                .tooltip("dispose")
+                );
+              // Safely dispose and re-initialize tooltip
+              try {
+                $("#total-reading-comprehension").tooltip("dispose");
+              } catch(e) {
+                // Not initialized yet
+              }
+              $("#total-reading-comprehension")
                 .tooltip({ placement: "top", html: true, title: "" })
                 .attr("title", "");
               $("#sidebar-tab-quiz #total-reading-comprehension i").attr(
@@ -994,7 +1006,12 @@ export default {
         });
 
         var el = $("#" + $(this).attr("data-paragraph"));
-        $(el).unmark();
+        // Remove all highlight marks (vanilla JS alternative to .unmark())
+        $(el).find("[class*='highlight-']").each(function() {
+          $(this).removeClass(function(index, className) {
+            return (className.match(/\bhighlight-\S+/g) || []).join(' ');
+          });
+        });
       });
 
       $("#nextQuestion").on("click", function () {

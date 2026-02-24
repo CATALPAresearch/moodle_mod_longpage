@@ -1,8 +1,14 @@
 <template>
   <div>
-    <div v-if="!pageReady" class="row no-gutters vh-50">
-      <div class="spinner-border m-auto" role="status">
-        <span class="sr-only" />
+    <div v-show="!pageReady" class="d-flex flex-column align-items-center justify-content-center vh-50">
+      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+      <div class="text-muted">
+        <strong>Loading content...</strong>
+      </div>
+      <div class="text-muted small mt-2">
+        Please wait while the page initializes
       </div>
     </div>
     <div
@@ -46,7 +52,6 @@
       <longpage-sidebar class="col-auto" />
     </div>
     <!-- <CourseRecommendation></CourseRecommendation> -->
-    RTIME_: {{ context.showreadingtime }} .. {{ context }}
     <ReadingTime v-if="context.showreadingtime"></ReadingTime>
     <ReadingProgress :context="context"> </ReadingProgress>
   </div>
@@ -112,7 +117,7 @@ export default {
   data() {
     return {
       eventListeners: [],
-      pageReady: false, // Wait for page-ready event
+      pageReady: true, // Show immediately instead of waiting for page-ready event
       // readingTimeEstimator: new ReadingTimeEstimator(
       //   toIdSelector(LONGPAGE_CONTENT_ID)
       // ),
