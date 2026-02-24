@@ -103,6 +103,7 @@ import TableOfContents from "@/components/LongpageSidebar/TableOfContents";
 import Search from "@/components/LongpageSidebar/Search";
 import CourseRecommendation from "@/components/Generic/CourseRecommendations";
 import Quiz from "@/components/LongpageSidebar/Quiz";
+import { lazyModules } from "@/store";
 
 const LONGPAGE_SIDEBAR_ID = "longpage-sidebar";
 const LONGPAGE_SIDEBAR_TAB = "longpage-sidebar-tab";
@@ -297,11 +298,14 @@ export default {
     });
   },
   methods: {
-    toggleTab(tabKey) {
+    async toggleTab(tabKey) {
       if (tabKey === this.tabOpenedKey) {
         tabKey = undefined;
         this.sidebarWidth = "";
       } else if (tabKey != undefined && tabKey != null) {
+        // Lazy load Vuex modules on-demand
+        await this.loadModuleForTab(tabKey);
+
         var width;
         if (localStorage) {
           var w = localStorage.getItem("sidebar-width");
@@ -328,6 +332,24 @@ export default {
       }
 
       EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: tabKey, count: 0 });
+    },
+    async loadModuleForTab(tabKey) {
+      // Only Quiz tab needs lazy loading (QuestionBankModule)
+      // PostModule is loaded initially since Posts are commonly used
+      if (tabKey !== SidebarTabKeys.QUIZ) return;
+
+      const moduleName = "questionBank";
+
+      // Check if module already registered
+      if (this.$store.hasModule(moduleName)) return;
+
+      try {
+        // Dynamic import and register QuestionBankModule
+        const module = await lazyModules.QuestionBankModule();
+        this.$store.registerModule(moduleName, module.default);
+      } catch (error) {
+        console.error(`Failed to load ${moduleName}:`, error);
+      }
     },
     ...mapMutations({ setTabOpened: MUTATE.RESET_SIDEBAR_TAB_OPENED_KEY }),
   },

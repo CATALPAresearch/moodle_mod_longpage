@@ -18,6 +18,11 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+// Set webpack publicPath dynamically for lazy chunk loading
+// eslint-disable-next-line camelcase, no-undef
+__webpack_public_path__ = M.cfg.wwwroot + "/mod/longpage/amd/build/";
+
 import "./components/LongpageContent/Footnote";
 import "./lib/hashchange-listening";
 import "./lib/scroll-snapping";

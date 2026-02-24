@@ -22,11 +22,15 @@ import AnnotationModule from "./modules/annotation-module";
 import PostModule from "./modules/post-module";
 import UIModule from "./modules/ui-module";
 import UserModule from "./modules/user-module";
-import QuestionBankModule from "./modules/questionBank";
 import { createStore } from "vuex";
 import { GET } from "./types";
 import moodleAjax from "core/ajax";
 import moodleStorage from "core/localstorage";
+
+// Lazy-loaded modules (registered on-demand)
+export const lazyModules = {
+  QuestionBankModule: () => import("./modules/questionBank"),
+};
 
 export const initStore = (longpageContext) => {
   return createStore({
@@ -35,7 +39,6 @@ export const initStore = (longpageContext) => {
       PostModule,
       UIModule,
       UserModule,
-      questionBank: QuestionBankModule,
     },
     state: {
       longpageContext,

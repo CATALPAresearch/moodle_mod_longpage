@@ -20,6 +20,7 @@
  */
 
 //const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const CompressionPlugin = require("compression-webpack-plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
 var path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
@@ -32,7 +33,7 @@ module.exports = (env, options) => {
     entry: "./src/main.js",
     output: {
       path: path.resolve(__dirname, "../amd/build"),
-      publicPath: "/dist/",
+      publicPath: "",
       filename: "app-lazy.min.js",
       chunkFilename: "[id].app-lazy.js?v=[hash]",
       libraryTarget: "amd",
@@ -123,7 +124,7 @@ module.exports = (env, options) => {
     performance: {
       hints: false,
     },
-    //devtool: 'eval-source-map',
+    devtool: false, // Set per mode below
     plugins: [
       //new BundleAnalyzerPlugin(),
       new VueLoaderPlugin(),
@@ -219,6 +220,7 @@ module.exports = (env, options) => {
   console.log("MODE:: ", options);
   if (options.mode === "production") {
     console.log("MODE:: ", options.mode);
+    // Production: No source maps, full minification
     exports.devtool = false;
     // http://vue-loader.vuejs.org/en/workflow/production.html
     // exp
@@ -232,6 +234,30 @@ module.exports = (env, options) => {
         minimize: true,
       }),
       new webpack.optimize.ModuleConcatenationPlugin(),
+      // Brotli compression (best compression ratio)
+      new CompressionPlugin({
+        filename: "[path][base].br",
+        algorithm: "brotliCompress",
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: {
+          level: 11, // Maximum compression
+        },
+        threshold: 10240, // Only compress files > 10KB
+        minRatio: 0.8,
+        deleteOriginalAssets: false,
+      }),
+      // Gzip compression (fallback for older browsers)
+      new CompressionPlugin({
+        filename: "[path][base].gz",
+        algorithm: "gzip",
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: {
+          level: 9, // Maximum gzip compression
+        },
+        threshold: 10240,
+        minRatio: 0.8,
+        deleteOriginalAssets: false,
+      }),
     ]);
     exports.optimization = {
       minimize: true,
@@ -259,6 +285,22 @@ module.exports = (env, options) => {
         }),
       ],
     };
+  } else if (options.mode === "development") {
+    console.log("MODE:: ", options.mode);
+    // Development: Source maps enabled, no minification, faster builds
+    exports.devtool = "eval-source-map";
+    exports.optimization = {
+      minimize: false, // No minification in dev
+      nodeEnv: "development",
+      usedExports: true, // Still tree shake in dev
+    };
+    exports.plugins = (exports.plugins || []).concat([
+      new webpack.DefinePlugin({
+        "process.env": {
+          NODE_ENV: '"development"',
+        },
+      }),
+    ]);
   }
   return exports;
 };

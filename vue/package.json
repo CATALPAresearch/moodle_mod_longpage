@@ -11,10 +11,11 @@
     "./src/components/LongpageContent/Footnote.js"
   ],
   "scripts": {
-    "watch": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --watch --config webpack.config.js",
-    "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --mode development --config webpack.config.js",
+    "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --mode development --progress --config webpack.config.js",
+    "watch": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --mode development --watch --config webpack.config.js",
     "build": "cross-env NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --mode production --progress --config webpack.config.js",
-    "build2": "nodemon"
+    "build:prod": "npm run build",
+    "build:dev": "npm run dev"
   },
   "dependencies": {
     "@juggle/resize-observer": "3.2.0",
@@ -50,6 +51,7 @@
     "@vue/compiler-sfc": "^3.2.38",
     "babel-loader": "8.0.5",
     "babel-preset-env": "^1.7.0",
+    "compression-webpack-plugin": "^11.1.0",
     "cross-env": "^7.0.0",
     "css-loader": "6.10.0",
     "eslint": "7.16.0",
