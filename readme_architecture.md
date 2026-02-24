@@ -1,32 +1,38 @@
 # mod_longpage Architecture (Brief)
 
 **Core:**
+
 - Standard Moodle activity module (lib.php, locallib.php, mod_form.php, view.php)
 - Database tables for pages, annotations, reading progress
 
 **Frontend:**
+
 - Vue 3 SPA for interactive page display, annotation, and teacher dashboard
 - Chart.js for analytics
 
 **APIs:**
+
 - PHP external services for AJAX, analytics, annotation, progress, questions
 
 **Events:**
+
 - Custom event classes for tracking user actions (view, click, scroll, etc.)
 
 **i18n:**
+
 - Uses Moodle PHP lang files (lang/en/longpage.php, lang/de/longpage.php)
 
 **Admin:**
-- Settings, permissions, and AJAX model check for AI integration
-    end
 
-    %% Local Services
-    subgraph "Local Services"
-        subgraph "Constants"
-            ANNO_TYPE[annotation_type.php]
-            SELECTOR[selector.php]
-        end
+- Settings, permissions, and AJAX model check for AI integration
+  end
+
+  %% Local Services
+  subgraph "Local Services"
+  subgraph "Constants"
+  ANNO_TYPE[annotation_type.php]
+  SELECTOR[selector.php]
+  end
 
         subgraph "Post Recommendation"
             POST_CALC[post_recommendation_calculation_task.php]
@@ -38,106 +44,108 @@
             THREAD_MANAGE[manage_thread_subscriptions_task.php]
             POST_ACTION[post_action.php]
         end
-    end
 
-    %% Privacy & Compliance
-    subgraph "Privacy & Compliance"
-        PRIVACY[privacy/provider.php<br/>GDPR Compliance]
-        SEARCH[search/activity.php<br/>Search Provider]
-    end
+  end
 
-    %% Analytics
-    subgraph "Analytics"
-        ACTIVITY_BASE[activity_base.php]
-        COGNITIVE[cognitive_depth.php]
-        SOCIAL[social_breadth.php]
-    end
+  %% Privacy & Compliance
+  subgraph "Privacy & Compliance"
+  PRIVACY[privacy/provider.php<br/>GDPR Compliance]
+  SEARCH[search/activity.php<br/>Search Provider]
+  end
 
-    %% Backup/Restore
-    subgraph "Backup/Restore"
-        BACKUP_TASK[backup_longpage_activity_task]
-        BACKUP_STEPS[backup_longpage_stepslib]
-        RESTORE_TASK[restore_longpage_activity_task]
-        RESTORE_STEPS[restore_longpage_stepslib]
-    end
+  %% Analytics
+  subgraph "Analytics"
+  ACTIVITY_BASE[activity_base.php]
+  COGNITIVE[cognitive_depth.php]
+  SOCIAL[social_breadth.php]
+  end
 
-    %% Database Schema
-    subgraph "Database Schema"
-        DB_ACCESS[access.php<br/>Capabilities]
-        DB_INSTALL[install.php & install.xml<br/>Installation]
-        DB_UPGRADE[upgrade.php<br/>Updates]
-        DB_SERVICES[services.php<br/>Web Services]
-        DB_MESSAGES[messages.php<br/>Messaging]
-        DB_LOG[log.php<br/>Logging]
-    end
+  %% Backup/Restore
+  subgraph "Backup/Restore"
+  BACKUP_TASK[backup_longpage_activity_task]
+  BACKUP_STEPS[backup_longpage_stepslib]
+  RESTORE_TASK[restore_longpage_activity_task]
+  RESTORE_STEPS[restore_longpage_stepslib]
+  end
 
-    %% Frontend
-    subgraph "Frontend Layer"
-        AMD[AMD Modules<br/>amd/src/app-lazy.js]
-        VUE[Vue.js Components<br/>vue/src/]
-        CSS[styles.css]
-    end
+  %% Database Schema
+  subgraph "Database Schema"
+  DB_ACCESS[access.php<br/>Capabilities]
+  DB_INSTALL[install.php & install.xml<br/>Installation]
+  DB_UPGRADE[upgrade.php<br/>Updates]
+  DB_SERVICES[services.php<br/>Web Services]
+  DB_MESSAGES[messages.php<br/>Messaging]
+  DB_LOG[log.php<br/>Logging]
+  end
 
-    %% File Management
-    subgraph "File Management"
-        PIX[pix/<br/>Images & Icons]
-        LANG[lang/<br/>Language Strings]
-        BACKUP_FILES[backup/<br/>Backup Definitions]
-    end
+  %% Frontend
+  subgraph "Frontend Layer"
+  AMD[AMD Modules<br/>amd/src/app-lazy.js]
+  VUE[Vue.js Components<br/>vue/src/]
+  CSS[styles.css]
+  end
 
-    %% Relationships
-    MC --> LIB
-    LIB --> LOCALLIB
-    LIB --> DB
-    VIEW --> PAGE_API
-    VIEW --> AMD
-    FORM --> LIB
+  %% File Management
+  subgraph "File Management"
+  PIX[pix/<br/>Images & Icons]
+  LANG[lang/<br/>Language Strings]
+  BACKUP_FILES[backup/<br/>Backup Definitions]
+  end
 
-    BASE_EXT --> PAGE_API
-    BASE_EXT --> POST_API
-    BASE_EXT --> HIGHLIGHT_API
-    BASE_EXT --> QUESTION_API
-    BASE_EXT --> READING_API
-    BASE_EXT --> USER_API
-    BASE_EXT --> THREAD_API
-    BASE_EXT --> ANNOTATION_API
-    BASE_EXT --> UTILITY_API
-    BASE_EXT --> INTERACTION_API
-    BASE_EXT --> QUESTIONS_BANK_API
+  %% Relationships
+  MC --> LIB
+  LIB --> LOCALLIB
+  LIB --> DB
+  VIEW --> PAGE_API
+  VIEW --> AMD
+  FORM --> LIB
 
-    POST_API --> POST_CALC
-    POST_API --> SIM_CALC
-    POST_API --> THREAD_MANAGE
-    THREAD_API --> POST_ACTION
+  BASE_EXT --> PAGE_API
+  BASE_EXT --> POST_API
+  BASE_EXT --> HIGHLIGHT_API
+  BASE_EXT --> QUESTION_API
+  BASE_EXT --> READING_API
+  BASE_EXT --> USER_API
+  BASE_EXT --> THREAD_API
+  BASE_EXT --> ANNOTATION_API
+  BASE_EXT --> UTILITY_API
+  BASE_EXT --> INTERACTION_API
+  BASE_EXT --> QUESTIONS_BANK_API
 
-    PAGE_API --> EVENT_BASE
-    VIEW --> MODULE_VIEWED
-    VIEW --> MODULE_CLICKED
-    POST_API --> MODULE_QUESTION
+  POST_API --> POST_CALC
+  POST_API --> SIM_CALC
+  POST_API --> THREAD_MANAGE
+  THREAD_API --> POST_ACTION
 
-    ANNO_TYPE --> ANNOTATION_API
-    SELECTOR --> HIGHLIGHT_API
+  PAGE_API --> EVENT_BASE
+  VIEW --> MODULE_VIEWED
+  VIEW --> MODULE_CLICKED
+  POST_API --> MODULE_QUESTION
 
-    LIB --> PRIVACY
-    LIB --> SEARCH
+  ANNO_TYPE --> ANNOTATION_API
+  SELECTOR --> HIGHLIGHT_API
 
-    DB_ACCESS --> MC
-    DB_SERVICES --> BASE_EXT
+  LIB --> PRIVACY
+  LIB --> SEARCH
 
-    AMD --> VUE
-    VIEW --> CSS
+  DB_ACCESS --> MC
+  DB_SERVICES --> BASE_EXT
 
-    BACKUP_TASK --> BACKUP_STEPS
-    RESTORE_TASK --> RESTORE_STEPS
+  AMD --> VUE
+  VIEW --> CSS
 
-    ACTIVITY_BASE --> COGNITIVE
-    ACTIVITY_BASE --> SOCIAL
+  BACKUP_TASK --> BACKUP_STEPS
+  RESTORE_TASK --> RESTORE_STEPS
 
-    %% External Dependencies
-    LIB --> FS
-    LIB --> CACHE
-    PAGE_API --> DB
-    POST_API --> DB
+  ACTIVITY_BASE --> COGNITIVE
+  ACTIVITY_BASE --> SOCIAL
+
+  %% External Dependencies
+  LIB --> FS
+  LIB --> CACHE
+  PAGE_API --> DB
+  POST_API --> DB
+
 ```
 
 ## Component Overview
@@ -189,3 +197,4 @@ The module provides a comprehensive external API with 12 specialized services:
 - **Internationalization**: Multi-language support infrastructure
 - **Asset Management**: Images, icons, and media files
 - **Modular Constants**: Centralized configuration and constants
+```
