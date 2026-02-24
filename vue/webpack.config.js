@@ -21,7 +21,7 @@
 
 //const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const CompressionPlugin = require("compression-webpack-plugin");
-const FileManagerPlugin = require("filemanager-webpack-plugin");
+const fs = require("fs");
 var path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
@@ -136,34 +136,47 @@ module.exports = (env, options) => {
         jQuery: "jquery",
         "window.jQuery": "jquery",
       }),
-      new FileManagerPlugin({
-        events: {
-          onStart: {
-            delete: [
-              {
-                source: path.resolve(__dirname, "../amd/build/app-lazy.min.js"),
-                options: { force: true },
-              },
-              {
-                source: path.resolve(__dirname, "../amd/build/*.app-lazy.js"),
-                options: { force: true },
-              },
-              {
-                source: path.resolve(__dirname, "../amd/src/app-lazy.js"),
-                options: { force: true },
-              },
-            ],
-          },
-          onEnd: {
-            copy: [
-              {
-                source: path.resolve(__dirname, "../amd/build/app-lazy.min.js"),
-                destination: path.resolve(__dirname, "../amd/src/app-lazy.js"),
-              },
-            ],
-          },
+      // Custom plugin to clean old build files before build starts
+      {
+        apply: (compiler) => {
+          compiler.hooks.beforeRun.tap("CleanBeforeBuild", () => {
+            // Delete specific files
+            const buildDir = path.resolve(__dirname, "../amd/build");
+            const srcDir = path.resolve(__dirname, "../amd/src");
+            
+            // Delete app-lazy.min.js
+            const mainBuildFile = path.join(buildDir, "app-lazy.min.js");
+            if (fs.existsSync(mainBuildFile)) {
+              fs.unlinkSync(mainBuildFile);
+            }
+            
+            // Delete all *.app-lazy.js files in build
+            if (fs.existsSync(buildDir)) {
+              fs.readdirSync(buildDir)
+                .filter((file) => file.endsWith(".app-lazy.js"))
+                .forEach((file) => fs.unlinkSync(path.join(buildDir, file)));
+            }
+            
+            // Delete app-lazy.js in src
+            const srcFile = path.join(srcDir, "app-lazy.js");
+            if (fs.existsSync(srcFile)) {
+              fs.unlinkSync(srcFile);
+            }
+          });
+          
+          // Copy built file to amd/src after emit is complete
+          compiler.hooks.afterEmit.tap("CopyToSrc", () => {
+            const srcPath = path.resolve(__dirname, "../amd/build/app-lazy.min.js");
+            const destPath = path.resolve(__dirname, "../amd/src/app-lazy.js");
+            if (fs.existsSync(srcPath)) {
+              fs.copyFileSync(srcPath, destPath);
+              console.log("Copied app-lazy.min.js to amd/src/app-lazy.js");
+            } else {
+              console.error("Warning: app-lazy.min.js not found for copying");
+            }
+          });
         },
-      }),
+      },
       new WebpackShellPlugin({
         onBuildEnd: [
           path.resolve(__dirname, "../../../../php/php.exe") +
@@ -276,9 +289,6 @@ module.exports = (env, options) => {
             format: {
               comments: false, // Remove all comments
               ascii_only: true, // Escape non-ASCII characters
-            },
-            output: {
-              comments: false, // Double-ensure no comments
             },
           },
         }),
