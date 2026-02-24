@@ -336,7 +336,7 @@ class question_services extends base_external {
         );
 
         $dom = new DOMDocument();
-        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+        @$dom->loadHTML('<?xml encoding="UTF-8">' . $page->content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         $toplevel = self::get_top_level_element($dom, $position);
         $newcontent = $page->content;
@@ -436,7 +436,7 @@ class question_services extends base_external {
         );
 
         $dom = new DOMDocument();
-        $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+        @$dom->loadHTML('<?xml encoding="UTF-8">' . $page->content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
         $toplevel = self::get_top_level_element($dom, $position);
         $newcontent = $page->content;
@@ -501,14 +501,14 @@ class question_services extends base_external {
         if (!$aienabled) {
             throw new Exception('AI question generation is disabled. Please enable it in plugin settings.');
         }
-        
+
         // Get configuration from plugin settings
         $url = get_config('longpage', 'aiurl');
         $backupurl = get_config('longpage', 'aiurlbackup');
         $model = get_config('longpage', 'aimodel');
         $token = get_config('longpage', 'aitoken');
         $timeout = (int)get_config('longpage', 'aitimeout') ?: 180;
-        
+
         // Set defaults if settings are empty
         if (empty($url)) {
             $url = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
@@ -519,7 +519,7 @@ class question_services extends base_external {
         if (empty($model)) {
             $model = 'llama3.1:latest';
         }
-        
+
         $authorization = !empty($token) ? 'Authorization: Bearer ' . $token : '';
 
         $systemcontent = str_replace("\n", '', $systemcontent);
@@ -646,23 +646,23 @@ class question_services extends base_external {
         require_capability('mod/longpage:modannotations', $context);
 
         $coursecontext = \context_course::instance($course->id);
-        
+
         // Auto-create question categories if they don't exist
         $idnumber = $useai ? 'aigenerated' : 'manuallygenerated';
         $categoryname = $useai ? 'AI Generated Questions' : 'Manually Generated Questions';
-        
+
         $category = $DB->get_record(
             'question_categories',
             ['contextid' => $coursecontext->id, 'idnumber' => $idnumber]
         );
-        
+
         if (!$category) {
             // Get or create top-level category for the course
             $topcat = $DB->get_record('question_categories', [
                 'contextid' => $coursecontext->id,
-                'parent' => 0
+                'parent' => 0,
             ]);
-            
+
             if (!$topcat) {
                 // Create top-level category if it doesn't exist
                 $topcat = new \stdClass();
@@ -675,7 +675,7 @@ class question_services extends base_external {
                 $topcat->sortorder = 999;
                 $topcat->id = $DB->insert_record('question_categories', $topcat);
             }
-            
+
             // Create the category
             $category = new \stdClass();
             $category->contextid = $coursecontext->id;
@@ -704,7 +704,7 @@ class question_services extends base_external {
 
         if ($useai) {
             $dom = new DOMDocument();
-            $dom->loadHTML(mb_convert_encoding($page->content, 'HTML-ENTITIES', 'UTF-8'));
+            @$dom->loadHTML('<?xml encoding="UTF-8">' . $page->content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 
             if ($selectedparagraphs !== '') {
                 $selectedparagraphs = explode(',', $selectedparagraphs);
@@ -814,9 +814,9 @@ class question_services extends base_external {
                     break;
                 } catch (\Throwable $th) {
                     global $CFG;
-                    // Log error properly instead of using debugging()
+                    // Log error properly for debugging.
                     if (!empty($CFG->debugdeveloper)) {
-                        error_log('Longpage: Create Question Error - ' . $th->getMessage());
+                        debugging('Longpage: Create Question Error - ' . $th->getMessage(), DEBUG_DEVELOPER);
                     }
                     if ($i >= $maxtries - 1) {
                         throw $th;

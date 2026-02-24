@@ -84,10 +84,9 @@ export const init = async (
       lang = initialData.lang || "de";
       store.commit("setStrings", initialData.i18nStrings);
       store.commit("SET_USER_ROLES", initialData.userRoles || []);
-      store.commit(
-        "SET_USER_CAN_MOD_ANNOTATION",
-        { canmodannotations: initialData.canModAnnotations }
-      );
+      store.commit("SET_USER_CAN_MOD_ANNOTATION", {
+        canmodannotations: initialData.canModAnnotations,
+      });
     } else {
       // Fallback: Load strings from PHP backend via AJAX
       lang = document

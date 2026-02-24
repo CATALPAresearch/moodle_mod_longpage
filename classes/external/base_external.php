@@ -88,7 +88,7 @@ abstract class base_external extends \external_api {
     protected static function get_annotation_by_post_id($id) {
         global $DB;
 
-        $post = $DB->get_record('longpage_posts', ['id' => $id]);
+        $post = $DB->get_record('longpage_posts', ['id' => $id], '*', MUST_EXIST);
         return self::get_annotation_by_thread_id($post->threadid);
     }
 
@@ -101,8 +101,8 @@ abstract class base_external extends \external_api {
     protected static function get_annotation_by_thread_id($threadid) {
         global $DB;
 
-        $thread = $DB->get_record('longpage_threads', ['id' => $threadid]);
-        return $DB->get_record('longpage_annotations', ['id' => $thread->annotationid]);
+        $thread = $DB->get_record('longpage_threads', ['id' => $threadid], '*', MUST_EXIST);
+        return $DB->get_record('longpage_annotations', ['id' => $thread->annotationid], '*', MUST_EXIST);
     }
 
     /**

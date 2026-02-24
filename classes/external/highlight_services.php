@@ -52,7 +52,7 @@ class highlight_services extends base_external {
     public static function delete_highlight($id) {
         global $DB;
 
-        \mod_longpage_external::delete_annotation($id);
+        annotation_services::delete_annotation($id);
     }
 
     /**
@@ -85,20 +85,26 @@ class highlight_services extends base_external {
     public static function update_highlight($id, $styleclass) {
         global $DB;
 
-        self::validate_parameters(\mod_longpage_external::create_annotation_parameters(), ['id' => $id, 'styleclass' => $styleclass]);
+        self::validate_parameters(self::update_highlight_parameters(), ['id' => $id, 'styleclass' => $styleclass]);
         $annotation = $DB->get_record('longpage_annotations', ['id' => $id]);
+        if (!$annotation) {
+            throw new \dml_missing_record_exception('longpage_annotations', null, ['id' => $id]);
+        }
         $context = self::validate_cm_context($annotation->longpageid);
         require_capability('mod/longpage:addpost', $context);
 
         self::validate_highlight_can_be_deleted_and_updated($annotation);
 
         $transaction = $DB->start_delegated_transaction();
-        $DB->update_record('longpage_annotation_targets', ['annotationid' => $id, 'styleclass' => $styleclass]);
-        $DB->update_record('longpage_annotations', ['id' => $id, 'timemodified' => time()]);
+        $target = $DB->get_record('longpage_annotation_targets', ['annotationid' => $id], '*', MUST_EXIST);
+        $target->styleclass = $styleclass;
+        $DB->update_record('longpage_annotation_targets', $target);
+        $annotation->timemodified = time();
+        $DB->update_record('longpage_annotations', $annotation);
         $transaction->allow_commit();
 
         return [
-            'annotation' => \mod_longpage_external::get_annotations([
+            'annotation' => annotation_services::get_annotations([
                 'longpageid' => $annotation->longpageid,
                 'annotationid' => $id,
             ])['annotations'][0],
@@ -123,7 +129,7 @@ class highlight_services extends base_external {
      * @return external_single_structure
      */
     public static function update_highlight_returns() {
-        return \mod_longpage_external::create_annotation_returns();
+        return annotation_services::create_annotation_returns();
     }
 
     /**
@@ -135,10 +141,10 @@ class highlight_services extends base_external {
     private static function validate_highlight_can_be_deleted_and_updated($highlight): void {
         global $USER;
 
-        if ($USER->id !== $highlight->creatorid) {
+        if ((int)$USER->id !== (int)$highlight->creatorid) {
             throw new invalid_parameter_exception('Highlight cannot be updated by user other than its creator.');
         }
-        if ($highlight->type !== annotation_type::HIGHLIGHT) {
+        if ((int)$highlight->type !== annotation_type::HIGHLIGHT) {
             throw new invalid_parameter_exception('Annotation is no highlight. ' .
                 'Only highlights can be updated by using this method.');
         }

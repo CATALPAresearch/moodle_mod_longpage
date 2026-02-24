@@ -50,7 +50,7 @@ _Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle
 
 ## Installation
 
-Before you can install the plugin you should have a proper Moodle installation running. See [here](https://docs.moodle.org/310/en/Installing_Moodle) for a tutorial on how to install Moodle. Pay special attention to enabling [Cron](https://docs.moodle.org/310/en/Cron) since it is necessary for some functionality of the Longpage plugin (notifications on activity of other users, calculation of relevance of annotations/threads/posts for a user). The plugin has been developed with Moodle version 3.9 since it represent the current LTS but it has also been tested with other version between 3.5 and 3.10 so it should work with them as well. We cannot make any statements about other versions since we have not tested it. Just give it a try ;)
+Before you can install the plugin you should have a proper Moodle installation running. See [here](https://docs.moodle.org/310/en/Installing_Moodle) for a tutorial on how to install Moodle. Pay special attention to enabling [Cron](https://docs.moodle.org/310/en/Cron) since it is necessary for some functionality of the Longpage plugin (notifications on activity of other users, calculation of relevance of annotations/threads/posts for a user). The plugin has been developed with Moodle version 4.5 but it has also been tested with older version between 3.5 and 4.1 so it should work with them as well. 
 
 On installing the plugin itself:
 
@@ -88,6 +88,24 @@ You will also need to enable the reading comprehension feature in the settings.
 
 ```shell
 mklink mod\longpage\amd\src\app-lazy.min.js mod\longpage\amd\build\app-lazy.min.js
+```
+
+## Testing
+
+Run PHPUnit tests from the Moodle root directory:
+
+```shell
+vendor/bin/phpunit --testsuite "mod_longpage_testsuite"
+```
+
+tba. Vue.js testing
+
+Run code style checks from the plugin directory:
+
+```shell
+cd mod/longpage
+vendor/bin/phpcs -d memory_limit=1024M --standard=moodle --extensions=php .
+vendor/bin/phpcbf -d memory_limit=1024M --standard=moodle --extensions=php .  # auto-fix
 ```
 
 ## Contributing

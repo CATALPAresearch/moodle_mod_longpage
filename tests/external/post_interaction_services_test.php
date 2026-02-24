@@ -39,6 +39,7 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\post_interaction_services
+ * @runTestsInSeparateProcesses
  */
 final class post_interaction_services_test extends \externallib_advanced_testcase {
     /**
@@ -475,7 +476,7 @@ final class post_interaction_services_test extends \externallib_advanced_testcas
         // Verify task contains correct page ID.
         $task = reset($tasks);
         $customdata = json_decode($task->customdata, true);
-        $this->assertEquals($data['longpage']->id, $customdata['pageid']);
+        $this->assertEquals($data['longpage']->id, $customdata['longpageid']);
     }
 
     /**

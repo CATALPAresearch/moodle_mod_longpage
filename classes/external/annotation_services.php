@@ -435,6 +435,11 @@ class annotation_services extends base_external {
 
         self::validate_parameters(self::delete_annotation_parameters(), ['id' => $id]);
         $annotation = $DB->get_record('longpage_annotations', ['id' => $id]);
+
+        if (!$annotation) {
+            throw new \moodle_exception('invalidannotation', 'mod_longpage', '', $id);
+        }
+
         $context = self::validate_cm_context($annotation->longpageid);
 
         // Check permission: user must be the creator OR have modannotations capability.

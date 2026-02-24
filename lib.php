@@ -238,10 +238,6 @@ function longpage_add_instance($data, $mform = null) {
         $data->contentformat = $data->longpage['format'];
     }
 
-    // Debug logging for checkbox values.
-    error_log('[LONGPAGE ADD] Before processing - showreadingtime: ' . 
-              (isset($data->showreadingtime) ? var_export($data->showreadingtime, true) : 'NOT SET'));
-
     // Process boolean fields - advcheckbox sends 0 or 1, use value directly.
     $data->showreadingprogress = !empty($data->showreadingprogress) ? 1 : 0;
     $data->showreadingtime = !empty($data->showreadingtime) ? 1 : 0;
@@ -253,8 +249,6 @@ function longpage_add_instance($data, $mform = null) {
     $data->showbookmarks = !empty($data->showbookmarks) ? 1 : 0;
     $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
     $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
-
-    error_log('[LONGPAGE ADD] After processing - showreadingtime: ' . $data->showreadingtime);
 
     if (!$data->id = $DB->insert_record('longpage', $data)) {
         throw new moodle_exception('errorinsertingrecord', 'mod_longpage');
@@ -321,10 +315,6 @@ function longpage_update_instance($data, $mform) {
     $data->content       = $data->longpage['text'];
     $data->contentformat = $data->longpage['format'];
 
-    // Debug logging for checkbox values.
-    error_log('[LONGPAGE UPDATE] Before processing - showreadingtime: ' . 
-              (isset($data->showreadingtime) ? var_export($data->showreadingtime, true) : 'NOT SET'));
-
     // Process boolean fields - advcheckbox sends 0 or 1, use value directly.
     $data->showreadingprogress = !empty($data->showreadingprogress) ? 1 : 0;
     $data->showreadingtime = !empty($data->showreadingtime) ? 1 : 0;
@@ -336,8 +326,6 @@ function longpage_update_instance($data, $mform) {
     $data->showbookmarks = !empty($data->showbookmarks) ? 1 : 0;
     $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
     $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
-
-    error_log('[LONGPAGE UPDATE] After processing - showreadingtime: ' . $data->showreadingtime);
 
     $DB->update_record('longpage', $data);
 
@@ -408,18 +396,20 @@ function longpage_get_coursemodule_info($coursemodule) {
     require_once("$CFG->libdir/resourcelib.php");
 
     // Prevent Vue.js conflicts in any editing context
-    if (strpos($_SERVER['REQUEST_URI'], 'modedit.php') !== false || 
-        strpos($_SERVER['REQUEST_URI'], 'course/modedit.php') !== false) {
-        
+    $requesturi = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+    if (
+        strpos($requesturi, 'modedit.php') !== false ||
+        strpos($requesturi, 'course/modedit.php') !== false
+    ) {
         // Force proper DOCTYPE and standards mode
         if (!headers_sent()) {
             header('Content-Type: text/html; charset=utf-8');
             header('X-UA-Compatible: IE=edge');
         }
-        
+
         // Ensure output uses proper HTML5 DOCTYPE
         $PAGE->set_docs_path('');
-        
+
         $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
         if (!defined('EDITING_LONGPAGE_MODULE')) {
             define('EDITING_LONGPAGE_MODULE', true);
@@ -813,7 +803,11 @@ function mod_longpage_core_calendar_provide_event_action(
         $userid = $USER->id;
     }
 
-    $cm = get_fast_modinfo($event->courseid, $userid)->instances['longpage'][$event->instance];
+    $modinfo = get_fast_modinfo($event->courseid, $userid);
+    if (!isset($modinfo->instances['longpage'][$event->instance])) {
+        return null;
+    }
+    $cm = $modinfo->instances['longpage'][$event->instance];
 
     $completion = new \completion_info($cm->get_course());
 
@@ -848,8 +842,8 @@ function longpage_grade_item_update($longpage, $grades = null) {
 
     if ($grades == null) {
         $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $longpage->grade;
-        $params['gradepass']  = $longpage->gradepass;
+        $params['grademax']  = isset($longpage->grade) ? $longpage->grade : 0;
+        $params['gradepass']  = isset($longpage->gradepass) ? $longpage->gradepass : 0;
     }
 
     if ($grades === 'reset') {
@@ -879,7 +873,7 @@ function longpage_update_grades($longpage, $grades = []): void {
  */
 function longpage_coursemodule_edit_form_preprocess(&$form, $mform) {
     global $PAGE;
-    
+
     // Always load conflict prevention when editing longpage modules
     $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
     if (!defined('EDITING_LONGPAGE_MODULE')) {
@@ -892,7 +886,7 @@ function longpage_coursemodule_edit_form_preprocess(&$form, $mform) {
  */
 function longpage_pluginfile_edit_form_setup() {
     global $PAGE;
-    
+
     // Additional safety net for form editing
     $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
     if (!defined('EDITING_LONGPAGE_MODULE')) {

@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2024 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\page_services
+ * @runTestsInSeparateProcesses
  */
 final class page_services_test extends \externallib_advanced_testcase {
     /** @var stdClass Course 1 */
@@ -312,8 +313,13 @@ final class page_services_test extends \externallib_advanced_testcase {
         // Enable completion for the course.
         $DB->set_field('course', 'enablecompletion', COMPLETION_ENABLED, ['id' => $this->course1->id]);
 
-        // Set completion for the longpage module.
+        // Set completion for the longpage module - must set completionview.
         $DB->set_field('course_modules', 'completion', COMPLETION_TRACKING_AUTOMATIC, ['id' => $this->cm1->id]);
+        $DB->set_field('course_modules', 'completionview', 1, ['id' => $this->cm1->id]);
+
+        // Rebuild cache.
+        rebuild_course_cache($this->course1->id, true);
+        $this->course1 = $DB->get_record('course', ['id' => $this->course1->id]);
 
         $this->setUser($this->student);
 
@@ -322,7 +328,7 @@ final class page_services_test extends \externallib_advanced_testcase {
 
         // Check completion.
         $completion = new \completion_info($this->course1);
-        $cm = get_coursemodule_from_instance('longpage', $this->longpage1->id);
+        $cm = get_coursemodule_from_instance('longpage', $this->longpage1->id, $this->course1->id, true);
         $completiondata = $completion->get_data($cm, false, $this->student->id);
 
         $this->assertEquals(COMPLETION_COMPLETE, $completiondata->completionstate);

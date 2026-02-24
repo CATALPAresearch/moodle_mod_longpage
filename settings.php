@@ -29,61 +29,61 @@ defined('MOODLE_INTERNAL') || die;
  */
 if (!class_exists('admin_setting_longpage_models')) {
     class admin_setting_longpage_models extends admin_setting {
-    
-    public function __construct() {
-        parent::__construct(
-            'longpage/availablemodels',
-            get_string('availablemodels', 'longpage'),
-            get_string('availablemodels_desc', 'longpage'),
-            ''
-        );
-    }
-    
-    public function get_setting() {
-        return true;
-    }
-    
-    public function write_setting($data) {
-        return '';
-    }
-    
-    public function output_html($data, $query = '') {
-        global $OUTPUT;
-        
-        $url = get_config('longpage', 'aiurl');
-        $token = get_config('longpage', 'aitoken');
-        
-        $html = '<div id="longpage-models-container">';
-        
-        if (empty($url)) {
-            $html .= html_writer::div(
-                get_string('configure_url_first', 'longpage'),
-                'alert alert-info'
+        public function __construct() {
+            parent::__construct(
+                'longpage/availablemodels',
+                get_string('availablemodels', 'longpage'),
+                get_string('availablemodels_desc', 'longpage'),
+                ''
             );
-        } else {
-            $html .= $this->fetch_and_display_models($url, $token);
         }
-        
-        $html .= '</div>';
-        
-        // Add refresh button
-        $html .= html_writer::tag('button',
-            '<i class="fa fa-refresh"></i> ' . get_string('refreshmodels', 'longpage'),
-            [
+
+        public function get_setting() {
+            return true;
+        }
+
+        public function write_setting($data) {
+            return '';
+        }
+
+        public function output_html($data, $query = '') {
+            global $OUTPUT;
+
+            $url = get_config('longpage', 'aiurl');
+            $token = get_config('longpage', 'aitoken');
+
+            $html = '<div id="longpage-models-container">';
+
+            if (empty($url)) {
+                $html .= html_writer::div(
+                    get_string('configure_url_first', 'longpage'),
+                    'alert alert-info'
+                );
+            } else {
+                $html .= $this->fetch_and_display_models($url, $token);
+            }
+
+            $html .= '</div>';
+
+            // Add refresh button
+            $html .= html_writer::tag(
+                'button',
+                '<i class="fa fa-refresh"></i> ' . get_string('refreshmodels', 'longpage'),
+                [
                 'class' => 'btn btn-secondary mt-2',
                 'id' => 'longpage-refresh-models',
-                'type' => 'button'
-            ]
-        );
-        
-        // Add JavaScript for refresh functionality
-        $html .= '
+                'type' => 'button',
+                ]
+            );
+
+            // Add JavaScript for refresh functionality
+            $html .= '
         <script>
         document.getElementById("longpage-refresh-models").addEventListener("click", function() {
             var container = document.getElementById("longpage-models-container");
             var button = this;
             button.disabled = true;
-            button.innerHTML = \'<i class="fa fa-spinner fa-spin"></i> ' . 
+            button.innerHTML = \'<i class="fa fa-spinner fa-spin"></i> ' .
                 get_string('loading', 'longpage') . '\';
             
             // Get current URL value from the form
@@ -93,10 +93,10 @@ if (!class_exists('admin_setting_longpage_models')) {
             var token = tokenInput ? tokenInput.value : "";
             
             if (!url) {
-                container.innerHTML = \'<div class="alert alert-info">' . 
+                container.innerHTML = \'<div class="alert alert-info">' .
                     get_string('configure_url_first', 'longpage') . '</div>\';
                 button.disabled = false;
-                button.innerHTML = \'<i class="fa fa-refresh"></i> ' . 
+                button.innerHTML = \'<i class="fa fa-refresh"></i> ' .
                     get_string('refreshmodels', 'longpage') . '\';
                 return;
             }
@@ -112,107 +112,108 @@ if (!class_exists('admin_setting_longpage_models')) {
                     container.innerHTML = \'<div class="alert alert-danger">Error: \' + xhr.status + \'</div>\';
                 }
                 button.disabled = false;
-                button.innerHTML = \'<i class="fa fa-refresh"></i> ' . 
+                button.innerHTML = \'<i class="fa fa-refresh"></i> ' .
                     get_string('refreshmodels', 'longpage') . '\';
             };
             xhr.onerror = function() {
                 container.innerHTML = \'<div class="alert alert-danger">Connection error</div>\';
                 button.disabled = false;
-                button.innerHTML = \'<i class="fa fa-refresh"></i> ' . 
+                button.innerHTML = \'<i class="fa fa-refresh"></i> ' .
                     get_string('refreshmodels', 'longpage') . '\';
             };
             xhr.send("url=" + encodeURIComponent(url) + "&token=" + encodeURIComponent(token));
         });
         </script>';
-        
-        return format_admin_setting($this, $this->visiblename, $html, $this->description, true, '', '', $query);
-    }
-    
-    private function fetch_and_display_models($url, $token) {
-        // Parse URL to get base URL for tags endpoint
-        $parts = parse_url($url);
-        if (!$parts || !isset($parts['scheme']) || !isset($parts['host'])) {
-            return html_writer::div(get_string('invalid_url', 'longpage'), 'alert alert-danger');
+
+            return format_admin_setting($this, $this->visiblename, $html, $this->description, true, '', '', $query);
         }
-        
-        $baseurl = $parts['scheme'] . '://' . $parts['host'];
-        if (isset($parts['port'])) {
-            $baseurl .= ':' . $parts['port'];
-        }
-        $tagsurl = $baseurl . '/api/tags';
-        
-        $html = html_writer::tag('p', 
-            get_string('checking_models_at', 'longpage', $tagsurl),
-            ['class' => 'text-muted small']
-        );
-        
-        // Try to fetch available models
-        $ch = curl_init($tagsurl);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $headers = ['Content-Type: application/json'];
-        if (!empty($token)) {
-            $headers[] = 'Authorization: Bearer ' . $token;
-        }
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-        
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        
-        if ($error) {
-            return $html . html_writer::div(
-                get_string('connection_error', 'longpage', $error),
-                'alert alert-danger'
-            );
-        } else if ($httpcode !== 200) {
-            return $html . html_writer::div(
-                get_string('http_error', 'longpage', $httpcode),
-                'alert alert-danger'
-            );
-        }
-        
-        $data = json_decode($response, true);
-        
-        if (isset($data['models']) && is_array($data['models']) && count($data['models']) > 0) {
-            $html .= html_writer::div(
-                get_string('models_found', 'longpage', count($data['models'])),
-                'alert alert-success'
-            );
-            
-            $table = new html_table();
-            $table->head = [
-                get_string('model_name', 'longpage'),
-                get_string('model_size', 'longpage'),
-                get_string('model_modified', 'longpage')
-            ];
-            $table->attributes['class'] = 'table table-sm table-striped';
-            
-            foreach ($data['models'] as $model) {
-                $name = $model['name'] ?? '-';
-                $size = isset($model['size']) ? display_size($model['size']) : '-';
-                $modified = isset($model['modified_at']) ? 
-                    userdate(strtotime($model['modified_at']), get_string('strftimedatetime', 'langconfig')) : '-';
-                
-                $table->data[] = [$name, $size, $modified];
+
+        private function fetch_and_display_models($url, $token) {
+            // Parse URL to get base URL for tags endpoint
+            $parts = parse_url($url);
+            if (!$parts || !isset($parts['scheme']) || !isset($parts['host'])) {
+                return html_writer::div(get_string('invalid_url', 'longpage'), 'alert alert-danger');
             }
-            
-            $html .= html_writer::table($table);
-            $html .= html_writer::div(
-                get_string('copy_model_name', 'longpage'),
-                'alert alert-info small'
+
+            $baseurl = $parts['scheme'] . '://' . $parts['host'];
+            if (isset($parts['port'])) {
+                $baseurl .= ':' . $parts['port'];
+            }
+            $tagsurl = $baseurl . '/api/tags';
+
+            $html = html_writer::tag(
+                'p',
+                get_string('checking_models_at', 'longpage', $tagsurl),
+                ['class' => 'text-muted small']
             );
-        } else {
-            $html .= html_writer::div(
-                get_string('no_models_found', 'longpage'),
-                'alert alert-warning'
-            );
+
+            // Try to fetch available models
+            $ch = curl_init($tagsurl);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $headers = ['Content-Type: application/json'];
+            if (!empty($token)) {
+                $headers[] = 'Authorization: Bearer ' . $token;
+            }
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+
+            $response = curl_exec($ch);
+            $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+
+            if ($error) {
+                return $html . html_writer::div(
+                    get_string('connection_error', 'longpage', $error),
+                    'alert alert-danger'
+                );
+            } else if ($httpcode !== 200) {
+                return $html . html_writer::div(
+                    get_string('http_error', 'longpage', $httpcode),
+                    'alert alert-danger'
+                );
+            }
+
+            $data = json_decode($response, true);
+
+            if (isset($data['models']) && is_array($data['models']) && count($data['models']) > 0) {
+                $html .= html_writer::div(
+                    get_string('models_found', 'longpage', count($data['models'])),
+                    'alert alert-success'
+                );
+
+                $table = new html_table();
+                $table->head = [
+                    get_string('model_name', 'longpage'),
+                    get_string('model_size', 'longpage'),
+                    get_string('model_modified', 'longpage'),
+                ];
+                $table->attributes['class'] = 'table table-sm table-striped';
+
+                foreach ($data['models'] as $model) {
+                    $name = $model['name'] ?? '-';
+                    $size = isset($model['size']) ? display_size($model['size']) : '-';
+                    $modified = isset($model['modified_at']) ?
+                    userdate(strtotime($model['modified_at']), get_string('strftimedatetime', 'langconfig')) : '-';
+
+                    $table->data[] = [$name, $size, $modified];
+                }
+
+                $html .= html_writer::table($table);
+                $html .= html_writer::div(
+                    get_string('copy_model_name', 'longpage'),
+                    'alert alert-info small'
+                );
+            } else {
+                $html .= html_writer::div(
+                    get_string('no_models_found', 'longpage'),
+                    'alert alert-warning'
+                );
+            }
+
+            return $html;
         }
-        
-        return $html;
     }
-}
 }
 
 if ($ADMIN->fulltree) {

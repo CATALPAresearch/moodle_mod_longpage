@@ -40,21 +40,21 @@ final class generator_test extends advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $this->assertEquals(0, $DB->count_records('page'));
+        $this->assertEquals(0, $DB->count_records('longpage'));
 
         /** @var mod_longpage_generator $generator */
         $generator = $this->getDataGenerator()->get_plugin_generator('mod_longpage');
         $this->assertInstanceOf('mod_longpage_generator', $generator);
-        $this->assertEquals('page', $generator->get_modulename());
+        $this->assertEquals('longpage', $generator->get_modulename());
 
         $generator->create_instance(['course' => $SITE->id]);
         $generator->create_instance(['course' => $SITE->id]);
         $page = $generator->create_instance(['course' => $SITE->id]);
-        $this->assertEquals(3, $DB->count_records('page'));
+        $this->assertEquals(3, $DB->count_records('longpage'));
 
-        $cm = get_coursemodule_from_instance('page', $page->id);
+        $cm = get_coursemodule_from_instance('longpage', $page->id);
         $this->assertEquals($page->id, $cm->instance);
-        $this->assertEquals('page', $cm->modname);
+        $this->assertEquals('longpage', $cm->modname);
         $this->assertEquals($SITE->id, $cm->course);
 
         $context = context_module::instance($cm->id);

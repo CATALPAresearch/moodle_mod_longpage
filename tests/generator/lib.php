@@ -63,6 +63,12 @@ class mod_longpage_generator extends testing_module_generator {
         if (!isset($record->printintro)) {
             $record->printintro = 0;
         }
+        if (!isset($record->grade)) {
+            $record->grade = 0;
+        }
+        if (!isset($record->gradepass)) {
+            $record->gradepass = 0;
+        }
 
         return parent::create_instance($record, (array)$options);
     }

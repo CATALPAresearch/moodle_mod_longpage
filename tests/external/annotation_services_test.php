@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\annotation_services
+ * @runTestsInSeparateProcesses
  */
 final class annotation_services_test extends \externallib_advanced_testcase {
     /** @var \stdClass Course object */
@@ -64,6 +65,22 @@ final class annotation_services_test extends \externallib_advanced_testcase {
 
     /** @var \stdClass Another student user */
     private $student2;
+
+    /**
+     * Recursively convert stdClass objects to arrays.
+     *
+     * @param mixed $data Data to convert
+     * @return mixed Converted data
+     */
+    private function to_array($data) {
+        if (is_object($data)) {
+            $data = (array) $data;
+        }
+        if (is_array($data)) {
+            return array_map([$this, 'to_array'], $data);
+        }
+        return $data;
+    }
 
     /**
      * Set up test data
@@ -120,14 +137,15 @@ final class annotation_services_test extends \externallib_advanced_testcase {
                     [
                         'type' => selector::TYPE_TEXT_QUOTE_SELECTOR,
                         'exact' => 'Test content',
-                        'prefix' => '<p>',
-                        'suffix' => ' for',
+                        'prefix' => 'Start of ',
+                        'suffix' => ' for testing',
                     ],
                 ],
             ],
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('annotation', $result);
@@ -187,6 +205,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('annotation', $result);
@@ -230,6 +249,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
         $created = $result['annotation'];
 
         $this->assertEquals(0, $created['ispublic']);
@@ -261,6 +281,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
         $created = $result['annotation'];
 
         $this->assertNotEmpty($created['id']);
@@ -370,6 +391,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         $result = annotation_services::get_annotations([
             'longpageid' => $this->longpage->id,
         ]);
+        $result = $this->to_array($result);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('annotations', $result);
@@ -419,6 +441,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         $result = annotation_services::get_annotations([
             'longpageid' => $this->longpage->id,
         ]);
+        $result = $this->to_array($result);
 
         // Should see own private annotation.
         $this->assertCount(1, $result['annotations']);
@@ -465,6 +488,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
             'longpageid' => $this->longpage->id,
             'annotationid' => $annotationid,
         ]);
+        $result = $this->to_array($result);
 
         $this->assertCount(1, $result['annotations']);
         $this->assertEquals($annotationid, $result['annotations'][0]['id']);
@@ -529,6 +553,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
             'longpageid' => $this->longpage->id,
             'annotationid' => $annotationid,
         ]);
+        $result = $this->to_array($result);
 
         $this->assertCount(1, $result['annotations']);
         $annotation = $result['annotations'][0];
@@ -740,7 +765,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
     public function test_delete_annotation_invalid_id(): void {
         $this->setUser($this->student);
 
-        $this->expectException(\dml_missing_record_exception::class);
+        $this->expectException(\moodle_exception::class);
         annotation_services::delete_annotation(99999);
     }
 
@@ -780,6 +805,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         assign_capability('mod/longpage:modannotations', CAP_ALLOW, $teacherrole->id, $this->context->id);
 
         $result = annotation_services::can_madify_annotations($this->longpage->id);
+        $result = $this->to_array($result);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('canmodannotations', $result);
@@ -801,6 +827,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         assign_capability('mod/longpage:modannotations', CAP_PROHIBIT, $studentrole->id, $this->context->id);
 
         $result = annotation_services::can_madify_annotations($this->longpage->id);
+        $result = $this->to_array($result);
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('canmodannotations', $result);
@@ -945,6 +972,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
         $created = $result['annotation'];
 
         // Verify reply requested flag.
@@ -984,6 +1012,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
         $created = $result['annotation'];
 
         $thread = $DB->get_record('longpage_threads', ['annotationid' => $created['id']]);
@@ -1064,6 +1093,7 @@ final class annotation_services_test extends \externallib_advanced_testcase {
         ];
 
         $result = annotation_services::create_annotation($annotation);
+        $result = $this->to_array($result);
         $timeafter = time();
 
         $created = $result['annotation'];

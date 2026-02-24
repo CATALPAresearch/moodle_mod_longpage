@@ -53,7 +53,8 @@ if (isset($parts['port'])) {
 }
 $tagsurl = $baseurl . '/api/tags';
 
-echo html_writer::tag('p', 
+echo html_writer::tag(
+    'p',
     get_string('checking_models_at', 'longpage', $tagsurl),
     ['class' => 'text-muted small']
 );
@@ -96,24 +97,24 @@ if (isset($data['models']) && is_array($data['models']) && count($data['models']
         get_string('models_found', 'longpage', count($data['models'])),
         'alert alert-success'
     );
-    
+
     $table = new html_table();
     $table->head = [
         get_string('model_name', 'longpage'),
         get_string('model_size', 'longpage'),
-        get_string('model_modified', 'longpage')
+        get_string('model_modified', 'longpage'),
     ];
     $table->attributes['class'] = 'table table-sm table-striped';
-    
+
     foreach ($data['models'] as $model) {
         $name = $model['name'] ?? '-';
         $size = isset($model['size']) ? display_size($model['size']) : '-';
-        $modified = isset($model['modified_at']) ? 
+        $modified = isset($model['modified_at']) ?
             userdate(strtotime($model['modified_at']), get_string('strftimedatetime', 'langconfig')) : '-';
-        
+
         $table->data[] = [$name, $size, $modified];
     }
-    
+
     echo html_writer::table($table);
     echo html_writer::div(
         get_string('copy_model_name', 'longpage'),

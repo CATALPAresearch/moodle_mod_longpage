@@ -42,19 +42,19 @@ class mod_longpage_mod_form extends moodleform_mod {
         if (!headers_sent()) {
             header('Content-Type: text/html; charset=utf-8');
         }
-        
+
         // Ensure proper DOCTYPE is enforced
         $PAGE->set_docs_path('');
         $PAGE->set_pagelayout('admin');
-        
+
         // CRITICAL: Prevent any Vue.js conflicts immediately
         if (!defined('EDITING_LONGPAGE_MODULE')) {
             define('EDITING_LONGPAGE_MODULE', true);
         }
-        
+
         // Load conflict prevention script in head with highest priority
         $PAGE->requires->js('/mod/longpage/editor_fix.js', true);
-        
+
         // Force standards mode through meta tags and inline script
         $PAGE->requires->js_amd_inline('
             // IMMEDIATE standards mode enforcement
@@ -242,7 +242,7 @@ class mod_longpage_mod_form extends moodleform_mod {
                 $defaultvalues['content']
             );
             $defaultvalues['longpage']['itemid'] = $draftitemid;
-            
+
             // Explicitly set checkbox values for proper form loading.
             $checkboxes = [
                 'showreadingprogress',
@@ -254,7 +254,7 @@ class mod_longpage_mod_form extends moodleform_mod {
                 'showhighlights',
                 'showbookmarks',
                 'showeditquestionsnoai',
-                'showeditquestionsai'
+                'showeditquestionsai',
             ];
             foreach ($checkboxes as $checkbox) {
                 if (isset($defaultvalues[$checkbox])) {

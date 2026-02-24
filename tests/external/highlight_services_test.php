@@ -44,6 +44,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\highlight_services
+ * @runTestsInSeparateProcesses
  */
 final class highlight_services_test extends \externallib_advanced_testcase {
     /** @var stdClass Course object */
@@ -57,6 +58,22 @@ final class highlight_services_test extends \externallib_advanced_testcase {
 
     /** @var stdClass Student user */
     private $student;
+
+    /**
+     * Convert stdClass objects to arrays recursively.
+     *
+     * @param mixed $data Data to convert
+     * @return mixed
+     */
+    private function to_array($data) {
+        if (is_object($data)) {
+            $data = (array) $data;
+        }
+        if (is_array($data)) {
+            return array_map([$this, 'to_array'], $data);
+        }
+        return $data;
+    }
 
     /** @var stdClass Another student user */
     private $student2;
@@ -237,7 +254,7 @@ final class highlight_services_test extends \externallib_advanced_testcase {
     public function test_delete_highlight_invalid_id(): void {
         $this->setUser($this->student);
 
-        $this->expectException(\dml_missing_record_exception::class);
+        $this->expectException(\core\exception\moodle_exception::class);
         highlight_services::delete_highlight(99999);
     }
 
@@ -392,7 +409,7 @@ final class highlight_services_test extends \externallib_advanced_testcase {
         $this->setUser($this->student);
         $highlightid = $this->create_test_highlight($this->student->id);
 
-        $result = highlight_services::update_highlight($highlightid, 'highlight-purple');
+        $result = $this->to_array(highlight_services::update_highlight($highlightid, 'highlight-purple'));
 
         $this->assertIsArray($result);
         $this->assertArrayHasKey('annotation', $result);

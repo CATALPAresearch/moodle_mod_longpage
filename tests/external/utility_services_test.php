@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2024 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\utility_services
+ * @runTestsInSeparateProcesses
  */
 final class utility_services_test extends \externallib_advanced_testcase {
     /** @var stdClass Course object */
@@ -167,7 +168,10 @@ final class utility_services_test extends \externallib_advanced_testcase {
         $this->assertNotEmpty($logs);
 
         // Verify reading progress was also recorded.
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $sql = "SELECT * FROM {longpage_reading_progress}
+                WHERE userid = :userid AND longpageid = :longpageid
+                AND " . $DB->sql_compare_text('section') . " = " . $DB->sql_compare_text(':section');
+        $progress = $DB->get_records_sql($sql, [
             'userid' => $this->student->id,
             'longpageid' => $this->longpage->id,
             'section' => 'section-1',

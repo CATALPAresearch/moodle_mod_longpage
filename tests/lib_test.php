@@ -41,14 +41,14 @@ final class lib_test extends advanced_testcase {
      * Prepares things before this test case is initialised
      * @return void
      */
-    public static function setUpBeforeClass() {
+    public static function setUpBeforeClass(): void {
         global $CFG;
-        require_once($CFG->dirroot . '/mod/page/lib.php');
+        require_once($CFG->dirroot . '/mod/longpage/lib.php');
         parent::setUpBeforeClass();
     }
 
     /**
-     * Test page_view
+     * Test longpage_view
      * @return void
      */
     public function test_page_view(): void {
@@ -60,18 +60,18 @@ final class lib_test extends advanced_testcase {
         // Setup test data.
         $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
         $page = $this->getDataGenerator()->create_module(
-            'page',
+            'longpage',
             ['course' => $course->id],
             ['completion' => 2, 'completionview' => 1]
         );
         $context = context_module::instance($page->cmid);
-        $cm = get_coursemodule_from_instance('page', $page->id);
+        $cm = get_coursemodule_from_instance('longpage', $page->id);
 
         // Trigger and capture the event.
         $sink = $this->redirectEvents();
 
         $this->setAdminUser();
-        page_view($page, $course, $cm, $context);
+        longpage_view($page, $course, $cm, $context);
 
         $events = $sink->get_events();
         // 2 additional events thanks to completion.
@@ -81,7 +81,7 @@ final class lib_test extends advanced_testcase {
         // Checking that the event contains the expected values.
         $this->assertInstanceOf('\mod_longpage\event\course_module_viewed', $event);
         $this->assertEquals($context, $event->get_context());
-        $moodleurl = new \moodle_url('/mod/page/view.php', ['id' => $cm->id]);
+        $moodleurl = new \moodle_url('/mod/longpage/view.php', ['id' => $cm->id]);
         $this->assertEquals($moodleurl, $event->get_url());
         $this->assertEventContextNotUsed($event);
         $this->assertNotEmpty($event->get_name());
@@ -98,7 +98,7 @@ final class lib_test extends advanced_testcase {
 
         // Create the activity.
         $course = $this->getDataGenerator()->create_course();
-        $page = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
+        $page = $this->getDataGenerator()->create_module('longpage', ['course' => $course->id]);
 
         // Create a calendar event.
         $event = $this->create_action_event(
@@ -132,13 +132,13 @@ final class lib_test extends advanced_testcase {
         // Create the activity.
         $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
         $page = $this->getDataGenerator()->create_module(
-            'page',
+            'longpage',
             ['course' => $course->id],
             ['completion' => 2, 'completionview' => 1, 'completionexpected' => time() + DAYSECS]
         );
 
         // Get some additional data.
-        $cm = get_coursemodule_from_instance('page', $page->id);
+        $cm = get_coursemodule_from_instance('longpage', $page->id);
 
         // Create a calendar event.
         $event = $this->create_action_event(
@@ -175,13 +175,13 @@ final class lib_test extends advanced_testcase {
         // Create the activity.
         $course = $this->getDataGenerator()->create_course(['enablecompletion' => 1]);
         $page = $this->getDataGenerator()->create_module(
-            'page',
+            'longpage',
             ['course' => $course->id],
             ['completion' => 2, 'completionview' => 1, 'completionexpected' => time() + DAYSECS]
         );
 
         // Get some additional data.
-        $cm = get_coursemodule_from_instance('page', $page->id);
+        $cm = get_coursemodule_from_instance('longpage', $page->id);
 
         // Create a calendar event.
         $event = $this->create_action_event(
@@ -227,7 +227,7 @@ final class lib_test extends advanced_testcase {
     private function create_action_event($courseid, $instanceid, $eventtype) {
         $event = new stdClass();
         $event->name = 'Calendar event';
-        $event->modulename  = 'page';
+        $event->modulename  = 'longpage';
         $event->courseid = $courseid;
         $event->instance = $instanceid;
         $event->type = CALENDAR_EVENT_TYPE_ACTION;

@@ -363,7 +363,7 @@ class post_services extends base_external {
         }
 
         $transaction = $DB->start_delegated_transaction();
-        self::validate_post_can_be_updated($postupdate);
+        self::validate_post_can_be_updated($post, $postupdate);
         $DB->update_record('longpage_posts', array_merge((array) $postupdate, ['timemodified' => time()]));
         if (isset($postupdate->content) && $post->content !== $postupdate->content) {
             $DB->delete_records('longpage_post_readings', ['postid' => $post->id]);
@@ -398,9 +398,11 @@ class post_services extends base_external {
         return new \external_function_parameters([
             'postupdate' => new \external_single_structure(array_merge(
                 self::id_parameter(),
-                pick_keys(self::post_parameters(), ['anonymous', 'ispublic', 'islocked']),
                 [
                     'content' => new \external_value(PARAM_TEXT, 'Content text', VALUE_OPTIONAL),
+                    'anonymous' => new \external_value(PARAM_BOOL, 'Whether the post is anonymous', VALUE_OPTIONAL),
+                    'ispublic' => new \external_value(PARAM_BOOL, 'Whether the item is public', VALUE_OPTIONAL),
+                    'islocked' => new \external_value(PARAM_BOOL, 'Whether the item is locked', VALUE_OPTIONAL),
                     'markedasrequestedreply' => new \external_value(PARAM_BOOL, 'Whether marked as requested reply', VALUE_OPTIONAL),
                     'creatorid' => new \external_value(PARAM_INT, 'ID of the creator user', VALUE_OPTIONAL),
                 ]
@@ -435,16 +437,23 @@ class post_services extends base_external {
     /**
      * Validate post can be updated.
      *
+     * @param object $post Original post object
      * @param object $postupdate Post update object
      */
-    private static function validate_post_can_be_updated($postupdate) {
-        global $DB, $USER;
+    private static function validate_post_can_be_updated($post, $postupdate) {
+        global $DB;
 
-        // Check if user has capability to update post without validation and return if so.
-        // Check if user has capability for updating post.
-        // Enable validation again.
+        // Check if content or visibility is being changed.
+        $contentChanged = isset($postupdate->content) && $post->content !== $postupdate->content;
+        $visibilityChanged = isset($postupdate->ispublic) && $post->ispublic && !$postupdate->ispublic;
 
-        if (($post->ispublic && !$postupdate->ispublic) || $post->content !== $postupdate->content) {
+        if ($contentChanged || $visibilityChanged) {
+            // Check if this is the thread root post (the first post in the thread).
+            $rootpost = $DB->get_record_sql(
+                'SELECT id FROM {longpage_posts} WHERE threadid = ? ORDER BY timecreated ASC LIMIT 1',
+                [$post->threadid]
+            );
+            $postisthreadroot = ($rootpost && $rootpost->id == $post->id);
             self::validate_post_can_be_deleted_and_udpated($post, $postisthreadroot);
         }
     }

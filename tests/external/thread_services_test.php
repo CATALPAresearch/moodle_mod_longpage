@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2024 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\thread_services
+ * @runTestsInSeparateProcesses
  */
 final class thread_services_test extends \externallib_advanced_testcase {
     /** @var stdClass Course object */

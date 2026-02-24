@@ -75,7 +75,7 @@ class utility_services extends base_external {
         $r->other = $data['entry'];
         $r->timecreated = $data['utc'];
         $r->origin = 'web';
-        $r->ip = $_SERVER['REMOTE_ADDR'];
+        $r->ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
 
         $transaction = $DB->start_delegated_transaction();
         $res = $DB->insert_record("logstore_standard_log", (array) $r);
@@ -90,19 +90,14 @@ class utility_services extends base_external {
             $s->longpageid = (int) $d->longpageid;
             $s->timemodified = (int) $d->utc;
             $s->scrolltop = (int) $d->scrolltop;
+            $s->sectionhash = isset($d->sectionhash) ? (int) $d->sectionhash : crc32((string)$d->targetID);
 
             try {
                 $transaction = $DB->start_delegated_transaction();
                 $res2 = $DB->insert_record("longpage_reading_progress", (array) $s);
                 $transaction->allow_commit();
-                // Log success only if debug mode is enabled
-                if ($CFG->debugdeveloper) {
-                    error_log('Longpage: Reading progress saved successfully');
-                }
             } catch (Exception $e) {
                 $transaction->rollback($e);
-                // Always log errors for troubleshooting
-                error_log('Longpage: Failed to save reading progress - ' . $e->getMessage());
             }
         }
         return ['response' => json_encode($res)];

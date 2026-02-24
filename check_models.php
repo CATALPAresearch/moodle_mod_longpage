@@ -78,36 +78,36 @@ if ($error) {
     echo $OUTPUT->notification(get_string('http_error', 'longpage', $httpcode), 'error');
 } else {
     $data = json_decode($response, true);
-    
+
     if (isset($data['models']) && is_array($data['models']) && count($data['models']) > 0) {
         echo $OUTPUT->notification(get_string('models_found', 'longpage', count($data['models'])), 'success');
-        
+
         $table = new html_table();
         $table->head = [
             get_string('model_name', 'longpage'),
             get_string('model_size', 'longpage'),
-            get_string('model_modified', 'longpage')
+            get_string('model_modified', 'longpage'),
         ];
-        
+
         foreach ($data['models'] as $model) {
             $name = $model['name'] ?? '-';
             $size = isset($model['size']) ? display_size($model['size']) : '-';
             $modified = isset($model['modified_at']) ? userdate(strtotime($model['modified_at'])) : '-';
-            
+
             $table->data[] = [$name, $size, $modified];
         }
-        
+
         echo html_writer::table($table);
-        
+
         echo html_writer::tag('p', get_string('copy_model_name', 'longpage'), ['class' => 'alert alert-info']);
-        
     } else {
         echo $OUTPUT->notification(get_string('no_models_found', 'longpage'), 'warning');
         echo html_writer::tag('pre', htmlspecialchars($response));
     }
 }
 
-echo html_writer::tag('p', 
+echo html_writer::tag(
+    'p',
     html_writer::link(
         new moodle_url('/admin/settings.php', ['section' => 'modsettinglongpage']),
         get_string('back_to_settings', 'longpage'),

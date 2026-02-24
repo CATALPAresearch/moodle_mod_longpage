@@ -170,11 +170,11 @@ class longpage_content_file_info extends file_info_stored {
  * @param object $context Context object
  * @return array Editor options
  * atto:toolbar options are not used by atto. FixMe.
- * 
+ *
  */
 function longpage_get_editor_options($context) {
     global $CFG;
-    
+
     $toolbar = <<<EOT
 collapse = collapse, embedquestion, html
 style1 = title, bold, italic
@@ -187,16 +187,16 @@ insert = equation, charmap, table, clear
 undo = undo
 accessibility = accessibilitychecker, accessibilityhelper
 EOT;
-    
+
     return [
-        'subdirs' => 1, 
-        'maxbytes' => $CFG->maxbytes, 
-        'maxfiles' => -1, 
+        'subdirs' => 1,
+        'maxbytes' => $CFG->maxbytes,
+        'maxfiles' => -1,
         'changeformat' => 1,
-        'context' => $context, 
-        'noclean' => 1, 
+        'context' => $context,
+        'noclean' => 1,
         'trusttext' => 0,
         'atto:toolbar' => $toolbar,
-        'autosave' => false
+        'autosave' => false,
     ];
 }

@@ -65,7 +65,7 @@ $PAGE->requires->css('/mod/longpage/styles.css', true);
 
 // Longpage always uses standard display mode (no popup).
 $PAGE->set_title($course->shortname . ': ' . $page->name);
-#$PAGE->set_heading($course->fullname); # uncommented since it disturbes when page is loading and dom elements floating around
+// $PAGE->set_heading($course->fullname); # uncommented since it disturbes when page is loading and dom elements floating around
 
 $PAGE->set_secondary_navigation(false);
 $PAGE->activityheader->disable();
@@ -104,32 +104,32 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
     echo '<h2 style="display:inline;">' . format_string($page->name) . '</h2>';
     // Intro box hidden per user request
     // echo $OUTPUT->box(
-    //     format_module_intro('longpage', $page, $cm->id),
-    //     'generalbox',
-    //     'intro'
+    // format_module_intro('longpage', $page, $cm->id),
+    // 'generalbox',
+    // 'intro'
     // );
     // Dropdown for other longpages hidden per user request
     // echo '<div class="dropdown" style="display: inline;">' .
-    //     '<button class="btn btm-sm dropdown-toggle" type="button" ' .
-    //     'id="dropdownPages" data-toggle="dropdown" ' .
-    //     'aria-haspopup="true" aria-expanded="false" ' .
-    //     'style="padding: 0; background: none;"></button>' .
-    //     '<div class="dropdown-menu dropdown-menu-right" ' .
-    //     'aria-labelledby="dropdownPages" style="width: 300px;">';
+    // '<button class="btn btm-sm dropdown-toggle" type="button" ' .
+    // 'id="dropdownPages" data-toggle="dropdown" ' .
+    // 'aria-haspopup="true" aria-expanded="false" ' .
+    // 'style="padding: 0; background: none;"></button>' .
+    // '<div class="dropdown-menu dropdown-menu-right" ' .
+    // 'aria-labelledby="dropdownPages" style="width: 300px;">';
     // $pages = get_all_instances_in_courses("longpage", [$course->id => $course]);
     // foreach ($pages as $p) {
-    //     $pcm = get_coursemodule_from_instance('longpage', $p->id, $course->id);
-    //     $cxt = context_module::instance($cm->id);
-    //     if (!has_capability('mod/longpage:view', $cxt)) {
-    //         continue;
-    //     }
-    //     if ($pcm->id != $cm->id) {
-    //         echo '<a class="dropdown-item" href="/mod/longpage/view.php?id=' . $pcm->id . '" target="_blank">' . $p->name . '</a>';
-    //     }
+    // $pcm = get_coursemodule_from_instance('longpage', $p->id, $course->id);
+    // $cxt = context_module::instance($cm->id);
+    // if (!has_capability('mod/longpage:view', $cxt)) {
+    // continue;
+    // }
+    // if ($pcm->id != $cm->id) {
+    // echo '<a class="dropdown-item" href="/mod/longpage/view.php?id=' . $pcm->id . '" target="_blank">' . $p->name . '</a>';
+    // }
     // }
     // echo    '</div>
-    //     </div>';
-    
+    // </div>';
+
     // Hidden form needed for embedding questions.
     $embedform = new MoodleQuickForm(
         'embedform',
@@ -180,9 +180,9 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
         'lang' => $lang,
     ];
 
-    echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="'.$CFG->release.'">';
+    echo '<div id="longpage-app-container" class="border-top border-bottom" data-moodle-release="' . $CFG->release . '">';
     echo '<div class="row no-gutters vh-50">';
-    echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">'.get_string('loading').'</span></div>';
+    echo '<div class="spinner-border m-auto " role="status"><span class="sr-only">' . get_string('loading') . '</span></div>';
     echo '</div></div>';
     echo '<div id="longpage-tmp" style="display:none;" lang="de">';
     echo $page->content;
@@ -210,7 +210,7 @@ if (mod_longpage\blocking::tool_policy_accepted() == true) {
             !empty($page->showeditquestionsai),
             $tagstr,
             is_siteadmin(),
-            $initialdata
+            $initialdata,
         ]
     );
 } else {

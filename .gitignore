@@ -3,6 +3,7 @@ x.html
 
 # Node modules
 node_modules
+vendor
 
 # IDE
 .idea

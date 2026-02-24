@@ -42,6 +42,7 @@ require_once($CFG->dirroot . '/mod/longpage/locallib.php');
  * @copyright  2024 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @covers \mod_longpage\external\reading_progress_services
+ * @runTestsInSeparateProcesses
  */
 final class reading_progress_services_test extends \externallib_advanced_testcase {
     /** @var stdClass Course object */
@@ -71,8 +72,9 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
 
         $this->resetAfterTest(true);
 
-        // Create course.
-        $this->course = $this->getDataGenerator()->create_course();
+        // Create course with unique shortname to avoid conflicts in separate processes.
+        $uniqueid = 'rps_' . uniqid();
+        $this->course = $this->getDataGenerator()->create_course(['shortname' => $uniqueid]);
 
         // Create longpage instance.
         $this->longpage = $this->getDataGenerator()->create_module('longpage', [
@@ -314,9 +316,9 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
         $this->assertArrayHasKey('response', $result);
         $this->assertNotEmpty($result['response']);
 
-        // Decode and verify the response.
+        // Decode and verify the response - json_decode returns object by default.
         $data = json_decode($result['response']);
-        $this->assertIsObject($data) || $this->assertIsArray($data);
+        $this->assertTrue(is_object($data) || is_array($data));
     }
 
     /**
@@ -384,7 +386,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
 
         $invalidpageid = 99999;
 
-        $this->expectException(\moodle_exception::class);
+        $this->expectException(\dml_missing_record_exception::class);
         reading_progress_services::update_reading_progress(
             $invalidpageid,
             100.0,
@@ -404,11 +406,9 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
 
         $invalidpageid = 99999;
 
-        // Get progress for non-existent page should return empty result.
-        $result = reading_progress_services::get_reading_progress($this->course->id, $invalidpageid);
-
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('response', $result);
+        // Get progress for non-existent page should throw exception.
+        $this->expectException(\dml_missing_record_exception::class);
+        reading_progress_services::get_reading_progress($this->course->id, $invalidpageid);
     }
 
     /**
