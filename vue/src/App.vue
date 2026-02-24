@@ -1,22 +1,6 @@
 <template>
   <div>
-    <div v-show="!pageReady" class="d-flex flex-column align-items-center justify-content-center vh-50">
-      <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
-        <span class="sr-only">Loading...</span>
-      </div>
-      <div class="text-muted">
-        <strong>Loading content...</strong>
-      </div>
-      <div class="text-muted small mt-2">
-        Please wait while the page initializes
-      </div>
-    </div>
-    <div
-      v-show="pageReady"
-      id="longpage-app"
-      class="row no-gutters w-100"
-      tabindex="0"
-    >
+    <div id="longpage-app" class="row no-gutters w-100" tabindex="0">
       <div
         id="longpage-main"
         ref="mainRef"
@@ -117,7 +101,6 @@ export default {
   data() {
     return {
       eventListeners: [],
-      pageReady: true, // Show immediately instead of waiting for page-ready event
       // readingTimeEstimator: new ReadingTimeEstimator(
       //   toIdSelector(LONGPAGE_CONTENT_ID)
       // ),
@@ -145,23 +128,21 @@ export default {
     },
   },
   mounted() {
-    EventBus.subscribe("page-ready", () => {
-      this.pageReady = true;
-      this.$nextTick(() => {
-        this.$refs.mainRef.scrollTop = this.scrollTop; // * this.$refs.mainRef.scrollHeight;
-        document.getElementById(LONGPAGE_MAIN_ID).addEventListener(
-          "scroll",
-          throttle(
-            ($event) => {
-              this[ACT.UPDATE_READING_PROGRESS](
-                $event.target.scrollTop / $event.target.scrollHeight,
-              );
-            },
-            1000,
-            { leading: false },
-          ),
-        );
-      });
+    // Setup scroll listener immediately (no waiting for page-ready)
+    this.$nextTick(() => {
+      this.$refs.mainRef.scrollTop = this.scrollTop; // * this.$refs.mainRef.scrollHeight;
+      document.getElementById(LONGPAGE_MAIN_ID).addEventListener(
+        "scroll",
+        throttle(
+          ($event) => {
+            this[ACT.UPDATE_READING_PROGRESS](
+              $event.target.scrollTop / $event.target.scrollHeight,
+            );
+          },
+          1000,
+          { leading: false },
+        ),
+      );
     });
 
     var _this = this;
@@ -181,9 +162,22 @@ export default {
         selection: highlightsAtClickCoords,
       });
     });
-    Y.use("mathjax", () => {
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.$refs.contentRef]);
-    });
+
+    // Defer MathJax typesetting for faster initial render
+    if (window.requestIdleCallback) {
+      requestIdleCallback(() => {
+        Y.use("mathjax", () => {
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.$refs.contentRef]);
+        });
+      });
+    } else {
+      setTimeout(() => {
+        Y.use("mathjax", () => {
+          MathJax.Hub.Queue(["Typeset", MathJax.Hub, this.$refs.contentRef]);
+        });
+      }, 100);
+    }
+
     this[ACT.FETCH_USER_ROLES]();
     this[ACT.FETCH_ENROLLED_USERS]();
     this[ACT.USER_CAN_MOD_ANNOTATION]();

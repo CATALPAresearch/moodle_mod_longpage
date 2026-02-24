@@ -236,24 +236,26 @@ module.exports = (env, options) => {
     exports.optimization = {
       minimize: true,
       nodeEnv: "production",
+      usedExports: true, // Enable tree shaking
+      sideEffects: false, // All modules have no side effects
       minimizer: [
-        /*new UglifyJsPlugin({
-                    uglifyOptions: {
-                      output: {
-                        comments: false,
-                        warnings: false,
-                        keep_fnames: true,
-                      }
-                    },
-                    sourceMap: true,
-                    extractComments: true,
-                }),*/
         new TerserPlugin({
-          cache: true,
           parallel: true,
           extractComments: false,
-          //sourceMap: true,
-          //minify:false
+          terserOptions: {
+            compress: {
+              drop_console: true, // Remove all console.* calls
+              drop_debugger: true, // Remove debugger statements
+              pure_funcs: ["console.log", "console.info", "console.debug"], // Remove specific functions
+              passes: 2, // Multiple compression passes
+            },
+            mangle: {
+              safari10: true, // Fix Safari 10/11 bugs
+            },
+            format: {
+              comments: false, // Remove all comments
+            },
+          },
         }),
       ],
     };

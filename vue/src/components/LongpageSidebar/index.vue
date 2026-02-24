@@ -21,6 +21,9 @@
       <component
         :is="tab.key"
         v-for="tab in tabs"
+        v-if="
+          heavyComponentsReady || (tab.key !== 'quiz' && tab.key !== 'posts')
+        "
         v-show="tab.key === tabOpenedKey"
         :id="tab.id"
         :key="tab.key"
@@ -221,12 +224,18 @@ export default {
       SidebarEvents,
       tabs: tabs,
       sidebarWidth: "",
+      heavyComponentsReady: false, // Defer Quiz/Posts for faster initial render
     };
   },
   computed: {
     ...mapGetters({ tabOpenedKey: GET.SIDEBAR_TAB_OPENED_KEY }),
   },
   mounted() {
+    // Defer heavy components (Quiz has 2300+ lines) for faster initial render
+    setTimeout(() => {
+      this.heavyComponentsReady = true;
+    }, 100);
+
     EventBus.subscribe("annotations-selected", ({ type }) => {
       switch (type) {
         case AnnotationType.HIGHLIGHT:

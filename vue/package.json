@@ -2,6 +2,14 @@
   "name": "moodle-mod_longpage",
   "version": "0.1.0",
   "private": true,
+  "sideEffects": [
+    "*.css",
+    "*.scss",
+    "*.vue",
+    "./src/lib/hashchange-listening.js",
+    "./src/lib/scroll-snapping.js",
+    "./src/components/LongpageContent/Footnote.js"
+  ],
   "scripts": {
     "watch": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --watch --config webpack.config.js",
     "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider webpack --mode development --config webpack.config.js",

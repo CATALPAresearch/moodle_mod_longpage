@@ -453,10 +453,10 @@ export default {
               var repeat = 0;
 
               // Safely dispose tooltips (Moodle's Bootstrap requires initialization check)
-              $(".reading-progress").each(function() {
+              $(".reading-progress").each(function () {
                 try {
                   $(this).tooltip("dispose");
-                } catch(e) {
+                } catch (e) {
                   // Tooltip not initialized, skip
                 }
               });
@@ -515,17 +515,16 @@ export default {
                 });
               }
 
-              $("#sidebar-tab-quiz #total-reading-comprehension")
-                .attr(
-                  "title",
-                  "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " +
-                    rc +
-                    " %.<br>Klicken Sie für eine Übersicht der Aufgaben.",
-                );
+              $("#sidebar-tab-quiz #total-reading-comprehension").attr(
+                "title",
+                "Ihr geschätztes Leseverständnis für die ganze Seite <br>beträgt: " +
+                  rc +
+                  " %.<br>Klicken Sie für eine Übersicht der Aufgaben.",
+              );
               // Safely dispose and re-initialize tooltip
               try {
                 $("#total-reading-comprehension").tooltip("dispose");
-              } catch(e) {
+              } catch (e) {
                 // Not initialized yet
               }
               $("#total-reading-comprehension")
@@ -1007,11 +1006,13 @@ export default {
 
         var el = $("#" + $(this).attr("data-paragraph"));
         // Remove all highlight marks (vanilla JS alternative to .unmark())
-        $(el).find("[class*='highlight-']").each(function() {
-          $(this).removeClass(function(index, className) {
-            return (className.match(/\bhighlight-\S+/g) || []).join(' ');
+        $(el)
+          .find("[class*='highlight-']")
+          .each(function () {
+            $(this).removeClass(function (index, className) {
+              return (className.match(/\bhighlight-\S+/g) || []).join(" ");
+            });
           });
-        });
       });
 
       $("#nextQuestion").on("click", function () {
