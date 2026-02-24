@@ -63,6 +63,7 @@ class questions_bank_services extends base_external {
         [$course, $cm] = get_course_and_cm_from_instance($page, 'longpage');
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
 
         // Fetch questions tagged for this page.
         $sql = "SELECT DISTINCT q.id, q.name, q.questiontext, q.qtype
@@ -106,6 +107,7 @@ class questions_bank_services extends base_external {
         [$course, $cm] = get_course_and_cm_from_instance($page, 'longpage');
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
 
         $q = \question_bank::load_question($questionid);
         if (!$q) {

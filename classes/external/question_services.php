@@ -81,6 +81,7 @@ class question_services extends base_external {
 
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
 
         $query = "SELECT it.id, t.name as tagname
                     FROM {question} it INNER JOIN {tag_instance} tt ON it.id = tt.itemid INNER JOIN {tag} t on tt.tagid = t.id
@@ -175,6 +176,7 @@ class question_services extends base_external {
 
         $context = \context_module::instance($cm->id);
         self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
 
         $options = ['noclean' => true];
         [$page->content, $page->contentformat] = external_format_text(

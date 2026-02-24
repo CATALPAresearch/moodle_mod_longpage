@@ -44,10 +44,12 @@ abstract class base_external extends \external_api {
      * Validate course module context by page ID.
      *
      * @param int $pageid Page ID
+     * @return \context_module
      */
-    protected static function validate_cm_context($pageid): void {
+    protected static function validate_cm_context($pageid) {
         $context = self::get_cm_context_by_pageid($pageid);
         self::validate_context($context);
+        return $context;
     }
 
     /**
@@ -72,7 +74,9 @@ abstract class base_external extends \external_api {
             ['postid' => $postid]
         );
         $annotation = self::get_annotation_by_post_id($params['postid']);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::get_cm_context_by_pageid($annotation->longpageid);
+        self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
     }
 
     /**

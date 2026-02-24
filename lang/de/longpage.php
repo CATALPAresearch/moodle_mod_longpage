@@ -63,6 +63,7 @@ $string['legacyfilesdone'] = 'Abgeschlossen';
 $string['loading'] = 'Wird geladen...';
 
 $string['longpage:addinstance'] = 'Neue Seite als Ressource hinzufügen';
+$string['longpage:addpost'] = 'Beiträge, Anmerkungen, Hervorhebungen und Lesezeichen erstellen';
 $string['longpage:modannotations'] = 'Annotations editieren und löschen';
 $string['longpage:view'] = 'Seiteninhalt anzeigen';
 $string['messagecontexturlnamepostcreated'] = 'Neuer Beitrag';

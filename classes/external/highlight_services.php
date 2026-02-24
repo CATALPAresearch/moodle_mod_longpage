@@ -87,7 +87,8 @@ class highlight_services extends base_external {
 
         self::validate_parameters(\mod_longpage_external::create_annotation_parameters(), ['id' => $id, 'styleclass' => $styleclass]);
         $annotation = $DB->get_record('longpage_annotations', ['id' => $id]);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::validate_cm_context($annotation->longpageid);
+        require_capability('mod/longpage:addpost', $context);
 
         self::validate_highlight_can_be_deleted_and_updated($annotation);
 

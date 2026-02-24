@@ -63,6 +63,7 @@ $string['legacyfilesdone'] = 'Finished';
 $string['loading'] = 'Loading...';
 
 $string['longpage:addinstance'] = 'Add a new Longpage resource';
+$string['longpage:addpost'] = 'Create posts, annotations, highlights and bookmarks';
 $string['longpage:modannotations'] = 'edit and delete annotations';
 $string['longpage:view'] = 'View Longpage content';
 $string['messagecontexturlnamepostcreated'] = 'Neuer Beitrag';

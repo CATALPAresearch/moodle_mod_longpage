@@ -109,7 +109,8 @@ class thread_services extends base_external {
 
         self::validate_parameters(self::create_thread_subscription_parameters(), ['threadid' => $threadid]);
         $annotation = self::get_annotation_by_thread($threadid);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::validate_cm_context($annotation->longpageid);
+        require_capability('mod/longpage:view', $context);
 
         $table = 'longpage_thread_subs';
         $keyconditions = ['threadid' => $threadid, 'userid' => $USER->id];
@@ -168,7 +169,8 @@ class thread_services extends base_external {
 
         self::validate_parameters(self::create_thread_subscription_parameters(), ['threadid' => $threadid]);
         $annotation = self::get_annotation_by_thread($threadid);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::validate_cm_context($annotation->longpageid);
+        require_capability('mod/longpage:view', $context);
 
         $transaction = $DB->start_delegated_transaction();
         $DB->delete_records('longpage_thread_subs', ['threadid' => $threadid, 'userid' => $USER->id]);

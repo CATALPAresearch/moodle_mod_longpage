@@ -94,7 +94,8 @@ class post_services extends base_external {
 
         self::validate_parameters(self::create_post_parameters(), ['post' => $postparameters]);
         $postparameters = (object) $postparameters;
-        self::validate_cm_context($postparameters->longpageid);
+        $context = self::validate_cm_context($postparameters->longpageid);
+        require_capability('mod/longpage:addpost', $context);
 
         $transaction = $DB->start_delegated_transaction();
         $id = $DB->insert_record(
@@ -203,13 +204,19 @@ class post_services extends base_external {
      * @param int $id Post ID
      */
     public static function delete_post($id) {
-        global $DB;
+        global $DB, $USER;
 
         self::validate_parameters(self::delete_post_parameters(), ['id' => $id]);
         $annotation = self::get_annotation_by_post_id($id);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::validate_cm_context($annotation->longpageid);
 
         $post = $DB->get_record('longpage_posts', ['id' => $id]);
+
+        // Check permission: user must be the creator OR have modannotations capability.
+        if ($post->creatorid != $USER->id && !has_capability('mod/longpage:modannotations', $context)) {
+            throw new \moodle_exception('nopermissions', 'error', '', 'delete post');
+        }
+
         // Move getting the thread into validation.
         $postisthreadroot = self::is_post_thread_root($post);
 
@@ -348,7 +355,12 @@ class post_services extends base_external {
         self::validate_parameters(self::update_post_parameters(), ['postupdate' => $postupdateparams]);
         $postupdate = (object) $postupdateparams;
         $post = $DB->get_record('longpage_posts', ['id' => $postupdate->id]);
-        self::validate_cm_context($post->longpageid);
+        $context = self::validate_cm_context($post->longpageid);
+
+        // Check permission: user must be the creator OR have modannotations capability.
+        if ($post->creatorid != $USER->id && !has_capability('mod/longpage:modannotations', $context)) {
+            throw new \moodle_exception('nopermissions', 'error', '', 'update post');
+        }
 
         $transaction = $DB->start_delegated_transaction();
         self::validate_post_can_be_updated($postupdate);

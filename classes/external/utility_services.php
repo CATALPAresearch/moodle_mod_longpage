@@ -52,6 +52,9 @@ class utility_services extends base_external {
     public static function log($data) {
         global $CFG, $DB, $USER;
 
+        // Basic validation - check if user is authenticated.
+        require_login();
+
         $r = new stdClass();
         $r->name = 'mod_longpage';
         $r->component = 'mod_longpage';

@@ -85,7 +85,8 @@ class annotation_services extends base_external {
         global $DB, $USER;
 
         self::validate_parameters(self::create_annotation_parameters(), ['annotation' => $annotation]);
-        self::validate_cm_context($annotation['longpageid']);
+        $context = self::validate_cm_context($annotation['longpageid']);
+        require_capability('mod/longpage:addpost', $context);
 
         $transaction = $DB->start_delegated_transaction();
         $id = $DB->insert_record('longpage_annotations', array_merge(
@@ -278,7 +279,8 @@ class annotation_services extends base_external {
 
         self::validate_parameters(self::create_post_parameters(), ['post' => $postparameters]);
         $postparameters = (object) $postparameters;
-        self::validate_cm_context($postparameters->longpageid);
+        $context = self::validate_cm_context($postparameters->longpageid);
+        require_capability('mod/longpage:addpost', $context);
 
         $transaction = $DB->start_delegated_transaction();
         $id = $DB->insert_record(
@@ -429,11 +431,16 @@ class annotation_services extends base_external {
      * @param int $id Annotation ID
      */
     public static function delete_annotation($id): void {
-        global $DB;
+        global $DB, $USER;
 
         self::validate_parameters(self::delete_annotation_parameters(), ['id' => $id]);
         $annotation = $DB->get_record('longpage_annotations', ['id' => $id]);
-        self::validate_cm_context($annotation->longpageid);
+        $context = self::validate_cm_context($annotation->longpageid);
+
+        // Check permission: user must be the creator OR have modannotations capability.
+        if ($annotation->creatorid != $USER->id && !has_capability('mod/longpage:modannotations', $context)) {
+            throw new \moodle_exception('nopermissions', 'error', '', 'delete annotation');
+        }
 
         // Validate that user can delete annotation and that annotation can be deleted.
         // (not part of a thread that others depend on), can be merged with validation of highlight & post.
@@ -554,7 +561,8 @@ class annotation_services extends base_external {
      */
     public static function get_annotations($parameters) {
         self::validate_parameters(self::get_annotations_parameters(), ['parameters' => $parameters]);
-        self::validate_cm_context($parameters['longpageid']);
+        $context = self::validate_cm_context($parameters['longpageid']);
+        require_capability('mod/longpage:view', $context);
 
         $annotations =
             isset($parameters['annotationid']) ?

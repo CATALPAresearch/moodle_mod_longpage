@@ -65,7 +65,8 @@ class reading_progress_services extends base_external {
                 'sectionhash' => $sectionhash,
             ]
         );
-        self::validate_cm_context($pageid);
+        $context = self::validate_cm_context($pageid);
+        require_capability('mod/longpage:view', $context);
 
         try {
             global $CFG;  // Add global reference for CFG
@@ -136,6 +137,8 @@ class reading_progress_services extends base_external {
             self::get_reading_progress_parameters(),
             ['courseid' => $courseid, 'longpageid' => $longpageid]
         );
+        $context = self::validate_cm_context($longpageid);
+        require_capability('mod/longpage:view', $context);
 
         $query = '
             SELECT section, count(sectionhash) as count

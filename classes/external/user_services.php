@@ -54,6 +54,8 @@ class user_services extends base_external {
      */
     public static function get_user_roles_by_pageid($pageid) {
         $context = self::get_cm_context_by_pageid($pageid);
+        self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
         return ['userroles' => role_get_names($context)];
     }
 
@@ -122,6 +124,9 @@ class user_services extends base_external {
      */
     public static function get_enrolled_users_with_roles_by_pageid($pageid) {
         $cm = get_coursemodule_by_pageid($pageid);
+        $context = context_module::instance($cm->id);
+        self::validate_context($context);
+        require_capability('mod/longpage:view', $context);
         $getenrolledusersreturns = \core_course_external::get_enrolled_users_by_cmid($cm->id);
         foreach ($getenrolledusersreturns['users'] as $user) {
             $user->roles = self::get_user_roles_ids(context_module::instance($cm->id), $user->id);
