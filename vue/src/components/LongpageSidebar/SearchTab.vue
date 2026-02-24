@@ -201,8 +201,10 @@ export default {
             id="search-full-text"
             class="btn btn-light btn-sm"
             type="button"
+            :aria-label="$t('sidebar.tabs.search.action.search')"
+            :title="$t('sidebar.tabs.search.action.search')"
           >
-            <i class="fa fa-search"></i>
+            <i class="fa fa-search" aria-hidden="true"></i>
           </button>
         </div>
         <div v-if="showSearchResults" class="h-100" style="z-index: 3000">

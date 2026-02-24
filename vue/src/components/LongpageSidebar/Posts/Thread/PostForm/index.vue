@@ -10,16 +10,20 @@
       class="btn btn-sm btn-secondary ml-2 my-2"
       @click="cancel"
     >
-      <i class="icon fa fa-fw fa-times m-0" />
+      <i class="icon fa fa-fw fa-times m-0" aria-hidden="true" />
       {{ $t("post.form.action.cancel") }}
     </button>
-    <div class="btn-group ml-2 my-2" role="group">
+    <div class="btn-group ml-2 my-2" role="group" aria-label="Save options">
       <button
         type="button"
         class="btn btn-primary btn-sm"
         @click="createOrUpdatePost"
       >
-        <i class="icon fa fa-fw m-0" :class="selectedSaveAction.iconClasses" />
+        <i
+          class="icon fa fa-fw m-0"
+          :class="selectedSaveAction.iconClasses"
+          aria-hidden="true"
+        />
         {{ $t(`post.form.action.${selectedSaveAction.key}`) }}
       </button>
       <button
@@ -31,19 +35,24 @@
       >
         <span class="sr-only">{{ $t("generic.toggleDropdown") }}</span>
       </button>
-      <div class="dropdown-menu">
+      <div class="dropdown-menu" role="menu">
         <a
           v-for="action in saveActions"
           :key="action.key"
           class="dropdown-item"
           :class="action.accessClass"
           href="javascript:void(0)"
+          role="menuitem"
           @click="
             selectedSaveAction = action;
             createOrUpdatePost();
           "
         >
-          <i class="icon fa fa-fw" :class="action.iconClasses" />
+          <i
+            class="icon fa fa-fw"
+            :class="action.iconClasses"
+            aria-hidden="true"
+          />
           {{ $t(`post.form.action.${action.key}`) }}
         </a>
       </div>

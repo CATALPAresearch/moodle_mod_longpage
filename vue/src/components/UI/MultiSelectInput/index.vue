@@ -20,8 +20,17 @@
       </div>
     </div>
     <div class="dropdown-menu px-2 overflow-auto">
-      <div v-if="Object.entries(optionsByCategory).length">
-        <div v-for="(options, category) in optionsByCategory" :key="category">
+      <div
+        v-if="Object.entries(optionsByCategory).length"
+        role="listbox"
+        :aria-label="placeholder"
+      >
+        <div
+          v-for="(options, category) in optionsByCategory"
+          :key="category"
+          role="group"
+          :aria-label="category"
+        >
           <h6 class="dropdown-header pr-1" v-html="category" />
           <div
             v-for="option in options"
@@ -29,20 +38,22 @@
             class="form-group pl-4 pr-1 mb-1"
           >
             <input
-              id="defaultCheck1"
+              :id="'multiselect-option-' + option.value"
               :checked="value.includes(option.value)"
               class="form-check-input"
               type="checkbox"
+              :aria-label="option.text"
               @change="toggleOption(option.value)"
             />
             <i
               v-if="option.iconClasses"
               class="icon fa fa-fw mr-1"
               :class="option.iconClasses"
+              aria-hidden="true"
             />
             <label
               class="form-check-label"
-              for="defaultCheck1"
+              :for="'multiselect-option-' + option.value"
               v-html="option.text"
             />
           </div>

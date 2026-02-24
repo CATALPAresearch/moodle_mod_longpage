@@ -12,30 +12,45 @@
           data-toggle="dropdown"
           aria-haspopup="true"
           aria-expanded="false"
+          aria-label="Einstellungen"
           v-if="this.$store.state.UserModule.userCanMod"
         >
-          <i class="fa fa-cog fa-fw fa-lg" />
+          <i class="fa fa-cog fa-fw fa-lg" aria-hidden="true" />
         </button>
         <div
           class="dropdown-menu dropdown-menu-right"
           style="min-width: 15rem"
+          role="menu"
           v-show="this.$store.state.UserModule.userCanMod"
         >
           <!-- <a class="dropdown-item" id="changeQuestion" href="javascript:void(0)"><i class="fa fa-cog fa-fw" /> Einbettung editieren</a> -->
-          <a class="dropdown-item" id="editQuestion" href="javascript:void(0)"
-            ><i class="fa fa-pencil fa-fw" /> Aufgabe bearbeiten
-            <i class="fa fa-external-link fa-fw small" />
+          <a
+            class="dropdown-item"
+            id="editQuestion"
+            href="javascript:void(0)"
+            role="menuitem"
+            ><i class="fa fa-pencil fa-fw" aria-hidden="true" /> Aufgabe
+            bearbeiten
+            <i class="fa fa-external-link fa-fw small" aria-hidden="true" />
           </a>
-          <a class="dropdown-item" id="deleteQuestion" href="javascript:void(0)"
-            ><i class="fa fa-trash fa-fw" />Aufgabe löschen
-            <i class="fa fa-external-link fa-fw small" />
+          <a
+            class="dropdown-item"
+            id="deleteQuestion"
+            href="javascript:void(0)"
+            role="menuitem"
+            ><i class="fa fa-trash fa-fw" aria-hidden="true" />Aufgabe löschen
+            <i class="fa fa-external-link fa-fw small" aria-hidden="true" />
           </a>
           <a
             class="dropdown-item"
             id="openQuestionBank"
             href="javascript:void(0)"
-            ><i class="fa fa-question fa-fw" />Aufgabensammlung öffnen
-            <i class="fa fa-external-link fa-fw small" />
+            role="menuitem"
+            ><i
+              class="fa fa-question fa-fw"
+              aria-hidden="true"
+            />Aufgabensammlung öffnen
+            <i class="fa fa-external-link fa-fw small" aria-hidden="true" />
           </a>
         </div>
         <div class="col-auto px-0 offset-md-1">
@@ -43,8 +58,9 @@
             href="javascript:void(0)"
             id="showTour"
             title="Tour starten"
+            :aria-label="$t('sidebar.tabs.quiz.startTour') || 'Tour starten'"
             data-toggle="tooltip"
-            ><i class="fa fa-question-circle fa-fw fa-lg"
+            ><i class="fa fa-question-circle fa-fw fa-lg" aria-hidden="true"
           /></a>
         </div>
         <div class="col-auto px-0 offset-md-1">
@@ -52,8 +68,9 @@
             href="javascript:void(0)"
             id="total-reading-comprehension"
             title="Aufgabe oben halten"
+            aria-label="Aufgabe oben halten"
             data-toggle="tooltip"
-            ><i class="fa fa-battery-0 fa-fw fa-lg"
+            ><i class="fa fa-battery-0 fa-fw fa-lg" aria-hidden="true"
           /></a>
         </div>
         <div class="col-auto px-0">
@@ -61,8 +78,9 @@
             href="javascript:void(0)"
             id="pinQuestion"
             title="Aufgabe oben halten"
+            aria-label="Aufgabe oben halten"
             data-toggle="tooltip"
-            ><i class="fa fa-thumb-tack fa-fw fa-lg"
+            ><i class="fa fa-thumb-tack fa-fw fa-lg" aria-hidden="true"
           /></a>
         </div>
         <div class="col-auto px-0">
@@ -70,8 +88,9 @@
             href="javascript:void(0)"
             id="prevQuestion"
             title="Vorherige Aufgabe"
+            aria-label="Vorherige Aufgabe"
             data-toggle="tooltip"
-            ><i class="fa fa-arrow-up fa-fw fa-lg"
+            ><i class="fa fa-arrow-up fa-fw fa-lg" aria-hidden="true"
           /></a>
         </div>
         <div class="col-auto px-0">
@@ -79,8 +98,9 @@
             href="javascript:void(0)"
             id="nextQuestion"
             title="Nächste Aufgabe"
+            aria-label="Nächste Aufgabe"
             data-toggle="tooltip"
-            ><i class="fa fa-arrow-down fa-fw fa-lg"
+            ><i class="fa fa-arrow-down fa-fw fa-lg" aria-hidden="true"
           /></a>
         </div>
       </div>
@@ -88,6 +108,7 @@
         id="editButtons"
         class="btn-group position-absolute position-right z-index-1 mr-5 mt-3"
         role="group"
+        aria-label="Aufgabe bearbeiten"
         v-if="this.$store.state.UserModule.userCanMod"
         style="display: none"
       >
@@ -95,22 +116,25 @@
           class="btn btn-secondary"
           id="quickEditQuestion"
           title="Aufgabe direkt bearbeiten"
+          aria-label="Aufgabe direkt bearbeiten"
           href="javascript:void(0)"
-          ><i class="fa fa-edit" style="cursor: pointer"></i
+          ><i class="fa fa-edit" style="cursor: pointer" aria-hidden="true"></i
         ></a>
         <a
           class="btn btn-secondary"
           id="lockQuestion"
           title="Aufgabe sperren"
+          aria-label="Aufgabe sperren"
           href="javascript:void(0)"
-          ><i class="fa fa-lock" style="cursor: pointer"></i
+          ><i class="fa fa-lock" style="cursor: pointer" aria-hidden="true"></i
         ></a>
         <a
           class="btn btn-secondary"
           id="removeQuestion"
           title="Einbettung entfernen"
+          aria-label="Einbettung entfernen"
           href="javascript:void(0)"
-          ><i class="fa fa-trash" style="cursor: pointer"></i
+          ><i class="fa fa-trash" style="cursor: pointer" aria-hidden="true"></i
         ></a>
       </div>
       <hr class="my-3" />

@@ -31,14 +31,21 @@
         </a>
       </div>
       <div v-if="this.$store.state.UserModule.userCanMod">
-        Nutzer-ID:
+        <label for="userid">{{
+          $t("sidebar.tabs.highlights.userIdLabel") || "Nutzer-ID:"
+        }}</label>
         <input
           id="userid"
           type="text"
           v-model="userid"
           size="5"
           style="margin: 5px"
-        /><input type="submit" value="Anzeigen" @click="fetchAnnotations()" />
+          :aria-label="$t('sidebar.tabs.highlights.userIdLabel') || 'Nutzer-ID'"
+        /><input
+          type="submit"
+          :value="$t('generic.show') || 'Anzeigen'"
+          @click="fetchAnnotations()"
+        />
       </div>
     </template>
     <template #body>

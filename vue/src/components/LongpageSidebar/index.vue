@@ -30,10 +30,12 @@
         />
       </template>
     </div>
-    <div
+    <nav
       :id="LONGPAGE_SIDEBAR_TAB"
       class="col-auto border-left p-0 h-100 nav flex-column nav-pills"
       aria-orientation="vertical"
+      :aria-label="$t('sidebar.navigation.label') || 'Sidebar navigation'"
+      role="tablist"
       v-if="tabs.length > 1"
     >
       <a
@@ -41,27 +43,32 @@
         :key="tab.key"
         class="nav-link text-center"
         href="javascript:void(0)"
+        role="tab"
+        :aria-selected="tab.key === tabOpenedKey"
+        :aria-controls="`sidebar-panel-${tab.key}`"
         :class="{
           active: tab.key === tabOpenedKey,
           'text-white': tab.key === tabOpenedKey,
           'text-dark': tab.key !== tabOpenedKey,
         }"
         @click="toggleTab(tab.key)"
+        @keydown.enter="toggleTab(tab.key)"
+        @keydown.space.prevent="toggleTab(tab.key)"
       >
-        <i
-          :title="$t(`sidebar.tabMenu.titles.${tab.key}`)"
-          :aria-label="$t(`sidebar.tabMenu.titles.${tab.key}`)"
-          :class="tab.icon"
-        />
+        <i :class="tab.icon" aria-hidden="true" />
+        <span class="sr-only">{{
+          $t(`sidebar.tabMenu.titles.${tab.key}`)
+        }}</span>
         <span
           style="right: 5px; position: absolute; border-radius: 10rem"
           :title="tab.badgesTitle"
+          :aria-label="tab.badgesTitle"
           class="badge badge-pill badge-warning"
           v-if="tab.badgesCount > 0"
           >{{ tab.badgesCount }}</span
         >
       </a>
-    </div>
+    </nav>
   </div>
 </template>
 

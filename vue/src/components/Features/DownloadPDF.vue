@@ -3,12 +3,13 @@
     href="javascript:void(0)"
     class="text-dark"
     role="button"
+    :aria-label="
+      $t('features.downloadPDF.label') || 'Seite als PDF herunterladen'
+    "
+    :title="$t('features.downloadPDF.label') || 'Seite als PDF herunterladen'"
     @click="downloadPDF"
   >
-    <i
-      class="icon fa fa-fw text-dark fa-download"
-      title="Seite als PDF herunterladen"
-    />
+    <i class="icon fa fa-fw text-dark fa-download" aria-hidden="true" />
   </a>
 </template>
 

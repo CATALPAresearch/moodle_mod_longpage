@@ -10,13 +10,20 @@
       <div
         class="p-3 flex-shrink-1 flex-grow-1 overflow-y-auto overflow-x-hidden"
       >
-        <nav class="nav flex-column nav-pills" aria-orientation="vertical">
+        <nav
+          class="nav flex-column nav-pills"
+          aria-orientation="vertical"
+          aria-label="Table of contents"
+        >
           <a
             v-for="(entry, index) in tocEntries"
             :key="entry.hId"
             class="nav-link"
             :class="{ active: index === activeTOCEntryIndex }"
             :href="`#${entry.hId}`"
+            :aria-current="
+              index === activeTOCEntryIndex ? 'location' : undefined
+            "
             data-toggle="pill"
             :style="`margin-left: ${entry.hLvl * 2}rem`"
             @click="clickTOCEntry(entry.hEl)"

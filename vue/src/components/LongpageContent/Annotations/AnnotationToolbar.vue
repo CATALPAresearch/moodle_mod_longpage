@@ -25,25 +25,45 @@
           :class="[option]"
           :title="$t('content.annotationToolbar.createHighlight')"
           :aria-label="$t('content.annotationToolbar.createHighlight')"
+          role="button"
+          tabindex="0"
           @click.prevent="$emit('highlight-clicked', option)"
+          @keydown.enter.prevent="$emit('highlight-clicked', option)"
+          @keydown.space.prevent="$emit('highlight-clicked', option)"
         >
           A
         </div>
       </template>
-      <div v-if="context.showbookmarks" class="annotation-toolbar-item dot">
+      <div
+        v-if="context.showbookmarks"
+        class="annotation-toolbar-item dot"
+        role="button"
+        tabindex="0"
+        @click.prevent="$emit('bookmark-clicked')"
+        @keydown.enter.prevent="$emit('bookmark-clicked')"
+        @keydown.space.prevent="$emit('bookmark-clicked')"
+      >
         <i
           :title="$t('content.annotationToolbar.createBookmark')"
           :aria-label="$t('content.annotationToolbar.createBookmark')"
           class="fa fa-bookmark-o fa-fw"
-          @click.prevent="$emit('bookmark-clicked')"
+          aria-hidden="true"
         />
       </div>
-      <div v-if="context.showposts" class="annotation-toolbar-item dot">
+      <div
+        v-if="context.showposts"
+        class="annotation-toolbar-item dot"
+        role="button"
+        tabindex="0"
+        @click.prevent="$emit('post-clicked')"
+        @keydown.enter.prevent="$emit('post-clicked')"
+        @keydown.space.prevent="$emit('post-clicked')"
+      >
         <i
           :title="$t('content.annotationToolbar.createPost')"
           :aria-label="$t('content.annotationToolbar.createPost')"
           class="fa fa-comment-o fa-fw"
-          @click.prevent="$emit('post-clicked')"
+          aria-hidden="true"
         />
       </div>
     </div>

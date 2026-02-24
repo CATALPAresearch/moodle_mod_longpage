@@ -4,7 +4,10 @@
       <div class="input-group col-auto">
         <div class="input-group-prepend">
           <span class="input-group-text bg-transparent border-0 py-0 pl-0 pr-2">
-            <i class="fa fa-search fa-fw fa-2x text-secondary" />
+            <i
+              class="fa fa-search fa-fw fa-2x text-secondary"
+              aria-hidden="true"
+            />
           </span>
         </div>
         <input
@@ -12,6 +15,7 @@
           type="text"
           class="form-control"
           :placeholder="$t('sidebar.tabs.posts.filter.byContent')"
+          :aria-label="$t('sidebar.tabs.posts.filter.byContent')"
           @input="
             debouncedUpdateActiveFilter('body.posts.query', $event.target.value)
           "

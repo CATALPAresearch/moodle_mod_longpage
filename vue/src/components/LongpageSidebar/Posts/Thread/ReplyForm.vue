@@ -7,6 +7,7 @@
       <input
         class="form-control"
         :placeholder="$t('responseForm.placeholder')"
+        :aria-label="$t('responseForm.placeholder')"
         @focus="createPost"
       />
     </div>

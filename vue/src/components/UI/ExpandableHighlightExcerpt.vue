@@ -2,18 +2,29 @@
   <div>
     <a
       class="font-italic longpage-highlight text-small"
-      :class="[annotationTarget.styleClass, {'mr-1': isExpandable}]"
+      :class="[annotationTarget.styleClass, { 'mr-1': isExpandable }]"
+      href="javascript:void(0)"
+      role="button"
+      tabindex="0"
       @click.stop="$emit('highlight-clicked')"
+      @keydown.enter.prevent="$emit('highlight-clicked')"
+      @keydown.space.prevent="$emit('highlight-clicked')"
     >
       {{ highlightedTextExcerpt }}
     </a>
     <a
       v-if="isExpandable"
       :key="isExpanded"
+      href="javascript:void(0)"
       role="button"
+      tabindex="0"
       class="badge badge-light"
+      :aria-expanded="isExpanded.toString()"
       @click.stop="isExpanded = !isExpanded"
-    >{{ isExpanded ? $t('expandable.less') : $t('expandable.more') }}</a>
+      @keydown.enter.prevent="isExpanded = !isExpanded"
+      @keydown.space.prevent="isExpanded = !isExpanded"
+      >{{ isExpanded ? $t("expandable.less") : $t("expandable.more") }}</a
+    >
   </div>
 </template>
 
@@ -38,17 +49,17 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {AnnotationTarget} from '@/types/annotation-target';
+import { AnnotationTarget } from "@/types/annotation-target";
 
 const MIN_EXPANDABLE_TEXT_LENGTH = 120;
 const UNEXPANDED_TEXT_LENGTH = 100;
 
 export default {
-  name: 'ExpandableHighlightExcerpt',
+  name: "ExpandableHighlightExcerpt",
   props: {
-    annotationTarget: {type: AnnotationTarget, required: true},
+    annotationTarget: { type: AnnotationTarget, required: true },
   },
-  emits: ['highlight-clicked'],
+  emits: ["highlight-clicked"],
   data() {
     return {
       isExpanded: false,
@@ -56,13 +67,20 @@ export default {
   },
   computed: {
     isExpandable() {
-      return this.annotationTarget.text && this.annotationTarget.text.length > MIN_EXPANDABLE_TEXT_LENGTH;
+      return (
+        this.annotationTarget.text &&
+        this.annotationTarget.text.length > MIN_EXPANDABLE_TEXT_LENGTH
+      );
     },
     highlightedTextExcerpt() {
-      if (!this.isExpandable || this.isExpanded) return this.annotationTarget.text;
+      if (!this.isExpandable || this.isExpanded)
+        return this.annotationTarget.text;
 
-      const beginning = this.annotationTarget.text.slice(0, UNEXPANDED_TEXT_LENGTH);
-      const suffix = beginning.endsWith('.') ? '..' : '...';
+      const beginning = this.annotationTarget.text.slice(
+        0,
+        UNEXPANDED_TEXT_LENGTH,
+      );
+      const suffix = beginning.endsWith(".") ? ".." : "...";
       return `${beginning}${suffix}`;
     },
   },

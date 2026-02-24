@@ -8,7 +8,16 @@
       }}
     </div>
     <div class="col">
-      <input :id="inputId" ref="input" :style="{ width: '100%' }" type="text" />
+      <label :for="inputId" class="sr-only">{{
+        sliderLabel || "Range slider"
+      }}</label>
+      <input
+        :id="inputId"
+        ref="input"
+        :style="{ width: '100%' }"
+        type="text"
+        :aria-label="sliderLabel || 'Range slider'"
+      />
     </div>
     <div class="col-auto pl-0">
       {{
@@ -51,6 +60,7 @@ export default {
   props: {
     modelValue: { type: Array, required: true },
     sliderOptions: { type: Object, required: true },
+    sliderLabel: { type: String, default: "" },
   },
   emits: ["update:modelValue"],
   data() {
