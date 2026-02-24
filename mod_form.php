@@ -125,6 +125,17 @@ class mod_longpage_mod_form extends moodleform_mod {
         );
         $mform->addRule('longpage', get_string('required'), 'required', null, 'client');
 
+        // Warning about editing content affecting annotations.
+        $mform->addElement(
+            'static',
+            'contenteditwarning',
+            '',
+            \html_writer::div(
+                get_string('contenteditwarning', 'longpage'),
+                'alert alert-warning'
+            )
+        );
+
         // -------------------------------------------------------
         $mform->addElement('header', 'appearancehdr', get_string('appearance'));
 

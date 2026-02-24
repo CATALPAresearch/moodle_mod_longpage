@@ -386,3 +386,6 @@ $string['features_downloadPDF_generating'] = '...';
 $string['features_downloadPDF_annotationsSummaryTitle'] = 'Annotations and Comments';
 $string['features_downloadPDF_unknownAuthor'] = 'Unknown';
 $string['features_downloadPDF_errorMessage'] = 'PDF export failed. Please try again.';
+
+// Content edit warning
+$string['contenteditwarning'] = 'Editing the text may cause annotations such as colour highlights or bookmarks to no longer appear in the intended position.';

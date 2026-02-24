@@ -371,3 +371,6 @@ $string['features_downloadPDF_generating'] = '...';
 $string['features_downloadPDF_annotationsSummaryTitle'] = 'Anmerkungen und Kommentare';
 $string['features_downloadPDF_unknownAuthor'] = 'Unbekannt';
 $string['features_downloadPDF_errorMessage'] = 'PDF-Export fehlgeschlagen. Bitte versuchen Sie es erneut.';
+
+// Content edit warning
+$string['contenteditwarning'] = 'Die Bearbeitung des Textes kann dazu führen, dass Annotationen wie farbliche Hervorhebungen oder Lesezeichen nicht mehr an der vorgesehenen Position angezeigt werden.';
