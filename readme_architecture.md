@@ -1,53 +1,24 @@
-# Software Architecture - mod_longpage
+# mod_longpage Architecture (Brief)
 
-This document describes the software architecture of the mod_longpage Moodle module.
+**Core:**
+- Standard Moodle activity module (lib.php, locallib.php, mod_form.php, view.php)
+- Database tables for pages, annotations, reading progress
 
-## Architecture Overview
+**Frontend:**
+- Vue 3 SPA for interactive page display, annotation, and teacher dashboard
+- Chart.js for analytics
 
-```mermaid
-graph LR
-    %% Core Moodle Integration
-    subgraph "Moodle Core"
-        MC[Moodle Core]
-        DB[(Database)]
-        FS[File System]
-        CACHE[Cache]
-    end
+**APIs:**
+- PHP external services for AJAX, analytics, annotation, progress, questions
 
-    %% Module Core
-    subgraph "mod_longpage Core"
-        LIB[lib.php<br/>Module Functions]
-        LOCALLIB[locallib.php<br/>Utility Functions]
-        VIEW[view.php<br/>Page Display]
-        INDEX[index.php<br/>Course Index]
-        FORM[mod_form.php<br/>Configuration Form]
-    end
+**Events:**
+- Custom event classes for tracking user actions (view, click, scroll, etc.)
 
-    %% External APIs
-    subgraph "External API Layer"
-        BASE_EXT[base_external.php<br/>Base API Class]
-        PAGE_API[page_services.php<br/>Page API]
-        POST_API[post_services.php<br/>Discussion API]
-        HIGHLIGHT_API[highlight_services.php<br/>Annotation API]
-        QUESTION_API[question_services.php<br/>Quiz Integration]
-        READING_API[reading_progress_services.php<br/>Progress Tracking]
-        USER_API[user_services.php<br/>User Management]
-        THREAD_API[thread_services.php<br/>Thread Management]
-        ANNOTATION_API[annotation_services.php<br/>Annotations]
-        UTILITY_API[utility_services.php<br/>Utilities]
-        INTERACTION_API[post_interaction_services.php<br/>Interactions]
-        QUESTIONS_BANK_API[questions_bank_services.php<br/>Question Bank]
-    end
+**i18n:**
+- Uses Moodle PHP lang files (lang/en/longpage.php, lang/de/longpage.php)
 
-    %% Event System
-    subgraph "Event System"
-        EVENT_BASE[Base Events]
-        MODULE_VIEWED[course_module_viewed]
-        MODULE_CLICKED[course_module_clicked]
-        MODULE_SCROLL[course_module_scroll]
-        MODULE_QUESTION[course_module_question]
-        MODULE_MOVED[course_module_moved]
-        INSTANCE_LIST[course_module_instance_list_viewed]
+**Admin:**
+- Settings, permissions, and AJAX model check for AI integration
     end
 
     %% Local Services

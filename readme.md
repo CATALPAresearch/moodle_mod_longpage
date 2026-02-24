@@ -100,12 +100,11 @@ vendor/bin/phpunit --testsuite "mod_longpage_testsuite"
 
 tba. Vue.js testing
 
-Run code style checks from the plugin directory:
+Run code style checks from the Moodle root directory (uses Moodle's phpcs with the moodle coding standard):
 
 ```shell
-cd mod/longpage
-vendor/bin/phpcs -d memory_limit=1024M --standard=moodle --extensions=php .
-vendor/bin/phpcbf -d memory_limit=1024M --standard=moodle --extensions=php .  # auto-fix
+vendor/bin/phpcs -d memory_limit=1024M --standard=moodle --extensions=php mod/longpage
+vendor/bin/phpcbf -d memory_limit=1024M --standard=moodle --extensions=php mod/longpage  # auto-fix
 ```
 
 ## Contributing
