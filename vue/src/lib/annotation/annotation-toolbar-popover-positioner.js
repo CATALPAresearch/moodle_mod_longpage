@@ -19,7 +19,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import {ArrowDirection, ARROW_H_MARGIN} from '../../config/constants';
+import { ArrowDirection, ARROW_H_MARGIN } from "../../util/constants";
 
 /**
  * @typedef Target
@@ -39,7 +39,7 @@ import {ArrowDirection, ARROW_H_MARGIN} from '../../config/constants';
 function nearestPositionedAncestor(el) {
   let parentEl = /** @type {Element} */ (el.parentElement);
   while (parentEl.parentElement) {
-    if (getComputedStyle(parentEl).position !== 'static') {
+    if (getComputedStyle(parentEl).position !== "static") {
       break;
     }
     parentEl = parentEl.parentElement;
@@ -74,13 +74,16 @@ export class AnnotationToolbarPopoverPositioner {
   }
 
   calculatePositionProps(selectionRect, isRTLselection) {
-    const {left, top, arrowDirection} = this._calculateTarget(selectionRect, isRTLselection);
+    const { left, top, arrowDirection } = this._calculateTarget(
+      selectionRect,
+      isRTLselection,
+    );
     const zIndex = this._findZindex(left, top);
     return {
       left,
       top,
       arrowDirection,
-      zIndex
+      zIndex,
     };
   }
 
@@ -137,8 +140,9 @@ export class AnnotationToolbarPopoverPositioner {
     } else {
       top = selectionRect.top - this._height() - this._arrowHeight();
     }
-    const {left: constrainedLeft, top: constrainedTop} = this.constrainPositionToViewport(left, top);
-    return {left: constrainedLeft, top: constrainedTop, arrowDirection};
+    const { left: constrainedLeft, top: constrainedTop } =
+      this.constrainPositionToViewport(left, top);
+    return { left: constrainedLeft, top: constrainedTop, arrowDirection };
   }
 
   constrainPositionToViewport(left, top) {
@@ -147,7 +151,7 @@ export class AnnotationToolbarPopoverPositioner {
 
     top = Math.max(top, 0);
     top = Math.min(top, this._view.innerHeight - this._height());
-    return {left, top};
+    return { left, top };
   }
 
   /**
@@ -175,14 +179,14 @@ export class AnnotationToolbarPopoverPositioner {
       ...document.elementsFromPoint(left, top + this._height()),
       ...document.elementsFromPoint(
         left + this._width() / 2,
-        top + this._height() / 2
+        top + this._height() / 2,
       ),
       ...document.elementsFromPoint(left + this._width(), top),
       ...document.elementsFromPoint(left + this._width(), top + this._height()),
     ]);
 
     const zIndexes = [...elements]
-      .map(element => +getComputedStyle(element).zIndex)
+      .map((element) => +getComputedStyle(element).zIndex)
       .filter(Number.isInteger);
 
     // Make sure the array contains at least one element,

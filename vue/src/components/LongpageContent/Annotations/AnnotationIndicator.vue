@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="position-absolute"
-    :style="style"
-  >
+  <div class="position-absolute" :style="style">
     <div
       v-for="(annotations, type, index) in annotationsByType"
       :key="type"
@@ -23,7 +20,8 @@
         <span
           v-if="annotations.length > 1"
           class="icon-layer-text font-weight-boldest text-white"
-        >{{ annotations.length }}</span>
+          >{{ annotations.length }}</span
+        >
       </a>
     </div>
   </div>
@@ -50,49 +48,55 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-  import {AnnotationType, AnnotationTypeIcon} from '@/config/constants';
-  import isEmpty from 'lodash/isEmpty';
-  import pickBy from 'lodash/pickBy';
-  import transform from 'lodash/transform';
-  import {EventBus} from '@/lib/event-bus';
-  import {toPx} from '@/util/style';
+import { AnnotationType, AnnotationTypeIcon } from "@/util/constants";
+import isEmpty from "lodash/isEmpty";
+import pickBy from "lodash/pickBy";
+import transform from "lodash/transform";
+import { EventBus } from "@/lib/core/event-bus";
+import { toPx } from "@/util/dom/style";
 
-
-  export default {
-    name: 'AnnotationIndicator',
-    props: {
-      annotations: {type: Array, default: () => []},
-      top: {type: Number},
+export default {
+  name: "AnnotationIndicator",
+  props: {
+    annotations: { type: Array, default: () => [] },
+    top: { type: Number },
+  },
+  data() {
+    return {
+      iconWidth: "1em",
+    };
+  },
+  computed: {
+    annotationsByType() {
+      return pickBy(
+        transform(
+          AnnotationType,
+          (result, type) => {
+            result[type] = this.annotations.filter((a) => a.type === type);
+          },
+          {},
+        ),
+        (v) => !isEmpty(v),
+      );
     },
-    data() {
+    annotationTypeIcon() {
+      return AnnotationTypeIcon;
+    },
+    style() {
       return {
-        iconWidth: '1em',
+        top: toPx(this.top),
       };
     },
-    computed: {
-      annotationsByType() {
-        return pickBy(transform(AnnotationType, (result, type) => {
-          result[type] = this.annotations.filter(a => a.type === type);
-        }, {}), v => !isEmpty(v));
-      },
-      annotationTypeIcon() {
-        return AnnotationTypeIcon;
-      },
-      style() {
-        return {
-          top: toPx(this.top),
-        };
-      },
+  },
+  methods: {
+    publishSelection(annotationType) {
+      EventBus.publish("annotations-selected", {
+        type: annotationType,
+        selection: this.annotationsByType[annotationType],
+      });
     },
-    methods: {
-      publishSelection(annotationType) {
-        EventBus.publish('annotations-selected', {
-          type: annotationType,
-          selection: this.annotationsByType[annotationType],
-        });
-      }
-    }
-  };
+  },
+};
 </script>
 
 <style lang="scss" scoped>

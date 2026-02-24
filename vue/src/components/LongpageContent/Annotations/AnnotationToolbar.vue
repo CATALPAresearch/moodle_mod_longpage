@@ -14,7 +14,7 @@
       class="d-flex align-items-center p-1"
       :class="{
         'shadow-down': arrowDirection === ArrowDirection.DOWN,
-        'shadow-up': arrowDirection === ArrowDirection.UP
+        'shadow-up': arrowDirection === ArrowDirection.UP,
       }"
     >
       <div
@@ -29,10 +29,7 @@
       >
         A
       </div>
-      <div
-        v-if="context.showbookmarks"
-        class="annotation-toolbar-item dot"
-      >
+      <div v-if="context.showbookmarks" class="annotation-toolbar-item dot">
         <i
           :title="$t('content.annotationToolbar.createBookmark')"
           :aria-label="$t('content.annotationToolbar.createBookmark')"
@@ -40,10 +37,7 @@
           @click.prevent="$emit('bookmark-clicked')"
         />
       </div>
-      <div
-        v-if="context.showposts"
-        class="annotation-toolbar-item dot"
-      >
+      <div v-if="context.showposts" class="annotation-toolbar-item dot">
         <i
           :title="$t('content.annotationToolbar.createPost')"
           :aria-label="$t('content.annotationToolbar.createPost')"
@@ -81,59 +75,64 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-  import {ArrowDirection} from '../../config/constants';
-import { toNumber, toPx } from '../../util/style';
+import { ArrowDirection } from "@/util/constants";
+import { toNumber, toPx } from "@/util/dom/style";
 import { mapGetters } from "vuex";
 import { GET } from "@/store/types";
 
-  export default {
-    name: 'AnnotationToolbar',
-    props: {
-      arrowDirection: {type: Number, default: ArrowDirection.UP},
-      highlightingOptions: {type: Array, default: () => []},
-      showDelete: {type: Boolean, default: false},
-      left: {type: Number, required: true},
-      top: {type: Number, required: true},
-      visible: {type: Boolean, default: false},
-      zIndex: {type: Number, default: 999999},
-    },
-    emits: ['bookmark-clicked', 'highlight-clicked', 'post-clicked'],
-    data() {
+export default {
+  name: "AnnotationToolbar",
+  props: {
+    arrowDirection: { type: Number, default: ArrowDirection.UP },
+    highlightingOptions: { type: Array, default: () => [] },
+    showDelete: { type: Boolean, default: false },
+    left: { type: Number, required: true },
+    top: { type: Number, required: true },
+    visible: { type: Boolean, default: false },
+    zIndex: { type: Number, default: 999999 },
+  },
+  emits: ["bookmark-clicked", "highlight-clicked", "post-clicked"],
+  data() {
+    return {
+      ArrowDirection,
+    };
+  },
+  computed: {
+    style() {
       return {
-        ArrowDirection,
+        left: toPx(this.left),
+        top: toPx(this.top),
+        visibility: this.visible ? "visible" : "hidden",
+        zIndex: this.zIndex,
       };
     },
-    computed: {
-      style() {
-        return {
-          left: toPx(this.left),
-          top: toPx(this.top),
-          visibility: this.visible ? 'visible' : 'hidden',
-          zIndex: this.zIndex,
-        };
-      },
-      ...mapGetters({ context: GET.LONGPAGE_CONTEXT }),
+    ...mapGetters({ context: GET.LONGPAGE_CONTEXT }),
+  },
+  methods: {
+    arrowHeight() {
+      const ref =
+        this.arrowDirection === ArrowDirection.UP ? "arrowUp" : "arrowDown";
+      return toNumber(
+        window
+          .getComputedStyle(this.$refs[ref])
+          .getPropertyValue("border-top-width"),
+      );
     },
-    methods: {
-      arrowHeight() {
-        const ref = this.arrowDirection === ArrowDirection.UP ? 'arrowUp' : 'arrowDown';
-        return toNumber(window.getComputedStyle(this.$refs[ref]).getPropertyValue('border-top-width'));
-      },
-      boundingClientRect() {
-        return this.$refs.annotationToolbarPopover.getBoundingClientRect();
-      },
-      height() {
-        return this.boundingClientRect().height;
-      },
-      width() {
-        return this.boundingClientRect().width;
-      },
+    boundingClientRect() {
+      return this.$refs.annotationToolbarPopover.getBoundingClientRect();
     },
-  };
+    height() {
+      return this.boundingClientRect().height;
+    },
+    width() {
+      return this.boundingClientRect().width;
+    },
+  },
+};
 </script>
 
 <style lang="scss">
-@import "../../styles/main.scss";
+@import "../../../styles/main.scss";
 //@import "~hover.css";
 
 #annotation-toolbar-popover {
@@ -168,7 +167,9 @@ import { GET } from "@/store/types";
   -webkit-transition-property: transform;
   transition-property: transform;
 }
-.hvr-grow:hover, .hvr-grow:focus, .hvr-grow:active {
+.hvr-grow:hover,
+.hvr-grow:focus,
+.hvr-grow:active {
   -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }

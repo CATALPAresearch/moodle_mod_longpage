@@ -15,19 +15,19 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import AnnotationModule from "./modules/annotation-module";
-import PostModule from "./modules/post-module";
 import UIModule from "./modules/ui-module";
 import UserModule from "./modules/user-module";
+import AnnotationModule from "./modules/annotation-module";
+import PostModule from "./modules/post-module";
 import { createStore } from "vuex";
 import { GET } from "./types";
 import moodleAjax from "core/ajax";
 import moodleStorage from "core/localstorage";
 
-// Lazy-loaded modules (registered on-demand)
+// Lazy-loaded modules (registered on-demand when respective tabs are opened)
 export const lazyModules = {
   QuestionBankModule: () => import("./modules/questionBank"),
 };
@@ -35,10 +35,10 @@ export const lazyModules = {
 export const initStore = (longpageContext) => {
   return createStore({
     modules: {
-      AnnotationModule,
-      PostModule,
       UIModule,
       UserModule,
+      annotation: AnnotationModule,
+      post: PostModule,
     },
     state: {
       longpageContext,

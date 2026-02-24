@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import { LONGPAGE_CONTENT_ID } from "@/config/constants";
+import { LONGPAGE_CONTENT_ID } from "@/util/constants";
 
 export default {
   name: "ReadingTime",

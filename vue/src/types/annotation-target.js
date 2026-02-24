@@ -18,23 +18,29 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {SelectorType} from "@/config/constants";
+import { SelectorType } from "@/util/constants";
 
 export class AnnotationTarget {
-    static preliminaryIdsAssignedCount = 0;
+  static preliminaryIdsAssignedCount = 0;
 
-    static _getPreliminaryId() {
-        return `new-annotation-target-${AnnotationTarget.preliminaryIdsAssignedCount++}`
-    }
+  static _getPreliminaryId() {
+    return `new-annotation-target-${AnnotationTarget.preliminaryIdsAssignedCount++}`;
+  }
 
-    constructor({id = AnnotationTarget._getPreliminaryId(), selectors = [], styleClass}) {
-        this.id = id;
-        this.selectors = selectors;
-        this.styleClass = styleClass;
-    }
+  constructor({
+    id = AnnotationTarget._getPreliminaryId(),
+    selectors = [],
+    styleClass,
+  }) {
+    this.id = id;
+    this.selectors = selectors;
+    this.styleClass = styleClass;
+  }
 
-    get text() {
-        const textQuoteSelector = this.selectors.find(sel => sel.type === SelectorType.TEXT_QUOTE_SELECTOR);
-        return textQuoteSelector && textQuoteSelector.exact;
-    }
+  get text() {
+    const textQuoteSelector = this.selectors.find(
+      (sel) => sel.type === SelectorType.TEXT_QUOTE_SELECTOR,
+    );
+    return textQuoteSelector && textQuoteSelector.exact;
+  }
 }

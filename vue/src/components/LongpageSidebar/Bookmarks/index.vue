@@ -1,8 +1,5 @@
 <template>
-  <highlights-tab
-    :highlights="highlights"
-    :type="type"
-  />
+  <highlights-tab :highlights="highlights" :type="type" />
 </template>
 
 <script>
@@ -26,22 +23,21 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {AnnotationType} from '@/config/constants';
-import {GET} from '@/store/types';
-import HighlightsTab from '../HighlightsTab';
-import {mapGetters} from 'vuex';
+import { AnnotationType } from "@/util/constants";
+import { GET } from "@/store/types";
+import HighlightsTab from "../HighlightsTab";
+import { mapGetters } from "vuex";
 
 export default {
-  name: 'Bookmarks',
-  components: {HighlightsTab},
+  name: "Bookmarks",
+  components: { HighlightsTab },
   computed: {
-    ...mapGetters({
+    ...mapGetters("annotation", {
       highlights: GET.BOOKMARKS,
     }),
     type() {
       return AnnotationType.BOOKMARK;
-    }
+    },
   },
 };
 </script>
-

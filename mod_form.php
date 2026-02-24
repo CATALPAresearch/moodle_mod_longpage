@@ -18,7 +18,7 @@
  * Page configuration form
  *
  * @package mod_longpage
- * @copyright  2009 Petr Skoda (http://skodak.org)
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

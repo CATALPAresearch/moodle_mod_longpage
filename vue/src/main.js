@@ -15,7 +15,7 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -24,14 +24,15 @@
 __webpack_public_path__ = M.cfg.wwwroot + "/mod/longpage/amd/build/";
 
 import "./components/LongpageContent/Footnote";
-import "./lib/hashchange-listening";
-import "./lib/scroll-snapping";
+import "./lib/behaviors/page-ready-listening";
+import "./lib/behaviors/hashchange-listening";
+import "./lib/behaviors/scroll-snapping";
 import App from "./App.vue";
 import { createApp } from "vue";
 import { initStore } from "@/store";
-import { LONGPAGE_APP_CONTAINER_ID } from "@/config/constants";
-import { toIdSelector } from "@/util/style";
-import { i18n } from "@/config/i18n";
+import { LONGPAGE_APP_CONTAINER_ID } from "@/util/constants";
+import { toIdSelector } from "@/util/dom/style";
+import { i18n } from "@/util/i18n";
 
 export const init = async (
   courseId,
@@ -95,3 +96,6 @@ export const init = async (
     console.error("Longpage initialization error:", e);
   }
 };
+
+// Export as default for AMD module compatibility
+export default { init };

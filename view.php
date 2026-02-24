@@ -18,7 +18,7 @@
  * Page module version information
  *
  * @package mod_longpage
- * @copyright  2009 Petr Skoda (http://skodak.org)
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -65,7 +65,7 @@ $PAGE->requires->css('/mod/longpage/styles.css', true);
 
 // Longpage always uses standard display mode (no popup).
 $PAGE->set_title($course->shortname . ': ' . $page->name);
-$PAGE->set_heading($course->fullname);
+#$PAGE->set_heading($course->fullname); # uncommented since it disturbes when page is loading and dom elements floating around
 
 $PAGE->set_secondary_navigation(false);
 $PAGE->activityheader->disable();

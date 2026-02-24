@@ -236,6 +236,7 @@ $string['sidebar_tabs_posts_heading'] = 'Posts';
 $string['sidebar_tabs_highlights_heading'] = 'Highlights';
 $string['sidebar_tabs_bookmarks_heading'] = 'Bookmarks';
 $string['sidebar_tabs_quiz_heading'] = 'Quiz';
+$string['sidebar_tabs_search_heading'] = 'Search';
 
 // Sidebar filter strings
 $string['sidebar_tabs_posts_filter_title'] = 'Filter posts';

@@ -18,18 +18,18 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { EventBus } from "@/lib/event-bus";
+import { SelectorType } from "@/util/constants";
 
-let timeout = null;
-
-new MutationObserver(() => {
-  if (timeout) clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    EventBus.publish("page-ready");
-  }, 300); // Reduced from 500ms for faster UI response
-}).observe(document, {
-  childList: true,
-  attributes: true,
-  characterData: true,
-  subtree: true,
+export const AnnotationCompareFunction = Object.freeze({
+  BY_POSITION: (annotationA, annotationB) => {
+    const { start: startA = 0 } =
+      annotationA.target.selectors.find(
+        (s) => s.type === SelectorType.TEXT_POSITION_SELECTOR,
+      ) || {};
+    const { start: startB = 0 } =
+      annotationB.target.selectors.find(
+        (s) => s.type === SelectorType.TEXT_POSITION_SELECTOR,
+      ) || {};
+    return startA - startB;
+  },
 });

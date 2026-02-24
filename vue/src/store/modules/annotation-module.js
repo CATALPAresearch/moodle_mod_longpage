@@ -18,15 +18,16 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { AnnotationType, MoodleWSMethods } from "@/config/constants";
+import { AnnotationType, MoodleWSMethods } from "@/util/constants";
 import { GET, ACT, MUTATE } from "../types";
 import { Annotation } from "@/types/annotation";
-import { AnnotationCompareFunction } from "@/util/comparing";
+import { AnnotationCompareFunction } from "@/util/comparators";
 import ajax from "core/ajax";
 import MappingService from "@/services/mapping-service";
 import { AnnotationFilter } from "@/util/filters/annotation-filter";
 
 export default {
+  namespaced: true,
   state: {
     annotations: [],
     annotationFilter: AnnotationFilter.DEFAULT,
@@ -36,10 +37,11 @@ export default {
     [GET.ANNOTATION]: (_, getters) => (id) =>
       getters[GET.ANNOTATIONS].find((a) => a.id === id),
     [GET.ANNOTATION_FILTER]: ({ annotationFilter }) => annotationFilter,
-    [GET.ANNOTATION_WITH_CONTEXT]: (_, getters) => (annotation) => ({
-      ...annotation,
-      longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
-    }),
+    [GET.ANNOTATION_WITH_CONTEXT]:
+      (_, getters, rootState, rootGetters) => (annotation) => ({
+        ...annotation,
+        longpageid: rootGetters[GET.LONGPAGE_CONTEXT].longpageid,
+      }),
     [GET.ANNOTATIONS]: ({ annotations }) => annotations,
     [GET.BOOKMARKS]: (_, getters) => {
       return getters[GET.ANNOTATIONS]
@@ -54,16 +56,18 @@ export default {
         .sort(AnnotationCompareFunction.BY_POSITION);
     },
     [GET.NEW_ANNOTATION]:
-      (_, getters) =>
+      (_, getters, rootState, rootGetters) =>
       (params = {}) => {
         const annotation = new Annotation({
-          creatorId: getters[GET.LONGPAGE_CONTEXT].userId,
-          longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
+          creatorId: rootGetters[GET.LONGPAGE_CONTEXT].userId,
+          longpageid: rootGetters[GET.LONGPAGE_CONTEXT].longpageid,
           ...params,
         });
         annotation.body =
           params.type === AnnotationType.POST && !params.body
-            ? getters[GET.NEW_THREAD]({ annotationId: annotation.id })
+            ? rootGetters[`post/${GET.NEW_THREAD}`]({
+                annotationId: annotation.id,
+              })
             : undefined;
         return annotation;
       },
@@ -123,7 +127,9 @@ export default {
         getters[GET.NEW_ANNOTATION](params);
       dispatch(ACT.REPLACE_OR_ADD_ANNOTATION, annotation);
       if (annotation.type === AnnotationType.POST) {
-        dispatch(ACT.REPLACE_OR_ADD_THREAD, annotation.body);
+        dispatch(`post/${ACT.REPLACE_OR_ADD_THREAD}`, annotation.body, {
+          root: true,
+        });
         annotation.isPublic = annotation.body.isPublic;
         commit(MUTATE.UPDATE_ANNOTATION, {
           id: annotation.id,
@@ -141,10 +147,14 @@ export default {
               response.annotation,
             );
             if (annotationUpdate.type === AnnotationType.POST) {
-              commit(MUTATE.UPDATE_THREAD, {
-                id: annotation.body.id,
-                threadUpdate: annotationUpdate.body,
-              });
+              commit(
+                `post/${MUTATE.UPDATE_THREAD}`,
+                {
+                  id: annotation.body.id,
+                  threadUpdate: annotationUpdate.body,
+                },
+                { root: true },
+              );
             }
             commit(MUTATE.UPDATE_ANNOTATION, {
               id: annotation.id,
@@ -152,7 +162,9 @@ export default {
             });
           },
           fail: (e) => {
-            commit(MUTATE.REMOVE_THREADS, [annotation.body]);
+            commit(`post/${MUTATE.REMOVE_THREADS}`, [annotation.body], {
+              root: true,
+            });
             commit(MUTATE.REMOVE_ANNOTATIONS, [annotation]);
             console.error(`"${MoodleWSMethods.CREATE_ANNOTATION}" failed`, e);
           },
@@ -162,7 +174,10 @@ export default {
     [ACT.DELETE_ANNOTATION]({ commit }, annotation) {
       if (!annotation.created) return;
 
-      if (annotation.body) commit(MUTATE.REMOVE_THREADS, [annotation.body]);
+      if (annotation.body)
+        commit(`post/${MUTATE.REMOVE_THREADS}`, [annotation.body], {
+          root: true,
+        });
       commit(MUTATE.REMOVE_ANNOTATIONS, [annotation]);
 
       ajax.call([
@@ -172,19 +187,22 @@ export default {
           done: () => {},
           fail: (e) => {
             commit(MUTATE.ADD_ANNOTATIONS, [annotation]);
-            if (annotation.body) commit(MUTATE.ADD_THREADS, [annotation.body]);
+            if (annotation.body)
+              commit(`post/${MUTATE.ADD_THREADS}`, [annotation.body], {
+                root: true,
+              });
             console.error(`"${MoodleWSMethods.DELETE_ANNOTATION}" failed`, e);
           },
         },
       ]);
     },
-    [ACT.FETCH_ANNOTATIONS]({ commit, getters }, userid = null) {
+    [ACT.FETCH_ANNOTATIONS]({ commit, rootGetters }, userid = null) {
       ajax.call([
         {
           methodname: MoodleWSMethods.GET_ANNOTATIONS,
           args: {
             parameters: {
-              longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
+              longpageid: rootGetters[GET.LONGPAGE_CONTEXT].longpageid,
             },
           },
           done: (response) => {
@@ -193,8 +211,9 @@ export default {
             );
             commit(MUTATE.SET_ANNOTATIONS, annotations);
             commit(
-              MUTATE.SET_THREADS,
+              `post/${MUTATE.SET_THREADS}`,
               annotations.filter((a) => Boolean(a.body)).map((a) => a.body),
+              { root: true },
             );
           },
           fail: (e) => {
@@ -211,7 +230,9 @@ export default {
           .applyTo(...getters[GET.ANNOTATIONS])
           .sort(AnnotationCompareFunction.BY_POSITION);
       commit(MUTATE.SET_FILTERED_ANNOTATIONS, filteredAnnotations);
-      dispatch(ACT.FILTER_THREADS, filter && filter.body);
+      dispatch(`post/${ACT.FILTER_THREADS}`, filter && filter.body, {
+        root: true,
+      });
     },
   },
 };

@@ -18,33 +18,19 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {getPostIdFromItsDOMId, getThreadIdFromItsDOMId, isDOMIdOfPost, isDOMIdOfThread} from '@/util/annotation';
-import {EventBus} from '@/lib/event-bus';
+import { HighlightingConfig } from "@/util/constants";
 
-const scrollInPost = () => {
-    const hash = window.location.hash.substring(1);
-    if (!isDOMIdOfPost(hash)) return;
+const domIdOfPostRegExp = new RegExp("post-\\d+");
+export const getDOMIdOfPost = (postId) => `post-${postId}`;
+export const isDOMIdOfPost = (string) => domIdOfPostRegExp.test(string);
+export const getPostIdFromItsDOMId = (domId) => Number(domId.split("-")[1]);
 
-    const postId = getPostIdFromItsDOMId(hash);
+const domIdOfThreadRegExp = new RegExp("thread-\\d+");
+export const getDOMIdOfThread = (threadId) => `thread-${threadId}`;
+export const isDOMIdOfThread = (string) => domIdOfThreadRegExp.test(string);
+export const getThreadIdFromItsDOMId = (domId) => Number(domId.split("-")[1]);
 
-    EventBus.publish('post-selected-by-url-hash', {postId, postDOMId: hash});
-};
-
-const scrollInThread = () => {
-    const hash = window.location.hash.substring(1);
-    if (!isDOMIdOfThread(hash)) return;
-
-    const threadId = getThreadIdFromItsDOMId(hash);
-
-    EventBus.publish('thread-selected-by-url-hash', {threadId, threadDOMId: hash});
-};
-
-window.addEventListener('hashchange', () => {
-    scrollInPost();
-    scrollInThread();
-});
-
-EventBus.subscribe('page-ready', () => {
-    scrollInPost();
-    scrollInThread();
-});
+export const getHighlightByAnnotationId = (annotationId) =>
+  Array.from(
+    document.getElementsByTagName(HighlightingConfig.HL_TAG_NAME),
+  ).find((element) => element._annotation.id === annotationId);

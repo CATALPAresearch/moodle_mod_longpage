@@ -18,7 +18,7 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {AnnotationType, HighlightingConfig} from '../../config/constants';
+import { AnnotationType, HighlightingConfig } from "../../util/constants";
 
 /**
  * Return the annotations associated with any highlights that contain a given
@@ -28,11 +28,11 @@ import {AnnotationType, HighlightingConfig} from '../../config/constants';
  * @return {AnnotationData[]}
  */
 const getAnnotationsAnchoredAt = (node) => {
-    const items = getHighlightsContainingNode(node)
-        .map(h => /** @type {AnnotationHighlight} */ (h)._annotation)
-        .filter(ann => ann !== undefined);
+  const items = getHighlightsContainingNode(node)
+    .map((h) => /** @type {AnnotationHighlight} */ (h)._annotation)
+    .filter((ann) => ann !== undefined);
 
-    return /** @type {AnnotationData[]} */ (items);
+  return /** @type {AnnotationData[]} */ (items);
 };
 
 /**
@@ -43,8 +43,9 @@ const getAnnotationsAnchoredAt = (node) => {
  * @return {AnnotationData[]}
  */
 export const getHighlightsAnchoredAt = (node) => {
-    return getAnnotationsAnchoredAt(node)
-        .filter(annotation => annotation.type === AnnotationType.HIGHLIGHT);
+  return getAnnotationsAnchoredAt(node).filter(
+    (annotation) => annotation.type === AnnotationType.HIGHLIGHT,
+  );
 };
 
 /**
@@ -54,16 +55,16 @@ export const getHighlightsAnchoredAt = (node) => {
  * @return {HighlightElement[]}
  */
 const getHighlightsContainingNode = (node) => {
-    let el =
-        node.nodeType === Node.ELEMENT_NODE
-            ? /** @type {Element} */ (node)
-            : node.parentElement;
-    const highlights = [];
-    while (el) {
-        if (el.classList.contains(HighlightingConfig.HL_CLASS_NAME)) {
-            highlights.push(/** @type {HighlightElement} */ (el));
-        }
-        el = el.parentElement;
+  let el =
+    node.nodeType === Node.ELEMENT_NODE
+      ? /** @type {Element} */ (node)
+      : node.parentElement;
+  const highlights = [];
+  while (el) {
+    if (el.classList.contains(HighlightingConfig.HL_CLASS_NAME)) {
+      highlights.push(/** @type {HighlightElement} */ (el));
     }
-    return highlights;
+    el = el.parentElement;
+  }
+  return highlights;
 };

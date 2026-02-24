@@ -1,8 +1,5 @@
 <template>
-  <highlights-tab
-    :highlights="highlights"
-    :type="type"
-  />
+  <highlights-tab :highlights="highlights" :type="type" />
 </template>
 
 <script>
@@ -26,20 +23,20 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import '@/lib/annotation/highlight-selection-listening';
-import {AnnotationType} from '@/config/constants';
-import {GET} from '@/store/types';
-import HighlightsTab from '../HighlightsTab';
-import {mapGetters} from 'vuex';
+import "@/lib/annotation/highlight-selection-listening";
+import { AnnotationType } from "@/util/constants";
+import { GET } from "@/store/types";
+import HighlightsTab from "../HighlightsTab";
+import { mapGetters } from "vuex";
 
 export default {
-  name: 'Highlights',
-  components: {HighlightsTab},
+  name: "Highlights",
+  components: { HighlightsTab },
   computed: {
-    ...mapGetters({highlights: GET.HIGHLIGHTS}),
+    ...mapGetters("annotation", { highlights: GET.HIGHLIGHTS }),
     type() {
       return AnnotationType.HIGHLIGHT;
-    }
+    },
   },
 };
 </script>

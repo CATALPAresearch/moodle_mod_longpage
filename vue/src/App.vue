@@ -67,22 +67,22 @@ import {
   AnnotationType,
   LONGPAGE_CONTENT_ID,
   LONGPAGE_MAIN_ID,
-} from "@/config/constants";
-import AnnotationToolbarController from "@/components/LongpageContent/AnnotationToolbarController";
-import { EventBus } from "@/lib/event-bus";
+} from "@/util/constants";
+import AnnotationToolbarController from "@/components/LongpageContent/Annotations/AnnotationToolbarController";
+import { EventBus } from "@/lib/core/event-bus";
 import { getHighlightsAnchoredAt } from "@/lib/annotation/highlight-selection-listening";
-import Log from "./lib/Logging";
+import Log from "./lib/core/Logging";
 import LongpageSidebar from "@/components/LongpageSidebar";
 import { mapActions, mapGetters } from "vuex";
-import AnnotationIndicatorSidebar from "@/components/LongpageContent/AnnotationIndicatorSidebar";
+import AnnotationIndicatorSidebar from "@/components/LongpageContent/Annotations/AnnotationIndicatorSidebar";
 //import { ReadingTimeEstimator } from "@/lib/reading-time-estimator";
 import throttle from "lodash/throttle";
-import { toIdSelector } from "@/util/style";
+import { toIdSelector } from "@/util/dom/style";
 import Utils from "./util/utils";
 
-import ReadingProgress from "@/components/Generic/ReadingProgress";
-import ReadingTime from "@/components/Generic/ReadingTime";
-import CourseRecommendation from "@/components/Generic/CourseRecommendations";
+import ReadingProgress from "@/components/Features/ReadingProgress";
+import ReadingTime from "@/components/Features/ReadingTime";
+import CourseRecommendation from "@/components/Features/CourseRecommendations";
 
 export default {
   name: "App",
@@ -181,6 +181,7 @@ export default {
     this[ACT.FETCH_USER_ROLES]();
     this[ACT.FETCH_ENROLLED_USERS]();
     this[ACT.USER_CAN_MOD_ANNOTATION]();
+    this[ACT.FETCH_ANNOTATIONS]();
 
     // Log bootstrap interactions
     document.querySelectorAll(".longpage-citation").forEach((el) => {
@@ -222,6 +223,7 @@ export default {
       ACT.UPDATE_READING_PROGRESS,
       ACT.USER_CAN_MOD_ANNOTATION,
     ]),
+    ...mapActions("annotation", [ACT.FETCH_ANNOTATIONS]),
     log(key, values) {
       this.logger.add(key, values);
     },

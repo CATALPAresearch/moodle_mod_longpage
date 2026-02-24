@@ -219,6 +219,7 @@ $string['sidebar_tabs_posts_heading'] = 'Beiträge';
 $string['sidebar_tabs_highlights_heading'] = 'Markierungen';
 $string['sidebar_tabs_bookmarks_heading'] = 'Lesezeichen';
 $string['sidebar_tabs_quiz_heading'] = 'Aufgaben';
+$string['sidebar_tabs_search_heading'] = 'Suche';
 
 // Sidebar filter strings
 $string['sidebar_tabs_posts_filter_title'] = 'Beiträge filtern';

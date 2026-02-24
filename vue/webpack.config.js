@@ -15,7 +15,7 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -36,7 +36,10 @@ module.exports = (env, options) => {
       publicPath: "",
       filename: "app-lazy.min.js",
       chunkFilename: "[id].app-lazy.js?v=[hash]",
-      libraryTarget: "amd",
+      library: {
+        type: "amd",
+        export: "default",
+      },
     },
     target: "web",
     module: {
@@ -138,11 +141,15 @@ module.exports = (env, options) => {
           onStart: {
             delete: [
               {
-                source: path.resolve(__dirname, "../amd/src/app-lazy.js"),
+                source: path.resolve(__dirname, "../amd/build/app-lazy.min.js"),
                 options: { force: true },
               },
               {
-                source: path.resolve(__dirname, "../amd/build/app-lazy.min.js"),
+                source: path.resolve(__dirname, "../amd/build/*.app-lazy.js"),
+                options: { force: true },
+              },
+              {
+                source: path.resolve(__dirname, "../amd/src/app-lazy.js"),
                 options: { force: true },
               },
             ],
@@ -150,20 +157,8 @@ module.exports = (env, options) => {
           onEnd: {
             copy: [
               {
-                source: path.resolve(__dirname, "../amd/build"),
-                destination: path.resolve(__dirname, "../amd/src"),
-              },
-            ],
-            move: [
-              {
-                source: path.resolve(__dirname, "../amd/src/app-lazy.min.js"),
+                source: path.resolve(__dirname, "../amd/build/app-lazy.min.js"),
                 destination: path.resolve(__dirname, "../amd/src/app-lazy.js"),
-              },
-            ],
-            delete: [
-              {
-                source: path.resolve(__dirname, "../amd/src/app-lazy.min.js"),
-                options: { force: true },
               },
             ],
           },

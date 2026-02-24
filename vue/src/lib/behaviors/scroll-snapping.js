@@ -18,18 +18,25 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {HighlightingConfig} from '@/config/constants';
+import { toPx } from "@/util/dom/style";
+import {
+  LONGPAGE_APP_CONTAINER_ID,
+  MOODLE_NAVBAR_HEIGHT_IN_PX,
+} from "@/util/constants";
 
-const domIdOfPostRegExp = new RegExp('post-\\d+');
-export const getDOMIdOfPost = postId => `post-${postId}`;
-export const isDOMIdOfPost = string => domIdOfPostRegExp.test(string);
-export const getPostIdFromItsDOMId = domId => Number(domId.split('-')[1]);
-
-const domIdOfThreadRegExp = new RegExp('thread-\\d+');
-export const getDOMIdOfThread = threadId => `thread-${threadId}`;
-export const isDOMIdOfThread = string => domIdOfThreadRegExp.test(string);
-export const getThreadIdFromItsDOMId = domId => Number(domId.split('-')[1]);
-
-export const getHighlightByAnnotationId = annotationId => Array
-    .from(document.getElementsByTagName(HighlightingConfig.HL_TAG_NAME))
-    .find(element => element._annotation.id === annotationId);
+if (
+  "IntersectionObserver" in window &&
+  "IntersectionObserverEntry" in window &&
+  "intersectionRatio" in window.IntersectionObserverEntry.prototype
+) {
+  const rootMarginTop = toPx(-MOODLE_NAVBAR_HEIGHT_IN_PX);
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries[0].boundingClientRect.y === 50)
+        document.body.classList.add("snapped-to-app-container");
+      else document.body.classList.remove("snapped-to-app-container");
+    },
+    { rootMargin: `${rootMarginTop} 0px 0px 0px`, threshold: 1 },
+  );
+  observer.observe(document.getElementById(LONGPAGE_APP_CONTAINER_ID));
+}

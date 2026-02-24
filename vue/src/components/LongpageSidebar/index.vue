@@ -91,17 +91,17 @@ import {
   LONGPAGE_APP_ID,
   SidebarTabKeys,
   SidebarEvents,
-} from "@/config/constants";
+} from "@/util/constants";
 import { GET, MUTATE } from "@/store/types";
 import { mapGetters, mapMutations } from "vuex";
 import Bookmarks from "@/components/LongpageSidebar/Bookmarks";
-import { EventBus } from "@/lib/event-bus";
+import { EventBus } from "@/lib/core/event-bus";
 import Highlights from "@/components/LongpageSidebar/Highlights";
 import Posts from "@/components/LongpageSidebar/Posts";
 import debounce from "lodash/debounce";
-import TableOfContents from "@/components/LongpageSidebar/TableOfContents";
-import Search from "@/components/LongpageSidebar/Search";
-import CourseRecommendation from "@/components/Generic/CourseRecommendations";
+import TableOfContents from "@/components/LongpageSidebar/TableOfContentsTab";
+import Search from "@/components/LongpageSidebar/SearchTab";
+import CourseRecommendation from "@/components/Features/CourseRecommendations";
 import Quiz from "@/components/LongpageSidebar/Quiz";
 import { lazyModules } from "@/store";
 
@@ -334,21 +334,36 @@ export default {
       EventBus.publish(SidebarEvents.CHANGE_BADGES, { type: tabKey, count: 0 });
     },
     async loadModuleForTab(tabKey) {
-      // Only Quiz tab needs lazy loading (QuestionBankModule)
-      // PostModule is loaded initially since Posts are commonly used
-      if (tabKey !== SidebarTabKeys.QUIZ) return;
+      // Map tabs to their required modules
+      const tabModuleMap = {
+        [SidebarTabKeys.BOOKMARKS]: ["annotation"],
+        [SidebarTabKeys.HIGHLIGHTS]: ["annotation"],
+        [SidebarTabKeys.POSTS]: ["annotation", "post"],
+        [SidebarTabKeys.QUIZ]: ["questionBank"],
+      };
 
-      const moduleName = "questionBank";
+      const requiredModules = tabModuleMap[tabKey];
+      if (!requiredModules) return;
 
-      // Check if module already registered
-      if (this.$store.hasModule(moduleName)) return;
+      // Load all required modules for this tab
+      for (const moduleName of requiredModules) {
+        // Check if module already registered
+        if (this.$store.hasModule(moduleName)) continue;
 
-      try {
-        // Dynamic import and register QuestionBankModule
-        const module = await lazyModules.QuestionBankModule();
-        this.$store.registerModule(moduleName, module.default);
-      } catch (error) {
-        console.error(`Failed to load ${moduleName}:`, error);
+        try {
+          // Map module name to lazy loader
+          const moduleLoaders = {
+            annotation: "AnnotationModule",
+            post: "PostModule",
+            questionBank: "QuestionBankModule",
+          };
+
+          const loaderName = moduleLoaders[moduleName];
+          const module = await lazyModules[loaderName]();
+          this.$store.registerModule(moduleName, module.default);
+        } catch (error) {
+          console.error(`Failed to load ${moduleName}:`, error);
+        }
       }
     },
     ...mapMutations({ setTabOpened: MUTATE.RESET_SIDEBAR_TAB_OPENED_KEY }),

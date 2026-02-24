@@ -24,10 +24,7 @@
       </button>
       <button
         type="button"
-        class="
-          btn btn-outline-primary btn-sm
-          dropdown-toggle dropdown-toggle-split
-        "
+        class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split"
         data-toggle="dropdown"
         aria-haspopup="true"
         aria-expanded="false"
@@ -80,7 +77,7 @@ import { mapActions, mapGetters, mapMutations } from "vuex";
 import cloneDeep from "lodash/cloneDeep";
 import { Post } from "@/types/post";
 import PostFormInput from "@/components/LongpageSidebar/Posts/Thread/PostForm/PostFormInput";
-import { SAVE_ACTIONS } from "@/config/constants";
+import { SAVE_ACTIONS } from "@/util/constants";
 import { Thread } from "@/types/thread";
 
 export default {
@@ -99,21 +96,21 @@ export default {
     };
   },
   computed: {
-    ...mapGetters([GET.ANNOTATION]),
+    ...mapGetters("annotation", [GET.ANNOTATION]),
     saveActions() {
-      return SAVE_ACTIONS.filter(
-        ({ key }) =>
-        {
-        if (key === "save"){
-          if (this.post === this.thread.root && this.thread.replyCount == 0) return true;
+      return SAVE_ACTIONS.filter(({ key }) => {
+        if (key === "save") {
+          if (this.post === this.thread.root && this.thread.replyCount == 0)
+            return true;
           else return false;
         }
         if (key === "saveDisabled") {
-          if (this.post === this.thread.root && this.thread.replyCount > 0) return true;
-         else return false;
+          if (this.post === this.thread.root && this.thread.replyCount > 0)
+            return true;
+          else return false;
         }
         return true;
-        });
+      });
     },
     selectedSaveAction: {
       get() {
@@ -136,9 +133,10 @@ export default {
     this.postUpdate.isPublic = this.thread.isPublic;
   },
   methods: {
-    ...mapActions([ACT.CREATE_ANNOTATION, ACT.CREATE_POST, ACT.UPDATE_POST]),
-    ...mapMutations([
-      MUTATE.REMOVE_ANNOTATIONS,
+    ...mapActions("annotation", [ACT.CREATE_ANNOTATION]),
+    ...mapActions("post", [ACT.CREATE_POST, ACT.UPDATE_POST]),
+    ...mapMutations("annotation", [MUTATE.REMOVE_ANNOTATIONS]),
+    ...mapMutations("post", [
       MUTATE.REMOVE_POSTS_FROM_THREAD,
       MUTATE.REMOVE_THREADS,
     ]),

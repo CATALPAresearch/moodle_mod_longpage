@@ -1,27 +1,48 @@
 <template>
-  <sidebar-tab :title="areHighlights ? $t('sidebar.tabs.highlights.heading') : $t('sidebar.tabs.bookmarks.heading')">
+  <sidebar-tab
+    :title="
+      areHighlights
+        ? $t('sidebar.tabs.highlights.heading')
+        : $t('sidebar.tabs.bookmarks.heading')
+    "
+  >
     <template #append-header>
       <div
         v-show="selectedHighlights === allHighlightsOrSelection"
         class="mt-2"
       >
         <p class="mb-1">
-          {{ $t(`sidebar.tabs.${areHighlights ? 'highlights' : 'bookmarks'}.message.onlySelectedShown`) }}
+          {{
+            $t(
+              `sidebar.tabs.${areHighlights ? "highlights" : "bookmarks"}.message.onlySelectedShown`,
+            )
+          }}
         </p>
         <a
           role="button"
           class="btn btn-sm btn-secondary"
           @click.stop="resetSelection"
         >
-          {{ $t(`sidebar.tabs.${areHighlights ? 'highlights' : 'bookmarks'}.message.showAll`) }}
+          {{
+            $t(
+              `sidebar.tabs.${areHighlights ? "highlights" : "bookmarks"}.message.showAll`,
+            )
+          }}
         </a>
       </div>
-      <div v-if="this.$store.state.UserModule.userCanMod">Nutzer-ID: <input id="userid" type="text" v-model="userid" size="5" style="margin: 5px;"/><input type="submit" value="Anzeigen" @click="fetchAnnotations()"/></div>
+      <div v-if="this.$store.state.UserModule.userCanMod">
+        Nutzer-ID:
+        <input
+          id="userid"
+          type="text"
+          v-model="userid"
+          size="5"
+          style="margin: 5px"
+        /><input type="submit" value="Anzeigen" @click="fetchAnnotations()" />
+      </div>
     </template>
     <template #body>
-      <div
-        v-if="allHighlightsOrSelection.length"
-      >
+      <div v-if="allHighlightsOrSelection.length">
         <div
           v-for="(highlight, index) in allHighlightsOrSelection"
           :key="highlight.id"
@@ -41,10 +62,7 @@
                 :time-modified="highlight.timeModified"
               />
             </div>
-            <div
-              v-if="highlight.created"
-              class="col-auto p-0"
-            >
+            <div v-if="highlight.created" class="col-auto p-0">
               <a
                 v-for="action in actions"
                 :key="action.text"
@@ -65,14 +83,15 @@
           <hr
             v-if="index !== allHighlightsOrSelection.length - 1"
             class="mt-1 mb-0"
-          >
+          />
         </div>
       </div>
-      <p
-        v-else
-        class="p-3"
-      >
-        {{ areHighlights ? $t('sidebar.tabs.highlights.message.noneCreated') : $t('sidebar.tabs.bookmarks.message.noneCreated') }}
+      <p v-else class="p-3">
+        {{
+          areHighlights
+            ? $t("sidebar.tabs.highlights.message.noneCreated")
+            : $t("sidebar.tabs.bookmarks.message.noneCreated")
+        }}
       </p>
     </template>
   </sidebar-tab>
@@ -99,43 +118,51 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {ACT} from '@/store/types';
-import {AnnotationType} from '@/config/constants';
-import DateTimes from '@/components/LongpageSidebar/DateTimes';
-import ExpandableHighlightExcerpt from '@/components/Generic/ExpandableHighlightExcerpt';
-import {EventBus} from '@/lib/event-bus';
-import {getHighlightByAnnotationId} from '@/util/annotation';
-import {mapActions} from 'vuex';
-import SidebarTab from '@/components/LongpageSidebar/SidebarTab';
-import {scrollTextElementIntoView} from '@/util/misc';
+import { ACT } from "@/store/types";
+import { AnnotationType } from "@/util/constants";
+import DateTimes from "@/components/LongpageSidebar/DateTimes";
+import ExpandableHighlightExcerpt from "@/components/UI/ExpandableHighlightExcerpt";
+import { EventBus } from "@/lib/core/event-bus";
+import { getHighlightByAnnotationId } from "@/util/dom/annotation";
+import { mapActions } from "vuex";
+import SidebarTab from "@/components/LongpageSidebar/SidebarTab";
+import { scrollTextElementIntoView } from "@/util/misc";
 
-import {HighlightingConfig} from '@/config/constants';
-
+import { HighlightingConfig } from "@/util/constants";
 
 export default {
-  name: 'HighlightsTab',
-  components: {DateTimes, ExpandableHighlightExcerpt, SidebarTab},
+  name: "HighlightsTab",
+  components: { DateTimes, ExpandableHighlightExcerpt, SidebarTab },
   props: {
-    type: {type: Number, default: AnnotationType.HIGHLIGHT},
-    highlights: {type: Array, default: () => []},
+    type: { type: Number, default: AnnotationType.HIGHLIGHT },
+    highlights: { type: Array, default: () => [] },
   },
   data() {
     return {
       selectedHighlights: [],
-      userid: null
+      userid: null,
     };
   },
   computed: {
     actions() {
-      const text = this.areHighlights ? this.$i18n.t('highlight.action.delete') : this.$i18n.t('bookmark.action.delete');
+      const text = this.areHighlights
+        ? this.$i18n.t("highlight.action.delete")
+        : this.$i18n.t("bookmark.action.delete");
       return [
-        {iconClasses: ['fa-trash'], handler: this[ACT.DELETE_ANNOTATION], text}
+        {
+          iconClasses: ["fa-trash"],
+          handler: this[ACT.DELETE_ANNOTATION],
+          text,
+        },
       ];
     },
     allHighlightsOrSelection() {
       return this.selectedHighlights.length &&
-        this.selectedHighlights.some(shl => Boolean(this.highlights.find(hl => hl.id === shl.id))) ?
-          this.selectedHighlights : this.highlights;
+        this.selectedHighlights.some((shl) =>
+          Boolean(this.highlights.find((hl) => hl.id === shl.id)),
+        )
+        ? this.selectedHighlights
+        : this.highlights;
     },
     areHighlights() {
       return this.type === AnnotationType.HIGHLIGHT;
@@ -149,13 +176,12 @@ export default {
     scrollTextElementIntoView(id) {
       scrollTextElementIntoView(getHighlightByAnnotationId(id));
     },
-    fetchAnnotations()
-    {
-      this.$store.dispatch(ACT.FETCH_ANNOTATIONS, this.userid);
-    }
+    fetchAnnotations() {
+      this.$store.dispatch("annotation/" + ACT.FETCH_ANNOTATIONS, this.userid);
+    },
   },
   mounted() {
-    EventBus.subscribe('annotations-selected', ({type, selection}) => {
+    EventBus.subscribe("annotations-selected", ({ type, selection }) => {
       this.selectedHighlights = this.type === type ? selection : [];
     });
   },

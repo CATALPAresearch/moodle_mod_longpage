@@ -46,7 +46,7 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
+ * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import {
@@ -54,7 +54,7 @@ import {
   LONGPAGE_MAIN_ID,
   SidebarEvents,
   SidebarTabKeys,
-} from "@/config/constants";
+} from "@/util/constants";
 import findLast from "lodash/findLast";
 import { toIdSelector } from "@/util/dom/style";
 import { scrollTextElementIntoView } from "@/util/misc";

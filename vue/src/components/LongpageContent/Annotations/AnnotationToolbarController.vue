@@ -39,7 +39,7 @@ import {
   LONGPAGE_MAIN_ID,
   SidebarTabKeys,
   LONGPAGE_APP_CONTAINER_ID,
-} from "@/config/constants";
+} from "@/util/constants";
 import { AnnotationTarget } from "@/types/annotation-target";
 import AnnotationToolbar from "./AnnotationToolbar.vue";
 import { AnnotationToolbarPopoverPositioner } from "@/lib/annotation/annotation-toolbar-popover-positioner"; // Interesting for architecture

@@ -350,13 +350,13 @@ import {
   AnnotationType,
   SidebarEvents,
   SidebarTabKeys,
-} from "@/config/constants";
+} from "@/util/constants";
 import { GET, MUTATE } from "@/store/types";
 import { mapActions, mapGetters, mapMutations } from "vuex";
 import SidebarTab from "@/components/LongpageSidebar/SidebarTab";
 import ajax from "core/ajax";
 import Fragment from "core/fragment";
-import { EventBus } from "@/lib/event-bus";
+import { EventBus } from "@/lib/core/event-bus";
 import "theme_boost/bootstrap/tooltip";
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";

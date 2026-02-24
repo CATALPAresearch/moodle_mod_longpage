@@ -18,88 +18,115 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import ajax from 'core/ajax';
-import {MoodleWSMethods} from '@/config/constants';
-import {GET, ACT, MUTATE} from '../types';
-import MappingService from '@/services/mapping-service';
+import ajax from "core/ajax";
+import { MoodleWSMethods } from "@/util/constants";
+import { GET, ACT, MUTATE } from "../types";
+import MappingService from "@/services/mapping-service";
 
 export default {
-    state: {
-        enrolledUsers: [],
-        userRoles: [],
-        userCanMod: false,
-    },
-    getters: {
-        [GET.USER]: (_, getters) => id => getters[GET.USERS].find(
-            user => user.id === (id || getters[GET.LONGPAGE_CONTEXT].userId)
+  state: {
+    enrolledUsers: [],
+    userRoles: [],
+    userCanMod: false,
+  },
+  getters: {
+    [GET.USER]: (_, getters) => (id) =>
+      getters[GET.USERS].find(
+        (user) => user.id === (id || getters[GET.LONGPAGE_CONTEXT].userId),
+      ),
+    [GET.USER_ROLES]:
+      ({ userRoles }, getters) =>
+      (userId) =>
+        userRoles.filter((role) =>
+          getters[GET.USER](userId).roles.includes(role.id),
         ),
-        [GET.USER_ROLES]: ({userRoles}, getters) => userId => userRoles.filter(
-            role => getters[GET.USER](userId).roles.includes(role.id)
-        ),
-        [GET.USERS]: ({enrolledUsers}) => enrolledUsers,
+    [GET.USERS]: ({ enrolledUsers }) => enrolledUsers,
 
-        [GET.CAN_USER_MOD_ANNOTATION]: (state) => {return state.userCanMod}
-        
+    [GET.CAN_USER_MOD_ANNOTATION]: (state) => {
+      return state.userCanMod;
     },
-    actions: {
-        [ACT.FETCH_ENROLLED_USERS]({commit, getters}) {
-            const context = getters[GET.LONGPAGE_CONTEXT];
-            ajax.call([{
-                methodname: MoodleWSMethods.GET_ENROLLED_USERS,
-                args: {
-                    longpageid: context.longpageid,
-                },
-                done: ({users}) => {
-                    commit(MUTATE.SET_ENROLLED_USERS, users.map(response => MappingService.mapResponseToUser(response)));
-                },
-                fail: (e) => {
-                    console.error(`"${MoodleWSMethods.GET_ENROLLED_USERS}" failed`, e);
-                    console.log(context);
-                }
-            }]);
+  },
+  actions: {
+    [ACT.FETCH_ENROLLED_USERS]({ commit, getters }) {
+      const context = getters[GET.LONGPAGE_CONTEXT];
+      ajax.call([
+        {
+          methodname: MoodleWSMethods.GET_ENROLLED_USERS,
+          args: {
+            longpageid: context.longpageid,
+          },
+          done: ({ users }) => {
+            commit(
+              MUTATE.SET_ENROLLED_USERS,
+              users.map((response) =>
+                MappingService.mapResponseToUser(response),
+              ),
+            );
+          },
+          fail: (e) => {
+            console.error(`"${MoodleWSMethods.GET_ENROLLED_USERS}" failed`, e);
+            console.log(context);
+          },
         },
-        [ACT.FETCH_USER_ROLES]({commit, getters}) {
-            const context = getters[GET.LONGPAGE_CONTEXT];
-            ajax.call([{
-                methodname: MoodleWSMethods.GET_USER_ROLES_FOR_MODULE,
-                args: {
-                    longpageid: context.longpageid,
-                },
-                done: ({userroles}) => {
-                    commit(MUTATE.SET_USER_ROLES, userroles.map(response => MappingService.mapResponseToUserRole(response)));
-                },
-                fail: (e) => {
-                    console.error(`"${MoodleWSMethods.GET_USER_ROLES_FOR_MODULE}" failed`, e);
-                    console.log(context);
-                }
-            }]);
-        },
-        [ACT.USER_CAN_MOD_ANNOTATION]({commit, getters}){
-            const context = getters[GET.LONGPAGE_CONTEXT];
-            ajax.call([{
-                methodname: 'mod_longpage_can_madify_annotations',
-                args: {
-                    longpageid: context.longpageid,
-                },
-                done: (result) => {
-                    commit(MUTATE.SET_USER_CAN_MOD_ANNOTATION, result);
-                },
-                fail: (e) => {
-                    console.error(`"${MoodleWSMethods.USER_CAN_MOD_ANNOTATION}" failed`, e);
-                    console.log(context);
-                }
-            }]);
-        }
+      ]);
     },
-    mutations: {
-        [MUTATE.SET_ENROLLED_USERS](state, enrolledUsers) {
-            state.enrolledUsers = enrolledUsers;
+    [ACT.FETCH_USER_ROLES]({ commit, getters }) {
+      const context = getters[GET.LONGPAGE_CONTEXT];
+      ajax.call([
+        {
+          methodname: MoodleWSMethods.GET_USER_ROLES_FOR_MODULE,
+          args: {
+            longpageid: context.longpageid,
+          },
+          done: ({ userroles }) => {
+            commit(
+              MUTATE.SET_USER_ROLES,
+              userroles.map((response) =>
+                MappingService.mapResponseToUserRole(response),
+              ),
+            );
+          },
+          fail: (e) => {
+            console.error(
+              `"${MoodleWSMethods.GET_USER_ROLES_FOR_MODULE}" failed`,
+              e,
+            );
+            console.log(context);
+          },
         },
-        [MUTATE.SET_USER_ROLES](state, userRoles) {
-            state.userRoles = userRoles;
-        },
-        [MUTATE.SET_USER_CAN_MOD_ANNOTATION](state, result){
-            state.userCanMod = result.canmodannotations;
-        }
+      ]);
     },
+    [ACT.USER_CAN_MOD_ANNOTATION]({ commit, getters }) {
+      const context = getters[GET.LONGPAGE_CONTEXT];
+      ajax.call([
+        {
+          methodname: "mod_longpage_can_madify_annotations",
+          args: {
+            longpageid: context.longpageid,
+          },
+          done: (result) => {
+            commit(MUTATE.SET_USER_CAN_MOD_ANNOTATION, result);
+          },
+          fail: (e) => {
+            console.error(
+              `"${MoodleWSMethods.USER_CAN_MOD_ANNOTATION}" failed`,
+              e,
+            );
+            console.log(context);
+          },
+        },
+      ]);
+    },
+  },
+  mutations: {
+    [MUTATE.SET_ENROLLED_USERS](state, enrolledUsers) {
+      state.enrolledUsers = enrolledUsers;
+    },
+    [MUTATE.SET_USER_ROLES](state, userRoles) {
+      state.userRoles = userRoles;
+    },
+    [MUTATE.SET_USER_CAN_MOD_ANNOTATION](state, result) {
+      state.userCanMod = result.canmodannotations;
+    },
+  },
 };

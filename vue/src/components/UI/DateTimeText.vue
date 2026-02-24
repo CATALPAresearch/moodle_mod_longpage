@@ -1,3 +1,8 @@
+<template>
+  <span>{{ $d(dateTime, dateTimeFormat) }}</span>
+</template>
+
+<script>
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,25 +23,17 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import { LANGUAGE } from "@/config/constants";
-import { createI18n } from "vue-i18n";
-import datetimeFormats from "./date-time-formats.json";
+import { getDateTimeFormat } from "@/util/i18n/date-time-utils";
 
-// Custom message resolver that converts dots to underscores
-// Vue: $t('sidebar.tabs.posts.heading') -> PHP: $string['sidebar_tabs_posts_heading']
-const messageResolver = (obj, path) => {
-  const key = path.replace(/\./g, '_');
-  return obj[key];
+export default {
+  name: "DateTimeText",
+  props: {
+    dateTime: { type: Date, required: true },
+  },
+  computed: {
+    dateTimeFormat() {
+      return getDateTimeFormat(this.dateTime);
+    },
+  },
 };
-
-// Create i18n instance with empty messages - will be loaded from Moodle backend
-export const i18n = createI18n({
-  legacy: true, // Use Options API mode for backward compatibility
-  locale: LANGUAGE,
-  fallbackLocale: "en",
-  datetimeFormats,
-  messages: {}, // Empty - populated from store after loadComponentStrings
-  silentTranslationWarn: true,
-  globalInjection: true, // Enable $t in templates
-  messageResolver, // Custom resolver for dot-to-underscore conversion
-});
+</script>

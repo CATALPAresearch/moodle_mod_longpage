@@ -15,29 +15,36 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import set from 'lodash/set';
+import set from "lodash/set";
 
-const hlStartTag = '<b>';
-const hlEndTag = '</b>';
+const hlStartTag = "<b>";
+const hlEndTag = "</b>";
 
-export const mapResultToHighlightedDoc = ({item, matches}) => {
-    return {...item,
-    ...matches.reduce((itemHighlighted, {indices, value, key}) => {
-            let currentValueIndex = 0;
-            return set(itemHighlighted, key, indices.reduce((highlight, [startIdx, endIdx], i) => {
-                const result = [
-                    highlight,
-                    value.slice(currentValueIndex, startIdx),
-                    hlStartTag,
-                    value.slice(startIdx, endIdx + 1),
-                    hlEndTag,
-                ].join('');
-                currentValueIndex = endIdx + 1;
-                return i === indices.length - 1 ? [result, value.slice(currentValueIndex)].join('') : result;
-            }, ''));
-        }, {}),
-    };
+export const mapResultToHighlightedDoc = ({ item, matches }) => {
+  return {
+    ...item,
+    ...matches.reduce((itemHighlighted, { indices, value, key }) => {
+      let currentValueIndex = 0;
+      return set(
+        itemHighlighted,
+        key,
+        indices.reduce((highlight, [startIdx, endIdx], i) => {
+          const result = [
+            highlight,
+            value.slice(currentValueIndex, startIdx),
+            hlStartTag,
+            value.slice(startIdx, endIdx + 1),
+            hlEndTag,
+          ].join("");
+          currentValueIndex = endIdx + 1;
+          return i === indices.length - 1
+            ? [result, value.slice(currentValueIndex)].join("")
+            : result;
+        }, ""),
+      );
+    }, {}),
+  };
 };

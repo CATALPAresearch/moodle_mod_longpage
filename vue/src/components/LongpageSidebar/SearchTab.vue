@@ -4,7 +4,7 @@ import {
   LONGPAGE_APP_CONTAINER_ID,
   SidebarTabKeys,
   SidebarEvents,
-} from "@/config/constants";
+} from "@/util/constants";
 import { EventBus } from "@/lib/core/event-bus";
 
 export default {

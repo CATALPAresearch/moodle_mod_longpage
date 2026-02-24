@@ -1,18 +1,12 @@
 <template>
-  <div
-    :id="id"
-    class="thread border-secondary card d-block"
-  >
+  <div :id="id" class="thread border-secondary card d-block">
     <post
       :post="thread.root"
       :thread="thread"
       class="card-body text-dark thread-root"
       @toggle-replies="toggleReplies"
     />
-    <div
-      v-if="showReplies && thread.replies.length"
-      class="card-footer"
-    >
+    <div v-if="showReplies && thread.replies.length" class="card-footer">
       <post
         v-for="reply in thread.replies"
         :key="reply.id"
@@ -50,24 +44,24 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {SCROLL_INTO_VIEW_OPTIONS, SidebarTabKeys} from '@/config/constants';
-import {EventBus} from '@/lib/event-bus';
-import {getDOMIdOfThread} from '@/util/annotation';
-import {MUTATE} from '@/store/types';
-import {mapMutations} from 'vuex';
-import Post from './Post';
-import ReplyForm from '@/components/LongpageSidebar/Posts/Thread/ReplyForm';
-import {Thread} from '@/types/thread';
-import scrollIntoView from 'scroll-into-view-if-needed';
+import { SCROLL_INTO_VIEW_OPTIONS, SidebarTabKeys } from "@/util/constants";
+import { EventBus } from "@/lib/core/event-bus";
+import { getDOMIdOfThread } from "@/util/dom/annotation";
+import { MUTATE } from "@/store/types";
+import { mapMutations } from "vuex";
+import Post from "./Post";
+import ReplyForm from "@/components/LongpageSidebar/Posts/Thread/ReplyForm";
+import { Thread } from "@/types/thread";
+import scrollIntoView from "scroll-into-view-if-needed";
 
 export default {
-  name: 'Thread',
+  name: "Thread",
   components: {
     ReplyForm,
     Post,
   },
   props: {
-    thread: {type: Thread, required: true},
+    thread: { type: Thread, required: true },
   },
   data() {
     return {
@@ -80,43 +74,53 @@ export default {
     },
   },
   mounted() {
-    EventBus.subscribe('post-selected-by-url-hash', ({postId, postDOMId}) => {
-      if (this.thread.posts.findIndex(post => post.id === postId) < 0) return;
+    EventBus.subscribe("post-selected-by-url-hash", ({ postId, postDOMId }) => {
+      if (this.thread.posts.findIndex((post) => post.id === postId) < 0) return;
 
       this.setTabOpened(SidebarTabKeys.POSTS);
       this.showReplies = true;
       this.$nextTick(() => {
-        scrollIntoView(
-          document.getElementById(postDOMId),
-          {...SCROLL_INTO_VIEW_OPTIONS, boundary: document.getElementById('sidebar-tab-posts')}
-        );
+        scrollIntoView(document.getElementById(postDOMId), {
+          ...SCROLL_INTO_VIEW_OPTIONS,
+          boundary: document.getElementById("sidebar-tab-posts"),
+        });
       });
     });
 
-    EventBus.subscribe('thread-selected-by-url-hash', ({threadId, threadDOMId}) => {
-      if (this.thread.id !== threadId) return;
+    EventBus.subscribe(
+      "thread-selected-by-url-hash",
+      ({ threadId, threadDOMId }) => {
+        if (this.thread.id !== threadId) return;
 
-      this.setTabOpened(SidebarTabKeys.POSTS);
-      this.showReplies = true;
-      this.$nextTick(() => {
-        scrollIntoView(
-            document.getElementById(threadDOMId),
-            {...SCROLL_INTO_VIEW_OPTIONS, boundary: document.getElementById('sidebar-tab-posts')}
-        );
-      });
-    });
+        this.setTabOpened(SidebarTabKeys.POSTS);
+        this.showReplies = true;
+        this.$nextTick(() => {
+          scrollIntoView(document.getElementById(threadDOMId), {
+            ...SCROLL_INTO_VIEW_OPTIONS,
+            boundary: document.getElementById("sidebar-tab-posts"),
+          });
+        });
+      },
+    );
 
     this.showReplies = this.thread.includesUnreadReply;
   },
   methods: {
     ...mapMutations([MUTATE.REMOVE_POSTS_FROM_THREAD]),
-    ...mapMutations({setTabOpened: MUTATE.RESET_SIDEBAR_TAB_OPENED_KEY}),
+    ...mapMutations({ setTabOpened: MUTATE.RESET_SIDEBAR_TAB_OPENED_KEY }),
     toggleReplies() {
-      if (this.showReplies && !this.thread.lastReply.created && !this.thread.lastReply.content.trim()) {
-        this[MUTATE.REMOVE_POSTS_FROM_THREAD]({threadId: this.thread.id, posts: [this.thread.lastReply]});
+      if (
+        this.showReplies &&
+        !this.thread.lastReply.created &&
+        !this.thread.lastReply.content.trim()
+      ) {
+        this[MUTATE.REMOVE_POSTS_FROM_THREAD]({
+          threadId: this.thread.id,
+          posts: [this.thread.lastReply],
+        });
       }
       this.showReplies = !this.showReplies;
-    }
-  }
+    },
+  },
 };
 </script>

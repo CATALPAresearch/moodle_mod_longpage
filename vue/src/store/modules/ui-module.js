@@ -20,7 +20,7 @@
  */
 import { ACT, GET, MUTATE } from "../types";
 import ajax from "core/ajax";
-import { MoodleWSMethods } from "@/config/constants";
+import { MoodleWSMethods } from "@/util/constants";
 
 export default {
   state: {

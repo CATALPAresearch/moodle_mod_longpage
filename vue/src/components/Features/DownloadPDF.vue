@@ -21,7 +21,7 @@ import * as pdfjs from "pdfjs-dist";
 import pdfjsWorker from "pdfjs-dist/build/pdf.worker.entry";
 import { toRaw } from "vue";
 import { mapGetters } from "vuex";
-import { LONGPAGE_CONTENT_ID } from "@/config/constants";
+import { LONGPAGE_CONTENT_ID } from "@/util/constants";
 import { lazyModules } from "@/store";
 
 export default {

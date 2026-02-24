@@ -15,15 +15,7 @@
 
 /**
  * @package    mod_longpage
- * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
+ * @copyright  2026 Niels Seidel <niels.seidel@fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {SelectorType} from '@/config/constants';
-
-export const AnnotationCompareFunction = Object.freeze({
-    BY_POSITION: (annotationA, annotationB) => {
-        const {start: startA = 0} = annotationA.target.selectors.find(s => s.type === SelectorType.TEXT_POSITION_SELECTOR) || {};
-        const {start: startB = 0} = annotationB.target.selectors.find(s => s.type === SelectorType.TEXT_POSITION_SELECTOR) || {};
-        return startA - startB;
-    }
-});
+export { i18n } from "./vue-i18n";

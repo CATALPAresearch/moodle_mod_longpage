@@ -1,8 +1,3 @@
-<template>
-  <span>{{ $d(dateTime, dateTimeFormat) }}</span>
-</template>
-
-<script>
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -23,17 +18,41 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {getDateTimeFormat} from '@/config/i18n/date-time-utils';
+import {
+  getPostIdFromItsDOMId,
+  getThreadIdFromItsDOMId,
+  isDOMIdOfPost,
+  isDOMIdOfThread,
+} from "@/util/dom/annotation";
+import { EventBus } from "@/lib/core/event-bus";
 
-export default {
-  name: 'DateTimeText',
-  props: {
-    dateTime: {type: Date, required: true}
-  },
-  computed: {
-    dateTimeFormat() {
-      return getDateTimeFormat(this.dateTime);
-    }
-  }
+const scrollInPost = () => {
+  const hash = window.location.hash.substring(1);
+  if (!isDOMIdOfPost(hash)) return;
+
+  const postId = getPostIdFromItsDOMId(hash);
+
+  EventBus.publish("post-selected-by-url-hash", { postId, postDOMId: hash });
 };
-</script>
+
+const scrollInThread = () => {
+  const hash = window.location.hash.substring(1);
+  if (!isDOMIdOfThread(hash)) return;
+
+  const threadId = getThreadIdFromItsDOMId(hash);
+
+  EventBus.publish("thread-selected-by-url-hash", {
+    threadId,
+    threadDOMId: hash,
+  });
+};
+
+window.addEventListener("hashchange", () => {
+  scrollInPost();
+  scrollInThread();
+});
+
+EventBus.subscribe("page-ready", () => {
+  scrollInPost();
+  scrollInThread();
+});

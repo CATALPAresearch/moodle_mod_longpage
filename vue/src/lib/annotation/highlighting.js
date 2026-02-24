@@ -19,7 +19,7 @@
 // ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import {HighlightingConfig} from '../../config/constants';
+import { HighlightingConfig } from "../../util/constants";
 
 /**
  * Subset of the `NormalizedRange` class defined in `range.js` that this
@@ -43,14 +43,13 @@ export function highlightRange(normedRange, cssClass) {
   // Find text nodes within the range to highlight.
   const textNodes = normedRange.textNodes();
 
-
   // Group text nodes into spans of adjacent nodes. If a group of text nodes are
   // adjacent, we only need to create one highlight element for the group.
   let textNodeSpans = [];
   let prevNode = null;
   let currentSpan = null;
 
-  textNodes.forEach(node => {
+  textNodes.forEach((node) => {
     if (prevNode && prevNode.nextSibling === node) {
       currentSpan.push(node);
     } else {
@@ -63,23 +62,25 @@ export function highlightRange(normedRange, cssClass) {
   // PostFilter out text node spans that consist only of white space. This avoids
   // inserting highlight elements in places that can only contain a restricted
   // subset of nodes such as table rows and lists.
-  textNodeSpans = textNodeSpans.filter(span =>
+  textNodeSpans = textNodeSpans.filter((span) =>
     // Check for at least one text node with non-space content.
-    span.some(node => !white.test(node.nodeValue))
+    span.some((node) => !white.test(node.nodeValue)),
   );
 
   // Wrap each text node span with a `<{{ Config.HL_TAG_NAME }}>` element.
   const highlights = [];
-  textNodeSpans.forEach(nodes => {
+  textNodeSpans.forEach((nodes) => {
     // A custom element name is used here rather than `<span>` to reduce the
     // likelihood of highlights being hidden by page styling.
 
     /** @type {HighlightElement} */
     const highlightEl = document.createElement(HighlightingConfig.HL_TAG_NAME);
-    highlightEl.className = [HighlightingConfig.HL_CLASS_NAME, cssClass].join(' ');
+    highlightEl.className = [HighlightingConfig.HL_CLASS_NAME, cssClass].join(
+      " ",
+    );
 
     nodes[0].parentNode.replaceChild(highlightEl, nodes[0]);
-    nodes.forEach(node => highlightEl.appendChild(node));
+    nodes.forEach((node) => highlightEl.appendChild(node));
 
     highlights.push(highlightEl);
   });
@@ -97,7 +98,7 @@ export function highlightRange(normedRange, cssClass) {
  */
 function replaceWith(node, replacements) {
   const parent = /** @type {Node} */ (node.parentNode);
-  replacements.forEach(r => parent.insertBefore(r, node));
+  replacements.forEach((r) => parent.insertBefore(r, node));
   node.remove();
 }
 
@@ -107,7 +108,9 @@ function replaceWith(node, replacements) {
  * @param {HTMLElement} root
  */
 export function removeAllHighlights(root) {
-  const highlights = Array.from(root.querySelectorAll(HighlightingConfig.HL_TAG_NAME));
+  const highlights = Array.from(
+    root.querySelectorAll(HighlightingConfig.HL_TAG_NAME),
+  );
   removeHighlights(/** @type {HighlightElement[]} */ (highlights));
 }
 

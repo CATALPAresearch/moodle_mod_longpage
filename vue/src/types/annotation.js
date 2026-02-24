@@ -18,43 +18,43 @@
  * @copyright  2021 Adrian Stritzinger <Adrian.Stritzinger@studium.fernuni-hagen.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-import {AnnotationType} from '@/config/constants';
-import {AnnotationTarget} from '@/types/annotation-target';
+import { AnnotationType } from "@/util/constants";
+import { AnnotationTarget } from "@/types/annotation-target";
 
 export class Annotation {
-    static preliminaryIdsAssignedCount = 0;
+  static preliminaryIdsAssignedCount = 0;
 
-    static _getPreliminaryId() {
-        return `new-annotation-${Annotation.preliminaryIdsAssignedCount++}`
-    }
+  static _getPreliminaryId() {
+    return `new-annotation-${Annotation.preliminaryIdsAssignedCount++}`;
+  }
 
-    constructor({
-        $orphan = false,
-        id = Annotation._getPreliminaryId(),
-        body,
-        creatorId,
-        isPublic = false,
-        islocked = false,
-        longpageid,
-        target = new AnnotationTarget({}),
-        timeCreated,
-        timeModified,
-        type = AnnotationType.HIGHLIGHT,
-    }) {
-        this.$orphan = $orphan;
-        this.id = id;
-        this.body = body;
-        this.creatorId = creatorId;
-        this.isPublic = isPublic;
-        this.islocked = islocked;
-        this.longpageid = longpageid;
-        this.target = target;
-        this.timeCreated = timeCreated;
-        this.timeModified = timeModified;
-        this.type = type;
-    }
+  constructor({
+    $orphan = false,
+    id = Annotation._getPreliminaryId(),
+    body,
+    creatorId,
+    isPublic = false,
+    islocked = false,
+    longpageid,
+    target = new AnnotationTarget({}),
+    timeCreated,
+    timeModified,
+    type = AnnotationType.HIGHLIGHT,
+  }) {
+    this.$orphan = $orphan;
+    this.id = id;
+    this.body = body;
+    this.creatorId = creatorId;
+    this.isPublic = isPublic;
+    this.islocked = islocked;
+    this.longpageid = longpageid;
+    this.target = target;
+    this.timeCreated = timeCreated;
+    this.timeModified = timeModified;
+    this.type = type;
+  }
 
-    get created() {
-        return Boolean(this.timeCreated);
-    }
+  get created() {
+    return Boolean(this.timeCreated);
+  }
 }

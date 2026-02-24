@@ -30,7 +30,7 @@
  * - make calculation more generic (not bound to headings as delimiters)
  * - localization of strings in display
  */
-import { toClassSelector } from "@/util/style";
+import { toClassSelector } from "@/util/dom/style";
 
 export class ReadingTimeEstimator {
   constructor(textContainerSelector) {
