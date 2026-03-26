@@ -4,6 +4,58 @@
 
 _Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle.org/dev/Activity_modules) for providing long and structured texts in HTML for courses paired up with functions to navigate, annotate and co-read the text with other users. _Longpage_ can be seen as an replacement of the Moodle core _Page_ plugin providing users with extra functionality.
 
+<!-- development-related badges -->
+
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/CATALPAresearch/mod_longpage/commit-activity)
+[![github latest commit](https://badgen.net/github/last-commit/CATALPAresearch/mod_longpage)](https://github.com/CATALPAresearch/mod_longpage/commit/)
+[![github contributors](https://badgen.net/github/contributors/CATALPAresearch/mod_longpage)](https://github.com/CATALPAresearch/mod_longpage/contributors/)
+[![github issues](https://img.shields.io/github/issues/CATALPAresearch/mod_longpage.svg)](https://github.com/CATALPAresearch/mod_longpage/issues/)
+[![GPLv3 license](https://img.shields.io/badge/License-GPLv3-green.svg)](http://perso.crans.org/besson/LICENSE.html)
+
+![https://img.shields.io/badge/any_text-you_like-blue](https://img.shields.io/badge/Tested_Moodle_versions-3.5_to_4.55-green)
+![](https://img.shields.io/badge/PHP-7.4_to_8.3.30-green)
+![](https://img.shields.io/badge/NPM-~10.9.2-green)
+![](https://img.shields.io/badge/node.js-~21.1.0-green)
+![](https://img.shields.io/badge/vue.js-3-green)
+
+<!-- Maturity-related badges
+see: https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md
+-->
+
+[![stability-mature](https://img.shields.io/badge/stability-mature-008000.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#mature)
+![](https://img.shields.io/badge/years_in_productive_use-6-darkgreen)
+![](https://img.shields.io/badge/used_in_unique_courses-8-darkgreen)
+
+<!-- AI-related and LA-related badges -->
+<!--
+https://nutrition-facts.ai/
+
+Privacy Ladder Level
+Feature is Optional
+Model type
+Base model
+Base Model Trained with Customer Data
+Customer Data is Shared with Model Vendor
+Training Data Anonymized
+Data Deletion
+Human in the Loop
+Data Retention
+Compliance
+-->
+
+![](https://img.shields.io/badge/collects_clickstream_data-yes-blue)
+![](https://img.shields.io/badge/collects_scroll_data-yes-blue)
+![](https://img.shields.io/badge/collects_mouse_data-no-blue)
+![](https://img.shields.io/badge/collects_audio_data-no-blue)
+![](https://img.shields.io/badge/collects_video_data-no-blue)
+![](https://img.shields.io/badge/data_shared_with_vendor-no-blue)
+
+![](https://img.shields.io/badge/AI_methods-recommender_system-blue)
+![](https://img.shields.io/badge/AI_methods-LLM_question_generation-blue)
+![](https://img.shields.io/badge/Base_model-none-blue)
+![](https://img.shields.io/badge/Feature_is_optional-yes-blue)
+![](https://img.shields.io/badge/Human_in_the_loop-no-blue)
+
 **Enhanced Reading Experience**
 
 - _Reading-friendly design_ optimized for long-form content
@@ -34,12 +86,14 @@ _Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle
 - _Read/unread status tracking_ for posts and notes
 - _Advanced filtering options_ by content, author, likes, status, and timestamps
 - _Flexible sorting_ by time, position, relevance, and reading progress
+- _PDF download annotated document_
 
 **Analytics & Intelligence**
 
 - _Reading progress tracking_ based on scroll behavior
 - _Collaborative filtering_ for post content recommendations
 - _Relevance-based sorting_
+- _Teacher Dashboard_ (alpha)
 
 **Educational Integration**
 
