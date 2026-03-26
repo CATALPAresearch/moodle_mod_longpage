@@ -82,7 +82,6 @@ import ReadingProgress from "@/components/Features/ReadingProgress";
 import ReadingTime from "@/components/Features/ReadingTime";
 import CourseRecommendation from "@/components/Features/CourseRecommendations";
 
-
 export default {
   name: "App",
   components: {
@@ -92,7 +91,6 @@ export default {
     ReadingProgress,
     CourseRecommendation,
     ReadingTime,
-
   },
   props: {
     content: { type: String, required: true },
@@ -233,5 +231,3 @@ export default {
   },
 };
 </script>
-
-

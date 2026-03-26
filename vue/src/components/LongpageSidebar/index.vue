@@ -75,11 +75,15 @@
           href="javascript:void(0)"
           role="button"
           :title="$t('features.teacherDashboard.label') || 'Teacher Dashboard'"
-          :aria-label="$t('features.teacherDashboard.label') || 'Teacher Dashboard'"
+          :aria-label="
+            $t('features.teacherDashboard.label') || 'Teacher Dashboard'
+          "
           @click="$refs.teacherDashboard.openDashboard()"
         >
           <i class="fa fa-bar-chart fa-fw" aria-hidden="true" />
-          <span class="sr-only">{{ $t('features.teacherDashboard.label') || 'Teacher Dashboard' }}</span>
+          <span class="sr-only">{{
+            $t("features.teacherDashboard.label") || "Teacher Dashboard"
+          }}</span>
         </a>
         <a
           class="nav-link text-center text-dark"
@@ -90,11 +94,17 @@
           @click="$refs.downloadPdf.downloadPDF()"
         >
           <i class="fa fa-download fa-fw" aria-hidden="true" />
-          <span class="sr-only">{{ $t('features.downloadPDF.label') || 'PDF Download' }}</span>
+          <span class="sr-only">{{
+            $t("features.downloadPDF.label") || "PDF Download"
+          }}</span>
         </a>
       </div>
     </nav>
-    <TeacherDashboard v-if="canViewDashboard" ref="teacherDashboard" :hide-button="true" />
+    <TeacherDashboard
+      v-if="canViewDashboard"
+      ref="teacherDashboard"
+      :hide-button="true"
+    />
     <DownloadPDF ref="downloadPdf" class="d-none" />
   </div>
 </template>
