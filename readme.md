@@ -195,7 +195,7 @@ This software uses the following open source packages:
 
 **Cite this software:**
 
-```
+```bibtex
 @misc{Seidel2024-MoodleLongpage,
 	title = {Longpage - {A} {Moodle} activity plugin designed to assist learners with reading extended texts.},
 	url = {https://github.com/CATALPAresearch/mod_longpage},
