@@ -1,13 +1,26 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+vendor/
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+webpack.config.idea.js
+
+
+# Credentials
+credentials.json
+
+# Compressed build artifacts (regenerated from build)
+*.gz
+*.br
+
+# Temp files
 git-ftp.sh
 x.html
-
-# Node modules
-node_modules
-vendor
-
-# IDE
-.idea
-webpack.config.idea.js
-.DS_Store
-__pycache__
-credentials.json
