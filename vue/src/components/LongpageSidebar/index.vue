@@ -36,7 +36,7 @@
       aria-orientation="vertical"
       :aria-label="$t('sidebar.navigation.label') || 'Sidebar navigation'"
       role="tablist"
-      v-if="tabs.length > 1"
+      v-if="tabs.length >= 1"
     >
       <a
         v-for="tab in tabs"
@@ -68,7 +68,34 @@
           >{{ tab.badgesCount }}</span
         >
       </a>
+      <div class="mt-auto border-top">
+        <a
+          v-if="canViewDashboard"
+          class="nav-link text-center text-dark"
+          href="javascript:void(0)"
+          role="button"
+          :title="$t('features.teacherDashboard.label') || 'Teacher Dashboard'"
+          :aria-label="$t('features.teacherDashboard.label') || 'Teacher Dashboard'"
+          @click="$refs.teacherDashboard.openDashboard()"
+        >
+          <i class="fa fa-bar-chart fa-fw" aria-hidden="true" />
+          <span class="sr-only">{{ $t('features.teacherDashboard.label') || 'Teacher Dashboard' }}</span>
+        </a>
+        <a
+          class="nav-link text-center text-dark"
+          href="javascript:void(0)"
+          role="button"
+          :title="$t('features.downloadPDF.label') || 'PDF Download'"
+          :aria-label="$t('features.downloadPDF.label') || 'PDF Download'"
+          @click="$refs.downloadPdf.downloadPDF()"
+        >
+          <i class="fa fa-download fa-fw" aria-hidden="true" />
+          <span class="sr-only">{{ $t('features.downloadPDF.label') || 'PDF Download' }}</span>
+        </a>
+      </div>
     </nav>
+    <TeacherDashboard v-if="canViewDashboard" ref="teacherDashboard" :hide-button="true" />
+    <DownloadPDF ref="downloadPdf" class="d-none" />
   </div>
 </template>
 
@@ -110,6 +137,8 @@ import TableOfContents from "@/components/LongpageSidebar/TableOfContentsTab";
 import Search from "@/components/LongpageSidebar/SearchTab";
 import CourseRecommendation from "@/components/Features/CourseRecommendations";
 import Quiz from "@/components/LongpageSidebar/Quiz";
+import DownloadPDF from "@/components/Features/DownloadPDF";
+import TeacherDashboard from "@/components/Features/TeacherDashboard";
 import { lazyModules } from "@/store";
 
 const LONGPAGE_SIDEBAR_ID = "longpage-sidebar";
@@ -168,6 +197,8 @@ export default {
     [SidebarTabKeys.SEARCH]: Search,
     [SidebarTabKeys.COURSE_RECOMMENDATIONS]: CourseRecommendation,
     [SidebarTabKeys.QUIZ]: Quiz,
+    DownloadPDF,
+    TeacherDashboard,
   },
   data() {
     var tabs = [
@@ -237,6 +268,9 @@ export default {
   },
   computed: {
     ...mapGetters({ tabOpenedKey: GET.SIDEBAR_TAB_OPENED_KEY }),
+    canViewDashboard() {
+      return this.$store.state.UserModule?.userCanMod || false;
+    },
   },
   mounted() {
     // Defer heavy components (Quiz has 2300+ lines) for faster initial render

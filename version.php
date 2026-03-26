@@ -33,3 +33,4 @@ $plugin->dependencies = [
     'atto_embedquestion' => 2022032900,
     'report_embedquestion' => 2022032900,
 ];
+$plugin->release   = '3.0';

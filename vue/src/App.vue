@@ -20,10 +20,7 @@
           lang="de"
           v-html="content"
         />
-        <div class="pdf-download-floating">
-          <TeacherDashboard />
-          <DownloadPDF />
-        </div>
+
         <div
           class="col col-auto p-0 mx-1"
           style="width: 35px"
@@ -84,8 +81,7 @@ import Utils from "./util/utils";
 import ReadingProgress from "@/components/Features/ReadingProgress";
 import ReadingTime from "@/components/Features/ReadingTime";
 import CourseRecommendation from "@/components/Features/CourseRecommendations";
-import DownloadPDF from "@/components/Features/DownloadPDF";
-import TeacherDashboard from "@/components/Features/TeacherDashboard";
+
 
 export default {
   name: "App",
@@ -96,8 +92,7 @@ export default {
     ReadingProgress,
     CourseRecommendation,
     ReadingTime,
-    DownloadPDF,
-    TeacherDashboard,
+
   },
   props: {
     content: { type: String, required: true },
@@ -239,11 +234,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.pdf-download-floating {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  z-index: 1000;
-}
-</style>
+

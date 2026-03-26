@@ -2,7 +2,7 @@
 
 ![Screenshot of the GUI to read and annotate](./pix/screenshot.png)
 
-_Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle.org/dev/Activity_modules) for providing long and structured texts in HTML for courses paired up with functions to navigate, annotate and co-read the text with other users. It is based on the [Page](https://docs.moodle.org/310/en/Page_resource) or [mod_longpage module](https://docs.moodle.org/310/en/Page_resource) which is part of the standard installation of Moodle. _Page_ by itself simply allows for providing texts included in a Moodle page with no further functionality attached. _Longpage_ can be seen as an extension of _Page_ with is to be used as a replacement of _Page_ for providing users with extra functionality. The main features _Longpage_ adds on top of _Page_ are:
+_Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle.org/dev/Activity_modules) for providing long and structured texts in HTML for courses paired up with functions to navigate, annotate and co-read the text with other users. _Longpage_ can be seen as an replacement of the Moodle core _Page_ plugin providing users with extra functionality.
 
 **Enhanced Reading Experience**
 
@@ -50,7 +50,7 @@ _Longpage_ or _mod-longpage_ is a [Moodle (Activity) plugin](https://docs.moodle
 
 ## Installation
 
-Before you can install the plugin you should have a proper Moodle installation running. See [here](https://docs.moodle.org/310/en/Installing_Moodle) for a tutorial on how to install Moodle. Pay special attention to enabling [Cron](https://docs.moodle.org/310/en/Cron) since it is necessary for some functionality of the Longpage plugin (notifications on activity of other users, calculation of relevance of annotations/threads/posts for a user). The plugin has been developed with Moodle version 4.5 but it has also been tested with older version between 3.5 and 4.1 so it should work with them as well. 
+Before you can install the plugin you should have a proper Moodle installation running. See [here](https://docs.moodle.org/310/en/Installing_Moodle) for a tutorial on how to install Moodle. Pay special attention to enabling [Cron](https://docs.moodle.org/310/en/Cron) since it is necessary for some functionality of the Longpage plugin (notifications on activity of other users, calculation of relevance of annotations/threads/posts for a user). The plugin has been developed with Moodle version 4.5 but it has also been tested with older version between 3.5 and 4.1 so it should work with them as well.
 
 On installing the plugin itself:
 
@@ -186,3 +186,8 @@ This software uses the following open source packages:
 ## Licence
 
 [GNU GPL v3 or later](http://www.gnu.org/copyleft/gpl.html)
+
+---
+
+<a href="https://www.fernuni-hagen.de/english/research/clusters/catalpa/"><img src="pix/catalpa.jpg" width="300" /></a>
+<a href="https://www.fernuni-hagen.de/"><img src="pix/fernuni.jpg" width="250" /></a>

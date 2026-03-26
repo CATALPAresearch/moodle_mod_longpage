@@ -1,6 +1,7 @@
 <template>
   <div class="teacher-dashboard-container">
     <button
+      v-if="!hideButton"
       type="button"
       class="btn btn-secondary btn-sm d-flex align-items-center"
       :aria-label="$t('features.teacherDashboard.label') || 'Teacher Dashboard'"
@@ -105,6 +106,9 @@ Chart.register(...registerables);
 
 export default {
   name: "TeacherDashboard",
+  props: {
+    hideButton: { type: Boolean, default: false },
+  },
   data() {
     return {
       isOpen: false,
