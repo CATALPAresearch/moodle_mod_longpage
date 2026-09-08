@@ -24,7 +24,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026090803;       // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2026090804;       // The current module version (Date: YYYYMMDDXX).
+// NOTE: v3.1.0 is the LAST release supporting Moodle < 4.4 (requires still
+// 2018050800 / Moodle 3.5). The next release is planned to migrate AI-based
+// question generation onto Moodle's core_ai AI Provider subsystem, which
+// requires Moodle 4.5+ and will raise $plugin->requires accordingly.
 $plugin->requires  = 2018050800;       // Requires this Moodle version.
 $plugin->component = 'mod_longpage';   // Full name of the plugin (used for diagnostics).
 $plugin->cron      = 0;
@@ -33,4 +37,4 @@ $plugin->dependencies = [
     'atto_embedquestion' => 2022032900,
     'report_embedquestion' => 2022032900,
 ];
-$plugin->release   = '3.0';
+$plugin->release   = '3.1.0';
