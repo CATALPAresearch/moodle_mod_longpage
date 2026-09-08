@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/longpage/db" VERSION="20220929" COMMENT="XMLDB file for Page module"
+<XMLDB PATH="mod/longpage/db" VERSION="20260908" COMMENT="XMLDB file for Page module"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -303,6 +303,94 @@
         <KEY NAME="user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
         <KEY NAME="thread" TYPE="foreign" FIELDS="threadid" REFTABLE="longpage_threads" REFFIELDS="id"/>
       </KEYS>
+    </TABLE>
+    <TABLE NAME="longpage_adaptive_user" COMMENT="longpage_adaptive_assessment_user">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="longpageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="comprehension_points" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="comprehension_factor" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="streak" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="calibrated" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="was_calibrated" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="longpage_adaptive_question" COMMENT="longpage_adaptive_question">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="questionid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="difficulty" TYPE="float" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="calibrated" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="was_calibrated" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="question" TYPE="foreign" FIELDS="questionid" REFTABLE="question" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="longpage_reading_behavior_events" COMMENT="One classified reading-behavior data point (baseline crossing) per row; see ReadingBehaviorTracker">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="longpageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sessionid" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Client-generated UUID grouping data points into one reading session"/>
+        <FIELD NAME="targetid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="targettag" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="wordcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="dwellseconds" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
+        <FIELD NAME="peakratio" TYPE="float" LENGTH="5" NOTNULL="true" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="minreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
+        <FIELD NAME="avgreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
+        <FIELD NAME="maxreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
+        <FIELD NAME="datapointlabel" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="scan|read|study|regression|preview"/>
+        <FIELD NAME="language" TYPE="char" LENGTH="8" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="page" TYPE="foreign" FIELDS="longpageid" REFTABLE="longpage" REFFIELDS="id"/>
+        <KEY NAME="user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="sessionid" UNIQUE="false" FIELDS="sessionid"/>
+        <INDEX NAME="userpagesession" UNIQUE="false" FIELDS="userid, longpageid, sessionid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="longpage_intersection_events" COMMENT="Raw per-observation IntersectionObserver telemetry (one row per threshold crossing), independent of any reading-behavior classification constants — intended for offline analysis (R/Python) of a DB dump">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="longpageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="sessionid" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Same UUID as the matching longpage_reading_behavior_events rows"/>
+        <FIELD NAME="targetid" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="targettag" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="intersectionratio" TYPE="float" LENGTH="5" NOTNULL="true" SEQUENCE="false" DECIMALS="4" COMMENT="0-1: fraction of the element visible on screen at this observation"/>
+        <FIELD NAME="boundingtop" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2" COMMENT="viewport-relative, px"/>
+        <FIELD NAME="boundingbottom" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="boundingheight" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="boundingwidth" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="viewportheight" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="scrolltop" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="wordcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="clienttimestamp" TYPE="float" LENGTH="20" NOTNULL="true" SEQUENCE="false" DECIMALS="3" COMMENT="client Date.now()/1000, epoch seconds with ms precision"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="page" TYPE="foreign" FIELDS="longpageid" REFTABLE="longpage" REFFIELDS="id"/>
+        <KEY NAME="user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="sessionid" UNIQUE="false" FIELDS="sessionid"/>
+        <INDEX NAME="usersessiontarget" UNIQUE="false" FIELDS="userid, sessionid, targetid"/>
+      </INDEXES>
     </TABLE>
   </TABLES>
 </XMLDB>

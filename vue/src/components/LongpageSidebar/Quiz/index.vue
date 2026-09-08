@@ -204,6 +204,49 @@
         </a>
       </div>
     </template>
+    <!-- Teacher question rating modal -->
+    <div id="simpleModal" class="modal" style="display:none;">
+      <div id="modalContent" class="modal-content">
+        <span id="closeButton" class="close" v-on:click="toggleShowRating">&times;</span>
+        <h2 id="modalTitle">Zu welcher Kategorie würden Sie die Frage zählen?</h2>
+        <div class="carousel" id="rate-Question-Carousel">
+          <div
+            v-for="(question, index) in questionToCalibrate"
+            :key="question.questionId"
+            class="carousel-item"
+            :class="{ active: currentModalIndex === index }"
+            v-show="currentModalIndex === index"
+          >
+            <div v-html="question.questiontext"></div>
+            <input type="range" min="1" max="4" v-model="questionRating" :id="'ratingSlider' + index">
+            <div class="slider-labels">
+              <span>Wörtliches Verstehen</span>
+              <span>Inferentielles Verstehen</span>
+              <span>Beurteilendes Verstehen</span>
+              <span>Keine Bewertung</span>
+            </div>
+            <div class="d-flex justify-content-center">
+              <button id="submitRating" v-on:click="calibrateQuestion(question.questionId)">Bewertung absenden</button>
+            </div>
+          </div>
+        </div>
+        <div class="navigation-buttons">
+          <button
+            v-for="(question, index) in questionToCalibrate"
+            :key="'nav-' + question.questionId"
+            @click.prevent="currentModalIndex = index"
+            :class="{ active: currentModalIndex === index }"
+          >
+            {{ index + 1 }}
+          </button>
+        </div>
+        <div>
+          <div style="margin: 5px;"><b>Wörtliches Verstehen</b>: In diesem Bereich wird das grundlegende Verständnis des Textinhalts bewertet. Der Leser sollte in der Lage sein, Informationen direkt aus dem Text abzuleiten und einfache Fragen dazu zu beantworten.</div>
+          <div style="margin: 5px;"><b>Inferentielles Verstehen</b>: Diese Stufe erfordert ein tiefergehendes Verständnis des Textes. Der Leser muss in der Lage sein, zwischen den Zeilen zu lesen und Schlussfolgerungen aus den gegebenen Informationen zu ziehen.</div>
+          <div style="margin: 5px;"><b>Beurteilendes Verstehen</b>: Auf dieser höchsten Ebene wird die Fähigkeit bewertet, den Text kritisch zu analysieren und eigene Meinungen oder Bewertungen abzugeben.</div>
+        </div>
+      </div>
+    </div>
   </sidebar-tab>
 </template>
 <style>
@@ -389,6 +432,23 @@ import { set } from "lodash";
 export default {
   name: "Quiz",
   props: ["content"],
+  data() {
+    return {
+      question_ids: {},          // Maps embedId to questionId for active questions
+      sections_all: [],          // All page sections (from getSections)
+      sections_relevant: {},     // Sections that contain questions, keyed by paragraph id
+      activeElement: '',         // Paragraph id of the currently visible question
+      iframes: [],               // Collected iframe DOM nodes for active questions
+      modal_content: 'Keine noch zu bewertende Frage gefunden.',
+      questionRating: 4,         // Teacher rating slider value (1–4)
+      active_Question: '',
+      searchQuestionActive: false,
+      isChoosingQuestion: false,
+      questionToCalibrate: [],   // Questions awaiting manual teacher calibration
+      currentModalIndex: 0,
+      rc: 0,                     // Reading comprehension score (0–100)
+    };
+  },
   components: { SidebarTab },
   computed: {
     ...mapGetters({
@@ -405,10 +465,340 @@ export default {
     toggleTab() {
       EventBus.publish(SidebarEvents.TOGGLE_TABS, SidebarTabKeys.QUIZ);
     },
+
+    // -------------------------------------------------------------------------
+    // ELO adaptive assessment methods
+    // -------------------------------------------------------------------------
+
+    /** Compute LIX readability index from an HTML body string. */
+    berechneLIX(body) {
+      const bodyText = body
+        .replace(/<[^>]*>/g, '')
+        .replace(/\n/g, ' ')
+        .trim();
+      const sentences = bodyText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      const words     = bodyText.split(/\s+/).filter(w => w.trim().length > 0);
+      const longWords = words.filter(w => w.length > 6);
+      const n = sentences.length || 1;
+      return (words.length / n) + ((longWords.length * 100) / (words.length || 1));
+    },
+
+    /** Walk the page DOM and return all sections with LIX scores. */
+    getSections() {
+      const _this = this;
+      const sections = [];
+      $('#longpage-app h2, #longpage-app h3, #longpage-app h4, #longpage-app div, #longpage-app p, #longpage-app ul, #longpage-app ol, #longpage-app pre').each(function (i, val) {
+        const DocObj = {};
+        if ($(this).is('h2') || $(this).is('h3') || $(this).is('h4')) {
+          DocObj.id    = i;
+          DocObj.title = $(val).text();
+          DocObj.body  = '';
+          DocObj.link  = $(val).attr('id');
+          DocObj.lix   = _this.berechneLIX($(val).text());
+        } else {
+          let attr = $(this).attr('id');
+          if (typeof attr === typeof undefined || attr === false) {
+            $(val).attr('id', 'searchQuiz-' + i);
+          }
+          DocObj.id    = i;
+          DocObj.title = '';
+          DocObj.body  = $(val).text();
+          DocObj.link  = $(val).attr('id');
+          DocObj.lix   = _this.berechneLIX($(val).text());
+        }
+        sections.push(DocObj);
+      });
+      return { sections };
+    },
+
+    /** Look up a stored iframe by embedId. */
+    findeIframeByEmbedId(embedId) {
+      if (!Array.isArray(this.iframes)) {
+        console.error('iframes ist kein gültiges Array.');
+        return null;
+      }
+      let found = this.iframes.find(f => $(f).attr('data-embedid') === embedId);
+      if (found) return found;
+      const modified = embedId.replace(/\//g, '\\/');
+      found = this.iframes.find(f => $(f).attr('data-embedid') === modified);
+      return found ? found[0] : null;
+    },
+
+    /** Register an iframe node if not already tracked. */
+    addIframe(node) {
+      const embedId    = $(node).attr('data-embedid');
+      const questionId = $(node).attr('data-questionid');
+      if (questionId && !this.iframes.some(f => $(f).attr('data-embedid') === embedId)) {
+        this.iframes.push(node);
+      }
+    },
+
+    /** Return the embedId for a given question key from the question_ids list. */
+    getEmbedIdFromQuestion(key, questionIds) {
+      const questionId = key.toString();
+      for (let i = 0; i < questionIds.length; i++) {
+        if (questionIds[i].questionId === questionId) {
+          return questionIds[i].embedId;
+        }
+      }
+      console.warn('No matching embedId found for key:', key);
+      return null;
+    },
+
+    /**
+     * Ask the backend for the next best question based on the user's ELO rating,
+     * then activate the corresponding carousel item.
+     */
+    chooseQuestion() {
+      const self = this;
+
+      function extractData() {
+        const questionDiv = document.getElementById('question');
+        const iframes = questionDiv.querySelectorAll('iframe.filter_embedquestion-iframe');
+        const data = [];
+        iframes.forEach(iframe => {
+          const embedId    = iframe.getAttribute('data-embedid');
+          const questionId = iframe.getAttribute('data-questionid');
+          if (embedId && questionId) {
+            data.push({ embedId, questionId });
+          } else {
+            const stored = self.iframes.find(f => $(f).attr('id') === embedId);
+            if (stored) {
+              const storedQId = $(stored).attr('data-questionid');
+              if (embedId && storedQId) {
+                data.push({ embedId, questionId: storedQId });
+              }
+            }
+          }
+        });
+        return { data };
+      }
+
+      self.question_ids = extractData();
+
+      if (self.question_ids.data.length > 0) {
+        ajax.call([{
+          methodname: 'mod_longpage_search_next_question',
+          args: {
+            data: {
+              questions_in_focus: JSON.stringify(self.question_ids),
+              userid: self.context.userId,
+              longpageid: self.context.longpageid,
+              lix: (self.sections_relevant[self.activeElement] || {}).LIX || 50,
+            },
+          },
+          done(data) {
+            try {
+              const desiredEmbedId = self.getEmbedIdFromQuestion(
+                JSON.parse(data.response).key,
+                self.question_ids.data,
+              );
+              if (self.question_ids.data && self.question_ids.data.length > 0) {
+                $('.carousel-item').removeClass('active');
+                let itemFound = false;
+                $('.carousel-item').each(function () {
+                  const iframe  = $(this).find('iframe');
+                  const embedId = iframe.data('embedid');
+                  if (typeof embedId !== 'undefined' && embedId !== null) {
+                    if (embedId.replace(/\\/g, '') === desiredEmbedId.replace(/\\/g, '')) {
+                      $(this).addClass('active');
+                      itemFound = true;
+                      $('#question').show();
+                      return false;
+                    }
+                  }
+                });
+                if (!itemFound) {
+                  $('#question').find('iframe').each(function () {
+                    const embedId    = $(this).attr('data-embedid');
+                    const questionId = $(this).attr('data-questionid');
+                    if (questionId && !self.iframes.some(f => $(f).attr('data-embedid') === embedId)) {
+                      self.iframes.push(this);
+                    }
+                  });
+                }
+              }
+            } catch (e) {
+              console.log(e);
+            } finally {
+              self.isChoosingQuestion = false;
+            }
+          },
+          fail(e) {
+            console.log(e);
+            self.isChoosingQuestion = false;
+          },
+        }]);
+      }
+    },
+
+    /**
+     * Called after a question is submitted.  Triggers ELO update on the backend
+     * (with a 1 s delay to allow the attempt record to be persisted), then
+     * selects the next question.
+     */
+    saveAdaptiveAssessmentData(embedid, questionid, slots) {
+      const iframe = this.findeIframeByEmbedId(embedid);
+      if (!iframe) {
+        console.error('Iframe nicht gefunden. EmbedID:', embedid);
+        return;
+      }
+      let paragraph;
+      try {
+        paragraph = iframe.getAttribute('data-paragraph');
+      } catch {
+        paragraph = $(iframe).attr('data-paragraph');
+      }
+      this.activeElement = paragraph;
+
+      if (this.sections_relevant && this.sections_relevant[paragraph]) {
+        let lixValue = this.sections_relevant[paragraph].LIX;
+        if (typeof lixValue === 'undefined') { lixValue = 60; }
+
+        setTimeout(() => {
+          ajax.call([{
+            methodname: 'mod_longpage_update_readingskill',
+            args: {
+              data: {
+                embedid,
+                questionid,
+                userid:     this.context.userId,
+                longpageid: this.context.longpageid,
+                slots,
+                lix:        lixValue,
+                courseid:   this.context.courseId,
+              },
+            },
+            done: (data) => {
+              try {
+                const daten            = JSON.parse(data.response);
+                const userDataUpdated  = JSON.parse(daten.updated.values.userData_updated);
+                this.rc = userDataUpdated.comprehension_points;
+              } catch (e) {
+                console.log(e);
+              }
+              this.isChoosingQuestion = true;
+              this.chooseQuestion();
+            },
+            fail(e) {
+              console.log(e);
+            },
+          }]);
+        }, 1000);
+      } else {
+        console.error('LIX-Wert konnte nicht berechnet werden.');
+      }
+    },
+
+    /** Show/hide the teacher question-rating modal and load uncalibrated questions. */
+    toggleShowRating() {
+      if (!$('#simpleModal').is(':visible')) {
+        const questionIds = this.iframes
+          .map(f => $(f).data('questionid'))
+          .filter(Boolean);
+
+        ajax.call([{
+          methodname: 'mod_longpage_get_QuestionData',
+          args: { data: { questionIDs: JSON.stringify(questionIds) } },
+          done: (data) => {
+            data.response.data.forEach(qData => {
+              const exists = this.questionToCalibrate.some(q => q.questionId === qData.questionId);
+              if (
+                ((qData.was_calibrated == null || qData.was_calibrated == 0) && qData.calibrated < 10)
+                && !exists
+              ) {
+                this.questionToCalibrate.push(qData);
+              }
+            });
+          },
+          fail(e) { console.log(e); },
+        }]);
+      }
+      $('#simpleModal').toggle();
+    },
+
+    /** Send teacher-supplied difficulty rating to the backend. */
+    calibrateQuestion(questionId) {
+      const ratingMap = [1, 0, 40, 80, 100];
+      ajax.call([{
+        methodname: 'mod_longpage_calibrate_Question',
+        args: {
+          data: {
+            questionId,
+            questionRating: ratingMap[this.questionRating],
+            lix: (this.sections_relevant[this.activeElement] || {}).LIX || 50,
+          },
+        },
+        done: () => {
+          this.questionToCalibrate = this.questionToCalibrate.filter(q => q.questionId !== questionId);
+          this.questionRating = 4;
+        },
+        fail(e) { console.log(e); },
+      }]);
+    },
   },
   mounted() {
     let _this = this;
     const _ = require("lodash");
+
+    // ELO: pre-populate sections index
+    setTimeout(() => { _this.sections_all = _this.getSections(); }, 100);
+
+    // ELO: observe #question for new iframes with submit buttons
+    function findSubmitButtons() {
+      const activeElement = document.querySelector('#question .active');
+      if (activeElement) {
+        const iframe = activeElement.querySelector('iframe');
+        if (iframe) {
+          iframe.onload = function () {
+            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+            function searchSubmitButton() {
+              const restartSubmitButton = iframeDocument.querySelector('input[type="submit"][name="restart"]');
+              if (restartSubmitButton && !restartSubmitButton.dataset.listenerAdded) {
+                restartSubmitButton.addEventListener('click', () => {
+                  const embedId    = iframe.getAttribute('data-embedid');
+                  const questionId = iframe.getAttribute('data-questionid');
+                  if (questionId == null) {
+                    _this.chooseQuestion();
+                  } else {
+                    const inputSlot = iframeDocument.querySelector('input[name="slots"]');
+                    _this.saveAdaptiveAssessmentData(embedId, questionId, inputSlot.value);
+                  }
+                });
+                restartSubmitButton.dataset.listenerAdded = true;
+              }
+            }
+            const observerIframe = new MutationObserver(searchSubmitButton);
+            observerIframe.observe(iframeDocument, { childList: true, subtree: true });
+          };
+        }
+      }
+    }
+
+    function processAddedNodes(nodes) {
+      nodes.forEach(function (node) {
+        if ($(node).is('iframe')) {
+          _this.addIframe(node);
+        } else if ($(node).find('iframe').length > 0) {
+          $(node).find('iframe').each(function () { _this.addIframe(this); });
+        }
+      });
+    }
+
+    const observerQuestion = new MutationObserver(findSubmitButtons);
+    const targetNode = document.getElementById('question');
+    if (targetNode) {
+      observerQuestion.observe(targetNode, { childList: true, subtree: true });
+    }
+
+    const observerBody = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.addedNodes.length) { processAddedNodes(mutation.addedNodes); }
+      });
+    });
+    observerBody.observe(document.body, { childList: true, subtree: true });
+
+    _this.iframes = [];
 
     $("#page").attr(
       "style",
@@ -957,6 +1347,8 @@ export default {
               $(div).appendTo("#carousel-indicators");
             }
           }
+          // ELO: select the best question based on user comprehension score
+          _this.chooseQuestion();
         } else {
           $("#carousel").hide();
           $("#quiz-spinner").remove();
@@ -982,6 +1374,19 @@ export default {
         $(el).attr("data-embedid", el.id);
         $(el).attr("data-questionid", $(el).attr("data-questionid"));
         observer.observe($(paragraph)[0]);
+
+        // ELO: populate sections_relevant with LIX score for this paragraph
+        var sectionId = $(paragraph).children().first().attr("id");
+        if (typeof _this.sections_all.sections === 'undefined') {
+          _this.sections_all = _this.getSections();
+        }
+        _this.sections_relevant['' + sectionId] = (_this.sections_all.sections || [])
+          .find(function (element) { return element.link === $(paragraph).children().first().attr("id"); });
+        if (_this.sections_relevant['' + sectionId] &&
+            typeof _this.sections_relevant['' + sectionId].LIX === 'undefined') {
+          _this.sections_relevant['' + sectionId].LIX =
+            _this.berechneLIX(_this.sections_relevant['' + sectionId].body || '');
+        }
       });
 
       $("#question").on("mouseover", "iframe", function () {

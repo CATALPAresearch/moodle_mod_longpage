@@ -413,3 +413,4 @@ $string['features_teacherDashboard_chartLabels_minutes'] = 'Minutes';
 $string['features_teacherDashboard_chartLabels_readingEvents'] = 'Reading Events';
 $string['features_teacherDashboard_chartLabels_textPosition'] = 'Text Position';
 $string['features_teacherDashboard_chartLabels_eventCount'] = 'Event Count';
+$string['event_adaptive_assessment'] = 'Adaptive Assessment Event';

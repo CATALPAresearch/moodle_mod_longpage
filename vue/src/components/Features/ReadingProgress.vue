@@ -4,6 +4,10 @@
 
 <script>
 import ajax from "core/ajax";
+import {
+  ReadingBehaviorTracker,
+  cleanTextPreview,
+} from "@/lib/readingBehavior/reading-behavior-tracker";
 
 /**
  * This Module visualizes the collective reading progress on the course/longpage text
@@ -27,140 +31,182 @@ export default {
   },
 
   methods: {
-    hashCode: function (s) {
-      return s.split("").reduce(function (a, b) {
-        a = (a << 5) - a + b.charCodeAt(0);
-        return a & a;
-      }, 0);
-    },
     enableScrollLogging: function () {
       let _this = this;
+
+      // Console-based debug log of the reading-progress observer.
+      // On by default in dev builds (npm run dev/watch), off by default in
+      // production builds (npm run build). Toggle from the browser console:
+      // longpageReadingLog.enable() / .disable() — overrides the default and
+      // is persisted in localStorage so it survives page reloads.
+      var storageKey = "longpageReadingLogEnabled";
+      // webpack's DefinePlugin replaces "process.env.NODE_ENV" with a string
+      // literal at build time, so this compiles down to a plain boolean
+      // constant — no runtime `process` global needs to exist for this to
+      // work (there is none in the browser).
+      var isDevBuild = process.env.NODE_ENV !== "production";
+      // console.warn survives Terser's pure_funcs stripping in production
+      // builds (see webpack.config.js), but Chrome/Firefox DevTools let you
+      // hide the "Warnings" level independently of "Info"/"Log" — if that
+      // filter happens to be off, warn() output is invisible while other
+      // plugins' console.log() calls still show, which looks exactly like
+      // "logging is broken" even though it fired. In dev builds there is no
+      // stripping to worry about, so use plain console.log there — it is on
+      // by default in every console and matches what other plugins use.
+      var logFn = isDevBuild ? console.log.bind(console) : console.warn.bind(console);
+      var storedEnabled;
+      try {
+        var storedValue = window.localStorage.getItem(storageKey);
+        storedEnabled = storedValue === null ? isDevBuild : storedValue === "1";
+      } catch (e) {
+        storedEnabled = isDevBuild;
+      }
+      window.longpageReadingLog = window.longpageReadingLog || {
+        enabled: storedEnabled,
+        enable: function () {
+          this.enabled = true;
+          try {
+            window.localStorage.setItem(storageKey, "1");
+          } catch (e) {
+            // ignore, e.g. localStorage disabled
+          }
+          logFn("[longpage] reading log enabled");
+        },
+        disable: function () {
+          this.enabled = false;
+          try {
+            window.localStorage.setItem(storageKey, "0");
+          } catch (e) {
+            // ignore, e.g. localStorage disabled
+          }
+          logFn("[longpage] reading log disabled");
+        },
+      };
+
       if (
         "IntersectionObserver" in window &&
         "IntersectionObserverEntry" in window &&
         "intersectionRatio" in window.IntersectionObserverEntry.prototype
       ) {
-        let last_entry = {};
-        var sectionCount = 0;
-        var behavior;
+        // Raw telemetry, independent of the classification constants above:
+        // one row per IntersectionObserver threshold crossing, batched and
+        // sent periodically so an offline analysis (R/Python dump of
+        // longpage_intersection_events) can recompute its own metrics —
+        // e.g. the percentage of an element visible on screen over time is
+        // exactly `intersectionratio` here, sampled at every 10% step.
+        var RAW_EVENT_FLUSH_INTERVAL_MS = 5000;
+        var RAW_EVENT_MAX_BUFFER = 50;
+        var rawEventBuffer = [];
 
-        // See: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
-        var handleScrolling = function (entries) {
-          let time_diff = 0;
-          // iterate over all entries that are within the viewport at the same time.
-          for (var entry of entries) {
-            // feature detection
-            if (typeof entry.isVisible === "undefined") {
-              // The browser doesn't support Intersection Observer v2, falling back to v1 behavior.
-              entry.isVisible = true;
-            }
-
-            if (entry.isIntersecting && entry.isVisible) {
-              var now = new Date();
-              const targetElement = document.getElementById(entry.target.id);
-              let word_count = targetElement
-                ? targetElement.textContent.split(" ").length
-                : 0;
-              // TODO: Determine portion of visible text
-              // _this.get($('#' + entry.target.id).get(0)).visibility
-
-              //
-
-              // reading detection
-              time_diff = (now.getTime() - last_entry.utc) / 1000; // in seconds
-              time_diff = time_diff === 0 ? 1 : time_diff;
-              let ratio = last_entry.targetWordCount / time_diff;
-              if (ratio < 0.1) {
-                behavior = "idle";
-              } else if (ratio >= 0.1 && ratio <= 3.6) {
-                behavior = "reading";
-              } else {
-                behavior = "scrolling";
-              }
-
-              var measuredElement = document.querySelector("#longpage-app");
-              if (measuredElement) {
-                var yPadding, xPadding;
-                if (window.getComputedStyle) {
-                  var computedStyle = window.getComputedStyle(measuredElement);
-                  yPadding =
-                    parseFloat(computedStyle.paddingTop) +
-                    parseFloat(computedStyle.paddingBottom);
-                  xPadding =
-                    parseFloat(computedStyle.paddingLeft) +
-                    parseFloat(computedStyle.paddingRight);
-                }
-                //offsetHeight includes border, padding and margin, but clinetHeight includes onle the padding
-                var containerHeight = measuredElement.clientHeight - yPadding;
-                var containerWidth = measuredElement.clientWidth - xPadding;
-
-                var longpageMain = document.querySelector("#longpage-main");
-
-                var logentry = {
-                  longpageid: _this.context.longpageid,
-                  relativeTime: entry.time,
-                  targetID: entry.target.id,
-                  targetTag: entry.target.localName,
-                  targetClasses: entry.target.className,
-                  targetWordCount: word_count,
-                  targetHeight: entry.target.scrollHeight,
-                  scrollLeft: longpageMain.scrollLeft,
-                  scrollTop: longpageMain.scrollTop,
-                  scrollHeight: longpageMain.scrollHeight,
-                  scrollWidth: longpageMain.scrollWidth,
-                  containerHeight: containerHeight,
-                  containerWidth: containerWidth,
-                  behavior: behavior,
-                  sectionhash: _this.hashCode(entry.target.id),
-                  sectionCount: sectionCount,
-                  utc: now.getTime(),
-                  navigator: {
-                    userAgent: navigator.userAgent,
-                    platform: navigator.platform,
-                    oscpu: navigator.oscpu,
-                    language: navigator.language,
-                    cookieEnabled: navigator.cookieEnabled,
-                  },
-                  screenWidth: window.screen.width,
-                  screenHeight: window.screen.height,
-                  devicePixelRatio: window.devicePixelRatio,
-                  intersectionRatio: entry.intersectionRatio,
-                };
-
-                // ajax.call([
-                //   {
-                //     methodname: "mod_longpage_log",
-                //     args: {
-                //       data: {
-                //         entry: JSON.stringify(logentry),
-                //         action: "scroll",
-                //         utc: Math.ceil(now.getTime() / 1000),
-                //         courseid: _this.context.courseId
-                //       },
-                //     },
-                //     done: function (reads) {
-                //     },
-                //     fail: function (e) {
-                //       console.error("fail", e);
-                //     },
-                //   },
-                // ]);
-
-                last_entry = logentry;
-              }
-            }
+        var flushRawEvents = function () {
+          if (!rawEventBuffer.length) {
+            return;
           }
+          var batch = rawEventBuffer.splice(0, rawEventBuffer.length);
+          ajax.call([
+            {
+              methodname: "mod_longpage_log_intersection_events",
+              args: {
+                longpageid: _this.context.longpageid,
+                courseid: _this.context.courseId,
+                events: JSON.stringify(batch),
+              },
+              done: function () {
+                // No-op: fire-and-forget logging.
+              },
+              fail: function (e) {
+                console.error("mod_longpage_log_intersection_events failed", e);
+              },
+            },
+          ]);
         };
+        setInterval(flushRawEvents, RAW_EVENT_FLUSH_INTERVAL_MS);
+        window.addEventListener("beforeunload", flushRawEvents);
 
-        var options = {
-          root: null,
-          rootMargin: "0px",
-          threshold: [0.0],
-          trackVisibility: true,
-          delay: 100,
-        };
+        // Reading-behavior tracking: turns viewport-crossing events into a
+        // three-tier pipeline (data point -> session -> user profile). All
+        // detection thresholds and the reading-speed model live in
+        // reading-behavior-tracker.js — this method only wires the tracker
+        // up to the DOM (observed elements) and to logging/persistence.
+        var tracker = new ReadingBehaviorTracker({
+          getViewportContainer: function () {
+            return document.querySelector("#longpage-main");
+          },
+          onRawEntry: function (raw) {
+            rawEventBuffer.push({
+              sessionid: raw.sessionId,
+              targetid: raw.id,
+              targettag: raw.tag,
+              intersectionratio: raw.ratio,
+              boundingtop: raw.rect.top,
+              boundingbottom: raw.rect.bottom,
+              boundingheight: raw.rect.height,
+              boundingwidth: raw.rect.width,
+              viewportheight: raw.viewportHeight,
+              scrolltop: raw.scrollTop,
+              wordcount: raw.wordCount,
+              clienttimestamp: raw.timestamp / 1000,
+            });
+            if (rawEventBuffer.length >= RAW_EVENT_MAX_BUFFER) {
+              flushRawEvents();
+            }
+          },
+          onSessionStart: function (reason) {
+            if (window.longpageReadingLog && window.longpageReadingLog.enabled) {
+              logFn("[longpage] new reading session (" + reason + ")");
+            }
+          },
+          onBaselineEnter: function (baseline) {
+            if (window.longpageReadingLog && window.longpageReadingLog.enabled) {
+              logFn("[longpage] -> <" + baseline.tag + "> #" + baseline.id);
+            }
+          },
+          onDataPoint: function (dataPoint) {
+            if (window.longpageReadingLog && window.longpageReadingLog.enabled) {
+              var targetElement = document.getElementById(dataPoint.id);
+              var rawText = targetElement
+                ? targetElement.textContent.trim().replace(/\s+/g, " ")
+                : "";
+              // Clean embedquestion shortcodes ("{Q{...}Q}") BEFORE truncating,
+              // so the preview never shows a mid-token cut-off (see
+              // cleanTextPreview in reading-behavior-tracker.js).
+              var cleanedText = cleanTextPreview(rawText);
+              var textPreview =
+                cleanedText.length > 40 ? cleanedText.slice(0, 40) + "…" : cleanedText;
 
-        var observer = new IntersectionObserver(handleScrolling, options);
+              // One block per data point, each field on its own line so it
+              // stays scannable instead of one long run-on string.
+              logFn(
+                "[longpage] <" + dataPoint.tag + "> #" + dataPoint.id +
+                "  ➜  " + dataPoint.label.toUpperCase() +
+                "\n    dwell=" + dataPoint.dwellSeconds.toFixed(1) + "s" +
+                "  peak=" + Math.round(dataPoint.peakRatio * 100) + "%" +
+                "  words=" + dataPoint.words +
+                "\n    session=" + tracker.getSessionLabel() +
+                "  profile=" + tracker.getUserProfileLabel() +
+                (textPreview ? "\n    \"" + textPreview + "\"" : ""),
+              );
+            }
+
+            _this.persistReadingBehaviorEvent(dataPoint);
+          },
+        });
+
+        var observer = new IntersectionObserver(
+          function (entries) {
+            tracker.handleIntersections(entries);
+          },
+          {
+            root: null,
+            rootMargin: "0px",
+            // Fine-grained steps so the tracker's peak-ratio tracking (and
+            // the baseline-crossing midpoint search) sees intermediate
+            // visibility, not just the 0%-crossing.
+            threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+            trackVisibility: true,
+            delay: 100,
+          },
+        );
         var pCounter = 0;
         //
 
@@ -172,6 +218,7 @@ export default {
           "h5",
           "pre",
           "img",
+          "table",
           "p",
           "ol",
           "ul",
@@ -219,8 +266,6 @@ export default {
               val.classList.add("longpage-paragraph");
               pCounter++;
             }
-            sectionCount++;
-
             // Wrap element
             const wrapper = document.createElement("div");
             wrapper.className = "wrapper";
@@ -250,9 +295,41 @@ export default {
               wrapper.style.padding = "0px";
             }
 
-            observer.observe(document.querySelector("#" + attr));
+            var observedEl = document.querySelector("#" + attr);
+            tracker.registerElement(observedEl);
+            observer.observe(observedEl);
           });
       }
+    },
+
+    /** Send one finalized reading-behavior data point to the server. */
+    persistReadingBehaviorEvent: function (dataPoint) {
+      ajax.call([
+        {
+          methodname: "mod_longpage_log_reading_behavior_event",
+          args: {
+            longpageid: this.context.longpageid,
+            courseid: this.context.courseId,
+            sessionid: dataPoint.sessionId,
+            targetid: dataPoint.id,
+            targettag: dataPoint.tag,
+            wordcount: dataPoint.words,
+            dwellseconds: dataPoint.dwellSeconds,
+            peakratio: dataPoint.peakRatio,
+            minreadingtime: dataPoint.estimate.skimmingTime,
+            avgreadingtime: dataPoint.estimate.readingTime,
+            maxreadingtime: dataPoint.estimate.memorizingTime,
+            datapointlabel: dataPoint.label,
+            language: dataPoint.language,
+          },
+          done: function () {
+            // No-op: fire-and-forget logging.
+          },
+          fail: function (e) {
+            console.error("mod_longpage_log_reading_behavior_event failed", e);
+          },
+        },
+      ]);
     },
 
     percentageSeen: function (id) {

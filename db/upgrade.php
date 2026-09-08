@@ -221,5 +221,104 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2026052501;
+    if ($oldversion < $newversion) {
+        // Create longpage_adaptive_user table.
+        $table = new xmldb_table('longpage_adaptive_user');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('longpageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('comprehension_points', XMLDB_TYPE_FLOAT, '10', null, null, null, null);
+            $table->add_field('comprehension_factor', XMLDB_TYPE_FLOAT, '10', null, null, null, null);
+            $table->add_field('streak', XMLDB_TYPE_INTEGER, '1', null, null, null, null);
+            $table->add_field('calibrated', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+            $table->add_field('was_calibrated', XMLDB_TYPE_INTEGER, '1', null, null, null, null);
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('user', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $dbman->create_table($table);
+        }
+
+        // Create longpage_adaptive_question table.
+        $table = new xmldb_table('longpage_adaptive_question');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('questionid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('difficulty', XMLDB_TYPE_FLOAT, '10', null, null, null, null);
+            $table->add_field('calibrated', XMLDB_TYPE_INTEGER, '1', null, null, null, null);
+            $table->add_field('was_calibrated', XMLDB_TYPE_INTEGER, '1', null, null, null, null);
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('question', XMLDB_KEY_FOREIGN, ['questionid'], 'question', ['id']);
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
+    $newversion = 2026090800;
+    if ($oldversion < $newversion) {
+        // Create longpage_reading_behavior_events table.
+        $table = new xmldb_table('longpage_reading_behavior_events');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('longpageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('sessionid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('targetid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('targettag', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('wordcount', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0);
+            $table->add_field('dwellseconds', XMLDB_TYPE_FLOAT, '10, 3', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('peakratio', XMLDB_TYPE_FLOAT, '5, 4', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('minreadingtime', XMLDB_TYPE_FLOAT, '10, 3', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('avgreadingtime', XMLDB_TYPE_FLOAT, '10, 3', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('maxreadingtime', XMLDB_TYPE_FLOAT, '10, 3', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('datapointlabel', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('language', XMLDB_TYPE_CHAR, '8', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('page', XMLDB_KEY_FOREIGN, ['longpageid'], 'longpage', ['id']);
+            $table->add_key('user', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $table->add_index('sessionid', XMLDB_INDEX_NOTUNIQUE, ['sessionid']);
+            $table->add_index('userpagesession', XMLDB_INDEX_NOTUNIQUE, ['userid', 'longpageid', 'sessionid']);
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
+    $newversion = 2026090801;
+    if ($oldversion < $newversion) {
+        // Create longpage_intersection_events table (raw telemetry).
+        $table = new xmldb_table('longpage_intersection_events');
+        if (!$dbman->table_exists($table)) {
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+            $table->add_field('longpageid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('sessionid', XMLDB_TYPE_CHAR, '64', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('targetid', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('targettag', XMLDB_TYPE_CHAR, '16', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('intersectionratio', XMLDB_TYPE_FLOAT, '5, 4', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('boundingtop', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('boundingbottom', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('boundingheight', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('boundingwidth', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('viewportheight', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('scrolltop', XMLDB_TYPE_FLOAT, '10, 2', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('wordcount', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, 0);
+            $table->add_field('clienttimestamp', XMLDB_TYPE_FLOAT, '20, 3', null, XMLDB_NOTNULL, null, null);
+            $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+            $table->add_key('page', XMLDB_KEY_FOREIGN, ['longpageid'], 'longpage', ['id']);
+            $table->add_key('user', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+            $table->add_index('sessionid', XMLDB_INDEX_NOTUNIQUE, ['sessionid']);
+            $table->add_index('usersessiontarget', XMLDB_INDEX_NOTUNIQUE, ['userid', 'sessionid', 'targetid']);
+            $dbman->create_table($table);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }

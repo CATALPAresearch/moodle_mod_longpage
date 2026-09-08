@@ -182,7 +182,7 @@ module.exports = (env, options) => {
       },
       new WebpackShellPlugin({
         onBuildEnd: [
-          path.resolve(__dirname, "../../../../php/php.exe") +
+          (process.platform === "win32" ? "php.exe" : "php") +
             " " +
             path.resolve(__dirname, "../../../admin/cli/purge_caches.php") +
             " --muc --theme --lang --js --filter --other",
