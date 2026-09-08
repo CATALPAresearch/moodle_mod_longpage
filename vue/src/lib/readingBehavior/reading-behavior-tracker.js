@@ -232,8 +232,19 @@ export function resolveLanguage(config) {
 export function estimateReadingTime(el, language, config) {
   const tag = el.tagName.toLowerCase();
 
-  if (tag === "img") {
-    const diagonal = Math.sqrt(el.offsetWidth ** 2 + el.offsetHeight ** 2);
+  // <img> is valid phrasing content, so editors (TinyMCE) commonly wrap a
+  // standalone image in a <p> — meaning the OBSERVED element here is often
+  // that wrapping <p>, not the <img> itself (<table>/<pre>/<ol>/<ul> can't
+  // be nested in a <p> at all, so they never have this problem — they
+  // always show up as their own direct-child element). Detect that case —
+  // an element whose only real content is one image, no prose alongside
+  // it — and use the IMAGE heuristic with the image's own dimensions,
+  // instead of falling through to a 0-word text estimate (which would make
+  // classifyDwell always return STUDY, since 0-word gears are all 0s).
+  const soleImage = tag !== "img" && isImageOnly(el) ? el.querySelector("img") : null;
+  if (tag === "img" || soleImage) {
+    const imageEl = tag === "img" ? el : soleImage;
+    const diagonal = Math.sqrt(imageEl.offsetWidth ** 2 + imageEl.offsetHeight ** 2);
     const avg = (diagonal / 1000) * config.IMAGE_SECONDS_PER_1000PX_DIAGONAL;
     return nonTextEstimate(avg, config);
   }
@@ -264,6 +275,16 @@ export function estimateReadingTime(el, language, config) {
     learningTime: secondsAt(gears.learning),
     memorizingTime: secondsAt(gears.memorizing),
   };
+}
+
+/**
+ * True if `el` contains exactly one <img> and no other meaningful text
+ * around it (whitespace-only textContent) — i.e. it exists only to hold
+ * that image, not to hold prose that happens to include an image.
+ */
+function isImageOnly(el) {
+  const images = el.querySelectorAll("img");
+  return images.length === 1 && (el.textContent || "").trim() === "";
 }
 
 function nonTextEstimate(avgSeconds, config) {
