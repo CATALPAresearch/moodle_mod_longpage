@@ -168,7 +168,7 @@ final class utility_services_test extends \externallib_advanced_testcase {
         $this->assertNotEmpty($logs);
 
         // Verify reading progress was also recorded.
-        $sql = "SELECT * FROM {longpage_reading_progress}
+        $sql = "SELECT * FROM {longpage_reading_positions}
                 WHERE userid = :userid AND longpageid = :longpageid
                 AND " . $DB->sql_compare_text('section') . " = " . $DB->sql_compare_text(':section');
         $progress = $DB->get_records_sql($sql, [
@@ -209,7 +209,7 @@ final class utility_services_test extends \externallib_advanced_testcase {
         utility_services::log($logdata);
 
         // Verify reading progress was recorded.
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'userid' => $this->student->id,
             'longpageid' => $this->longpage->id,
         ]);

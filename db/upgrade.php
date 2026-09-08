@@ -344,5 +344,23 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2026090803;
+    if ($oldversion < $newversion) {
+        // Rename longpage_reading_progress -> longpage_reading_positions.
+        // The old name had become ambiguous once longpage_reading_behavior_
+        // events was introduced ("progress" vs "behavior" reads as the same
+        // concept but isn't) — this table is really a log of scroll
+        // positions, used both to resume the last position (view.php) and
+        // to compute the collective per-section read count
+        // (ReadingPositionIndicator.vue). rename_table() preserves all
+        // existing rows.
+        $table = new xmldb_table('longpage_reading_progress');
+        if ($dbman->table_exists($table) && !$dbman->table_exists(new xmldb_table('longpage_reading_positions'))) {
+            $dbman->rename_table($table, 'longpage_reading_positions');
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }

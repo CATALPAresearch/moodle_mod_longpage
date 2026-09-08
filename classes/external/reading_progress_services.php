@@ -72,7 +72,7 @@ class reading_progress_services extends base_external {
             global $CFG;  // Add global reference for CFG
 
             $transaction = $DB->start_delegated_transaction();
-            $DB->insert_record('longpage_reading_progress', [
+            $DB->insert_record('longpage_reading_positions', [
                 'longpageid' => $pageid,
                 'scrolltop' => $scrolltop,
                 'userid' => $USER->id,
@@ -137,7 +137,7 @@ class reading_progress_services extends base_external {
         $query = '
             SELECT section, count(sectionhash) as count
             FROM (
-                SELECT * FROM {longpage_reading_progress} m
+                SELECT * FROM {longpage_reading_positions} m
                 WHERE course=:courseid AND longpageid=:longpageid AND userid=:userid
             ) mm
             GROUP by section

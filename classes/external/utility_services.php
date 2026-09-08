@@ -94,7 +94,7 @@ class utility_services extends base_external {
 
             try {
                 $transaction = $DB->start_delegated_transaction();
-                $res2 = $DB->insert_record("longpage_reading_progress", (array) $s);
+                $res2 = $DB->insert_record("longpage_reading_positions", (array) $s);
                 $transaction->allow_commit();
             } catch (Exception $e) {
                 $transaction->rollback($e);

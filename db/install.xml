@@ -123,7 +123,7 @@
         <KEY NAME="user" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="longpage_reading_progress" COMMENT="">
+    <TABLE NAME="longpage_reading_positions" COMMENT="Log of scroll positions per user; powers both resume-last-position (view.php) and the collective per-section read-count badge (ReadingPositionIndicator.vue)">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="longpageid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>

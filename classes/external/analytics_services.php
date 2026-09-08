@@ -271,7 +271,7 @@ class analytics_services extends base_external {
 
             $count = $DB->count_records_sql(
                 "SELECT COUNT(*) 
-                 FROM {longpage_reading_progress} 
+                 FROM {longpage_reading_positions} 
                  WHERE longpageid = :longpageid 
                  AND timemodified >= :start AND timemodified < :end
                  AND scrolltop >= :minpos AND scrolltop < :maxpos",

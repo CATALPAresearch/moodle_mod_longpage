@@ -5,36 +5,36 @@
 <script>
 import ajax from "core/ajax";
 import {
-  ReadingBehaviorTracker,
+  ReadingBehaviorTracker as Tracker,
   cleanTextPreview,
 } from "@/lib/readingBehavior/reading-behavior-tracker";
+import { prepareContentElements } from "@/lib/longpageContent/prepare-content-elements";
 
 /**
- * This Module visualizes the collective reading progress on the course/longpage text
- * Every user can see how many times a text section has been read by other users
+ * Classifies HOW an individual user is reading right now — scan / read /
+ * study / regression / preview, aggregated into a session and user-profile
+ * label (see reading-behavior-tracker.js for the whole pipeline and its
+ * tunable constants).
+ *
+ * Not to be confused with ReadingPositionIndicator.vue, which shows the
+ * COLLECTIVE reading position/progress across all users (how many times a
+ * section has been read). The two were previously combined in one file
+ * (ReadingProgress.vue), which was a recurring source of confusion given how
+ * similar "reading progress" and "reading behavior" sound — hence the split.
  */
 export default {
-  name: "ReadingProgress",
+  name: "ReadingBehaviorTracker",
   props: ["context"],
-
-  data: function () {
-    return {
-      debug: false,
-    };
-  },
 
   mounted: function () {
     this.enableScrollLogging();
-    if (this.context.showreadingprogress) {
-      this.visualizeReadingProgress();
-    }
   },
 
   methods: {
     enableScrollLogging: function () {
       let _this = this;
 
-      // Console-based debug log of the reading-progress observer.
+      // Console-based debug log of the reading-behavior tracker.
       // On by default in dev builds (npm run dev/watch), off by default in
       // production builds (npm run build). Toggle from the browser console:
       // longpageReadingLog.enable() / .disable() — overrides the default and
@@ -128,7 +128,7 @@ export default {
         // detection thresholds and the reading-speed model live in
         // reading-behavior-tracker.js — this method only wires the tracker
         // up to the DOM (observed elements) and to logging/persistence.
-        var tracker = new ReadingBehaviorTracker({
+        var tracker = new Tracker({
           getViewportContainer: function () {
             return document.querySelector("#longpage-main");
           },
@@ -216,98 +216,16 @@ export default {
             delay: 100,
           },
         );
-        var pCounter = 0;
-        //
 
-        //tie together text parts without wrapper to wrap them
-        var observedElements = [
-          "h2",
-          "h3",
-          "h4",
-          "h5",
-          "pre",
-          "img",
-          "table",
-          "p",
-          "ol",
-          "ul",
-          "div",
-        ];
-        var container = "#longpage-content";
-
-        const containerEl = document.querySelector(
-          container + " > .filter_mathjaxloader_equation",
-        );
-        if (containerEl) container += " > .filter_mathjaxloader_equation";
-
-        // $($(container)
-        //   .contents()
-        //   .toArray()
-        //   .reduce(function (prev, cur) {
-        //     if (cur.tagName && observedElements.includes(cur.tagName.toLowerCase()))
-        //       return prev;
-
-        //     if (cur.nodeType === 3 && cur.data.trim() == "")
-        //       return prev;
-
-        //     if (prev.length == 0)
-        //       return [[cur]];
-
-        //     prev[prev.length - 1].push(cur);
-
-        //     if (cur.nextSibling && cur.nextSibling.tagName && observedElements.includes(cur.nextSibling.tagName.toLowerCase())) {
-        //       prev.push([]);
-        //     }
-        //     return prev;
-        //   }, [])).wrap("<p></p>");
-
-        var observedSelectors = observedElements.map(function (val) {
-          return container + " > " + val;
+        // Shared with ReadingPositionIndicator.vue (idempotent — whichever
+        // of the two mounts first does the actual DOM prep, see
+        // prepare-content-elements.js), so this never assumes it runs
+        // before or after that component.
+        prepareContentElements(this.context).forEach(function (id) {
+          var el = document.getElementById(id);
+          tracker.registerElement(el);
+          observer.observe(el);
         });
-
-        document
-          .querySelectorAll(observedSelectors.join(", "))
-          .forEach((val, i) => {
-            var attr = val.getAttribute("id");
-            if (!attr) {
-              attr = "paragraph-" + pCounter;
-              val.setAttribute("id", attr);
-              val.classList.add("longpage-paragraph");
-              pCounter++;
-            }
-            // Wrap element
-            const wrapper = document.createElement("div");
-            wrapper.className = "wrapper";
-            val.parentNode.insertBefore(wrapper, val);
-            wrapper.appendChild(val);
-
-            if (
-              _this.context.showreadingprogress ||
-              _this.context.showreadingcomprehension
-            ) {
-              const span = document.createElement("span");
-              span.className = "reading-progress";
-              span.setAttribute("data-html2canvas-ignore", "");
-              if (_this.context.showreadingprogress) {
-                span.setAttribute(
-                  "title",
-                  "Der Abschnitt wurde <br>bislang 0 mal gelesen.",
-                );
-              } else {
-                span.classList.add("progress-3");
-              }
-              wrapper.appendChild(span);
-            }
-
-            if (wrapper.querySelector(".filter_embedquestion-iframe")) {
-              wrapper.style.height = "0px";
-              wrapper.style.padding = "0px";
-            }
-
-            var observedEl = document.querySelector("#" + attr);
-            tracker.registerElement(observedEl);
-            observer.observe(observedEl);
-          });
       }
     },
 
@@ -337,136 +255,6 @@ export default {
           },
           fail: function (e) {
             console.error("mod_longpage_log_reading_behavior_event failed", e);
-          },
-        },
-      ]);
-    },
-
-    percentageSeen: function (id) {
-      let element = document.getElementById(id);
-      // Get the relevant measurements and positions
-      const viewportHeight = window.innerHeight;
-      const scrollTop = window.scrollY;
-      const elementOffsetTop = element.offsetTop;
-      const elementHeight = element.offsetHeight;
-
-      // Calculate percentage of the element that's been seen
-      const distance = scrollTop + viewportHeight - elementOffsetTop;
-      const percentage = Math.round(
-        distance / ((viewportHeight + elementHeight) / 100),
-      );
-
-      // Restrict the range to between 0 and 100
-      return Math.min(100, Math.max(0, percentage));
-    },
-
-    /** Detailed but slow method to estimate the portion of an element that is visble with the viewport. */
-    get: function (element) {
-      if (typeof element !== "object" || !(element instanceof HTMLElement))
-        throw new Error("No valid HTMLElement.");
-      const b = element.getBoundingClientRect();
-      const vpw = window.innerWidth || document.documentElement.clientWidth;
-      const vph = window.innerHeight || document.documentElement.clientHeight;
-      let e = {
-        element: element,
-        dimensions: {
-          height: b.height,
-          width: b.width,
-        },
-        viewport: {
-          width: vpw,
-          height: vph,
-        },
-        position: {
-          top: b.top,
-          left: b.left,
-          right: b.right,
-          bottom: b.bottom,
-          centerX: b.right + b.width / 2,
-          centerY: b.top + b.height / 2,
-        },
-        fullyInsideVP:
-          b.top >= 0 && b.bottom <= vph && b.left >= 0 && b.right <= vpw
-            ? true
-            : false,
-        isHidden: false, //this._isHidden(),
-        visibility: 0,
-      };
-
-      if (!e.isHidden) {
-        let px = 0;
-        for (let y = 0; y < Math.floor(b.height); y++) {
-          const posY = b.top + y;
-          for (let x = 0; x < Math.floor(b.width); x++) {
-            const posX = b.left + x;
-            if (posX >= 0 && posX <= vpw && posY >= 0 && posY <= vph) {
-              let elem = document.elementFromPoint(posX, posY);
-              if (elem !== null && elem === element) px++;
-            }
-          }
-        }
-        e.visibility = px / (Math.floor(b.width) * Math.floor(b.height));
-        e.visibility = Number(e.visibility.toFixed(2));
-      }
-      return e;
-    },
-
-    visualizeReadingProgress: function () {
-      let _this = this;
-
-      ajax.call([
-        {
-          methodname: "mod_longpage_get_reading_progress",
-          args: {
-            courseid: _this.context.courseId,
-            longpageid: _this.context.longpageid,
-          },
-          done: function (reads) {
-            try {
-              let data = Object.values(JSON.parse(reads.response));
-              let max_arr = data.map(function (d) {
-                return d.count;
-              });
-              let max = max_arr.reduce((a, b) => Math.max(a, b), -Infinity);
-              for (var i = 0; i < data.length; i++) {
-                const sectionEl = document.getElementById(data[i].section);
-                if (sectionEl) {
-                  const progressEl = sectionEl.nextElementSibling;
-                  if (
-                    progressEl &&
-                    progressEl.classList.contains("reading-progress")
-                  ) {
-                    progressEl.setAttribute(
-                      "title",
-                      "Der Abschnitt wurde <br>bislang " +
-                        data[i].count +
-                        " mal gelesen.",
-                    );
-                    progressEl.classList.add(
-                      "progress-" + Math.ceil((data[i].count / max) * 5),
-                    );
-                  }
-
-                  if (_this.debug) {
-                    const span = document.createElement("span");
-                    span.style.cssText =
-                      "position:absolute; right:-40px; font-size:8px; background-color:red; padding:1px 2px; color:#fff;";
-                    span.textContent = data[i].section.replace(
-                      "longpage-paragraph-",
-                      "",
-                    );
-                    sectionEl.appendChild(span);
-                  }
-                } else {
-                  console.log("Section not found", data[i].section);
-                }
-              }
-            } catch (e) {
-              console.log(e);
-            }
-          },
-          fail: function (e) {
-            console.error("fail", e);
           },
         },
       ]);

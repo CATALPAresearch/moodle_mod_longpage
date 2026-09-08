@@ -35,7 +35,8 @@
     </div>
     <!-- <CourseRecommendation></CourseRecommendation> -->
     <ReadingTime v-if="context.showreadingtime"></ReadingTime>
-    <ReadingProgress :context="context"> </ReadingProgress>
+    <ReadingPositionIndicator :context="context"> </ReadingPositionIndicator>
+    <ReadingBehaviorTracker :context="context"> </ReadingBehaviorTracker>
   </div>
 </template>
 
@@ -78,7 +79,8 @@ import throttle from "lodash/throttle";
 import { toIdSelector } from "@/util/dom/style";
 import Utils from "./util/utils";
 
-import ReadingProgress from "@/components/Features/ReadingProgress";
+import ReadingPositionIndicator from "@/components/Features/ReadingPositionIndicator";
+import ReadingBehaviorTracker from "@/components/Features/ReadingBehaviorTracker";
 import ReadingTime from "@/components/Features/ReadingTime";
 import CourseRecommendation from "@/components/Features/CourseRecommendations";
 
@@ -88,7 +90,8 @@ export default {
     AnnotationToolbarController,
     AnnotationIndicatorSidebar,
     LongpageSidebar,
-    ReadingProgress,
+    ReadingPositionIndicator,
+    ReadingBehaviorTracker,
     CourseRecommendation,
     ReadingTime,
   },

@@ -122,7 +122,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
         );
 
         // Verify record was created in database.
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ]);
@@ -173,7 +173,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
         );
 
         // Verify all three records exist.
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ], 'timemodified ASC');
@@ -210,13 +210,13 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
         );
 
         // Verify both users have separate records.
-        $progress1 = $DB->get_records('longpage_reading_progress', [
+        $progress1 = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ]);
         $this->assertCount(1, $progress1);
 
-        $progress2 = $DB->get_records('longpage_reading_progress', [
+        $progress2 = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student2->id,
         ]);
@@ -266,7 +266,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
             33333
         );
 
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ]);
@@ -458,7 +458,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
 
         $aftertime = time();
 
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ]);
@@ -486,7 +486,7 @@ final class reading_progress_services_test extends \externallib_advanced_testcas
             11111
         );
 
-        $progress = $DB->get_records('longpage_reading_progress', [
+        $progress = $DB->get_records('longpage_reading_positions', [
             'longpageid' => $this->longpage->id,
             'userid' => $this->student->id,
         ]);

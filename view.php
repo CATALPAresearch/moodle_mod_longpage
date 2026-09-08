@@ -51,7 +51,7 @@ $context = context_module::instance($cm->id);
 require_capability('mod/longpage:view', $context);
 
 $scrolltop = $DB->get_field_sql(
-    "SELECT scrolltop FROM {longpage_reading_progress} " .
+    "SELECT scrolltop FROM {longpage_reading_positions} " .
     "WHERE userid = :userid AND longpageid = :longpageid " .
     "ORDER BY timemodified DESC LIMIT 1",
     ['userid' => $USER->id, 'longpageid' => $page->id]
