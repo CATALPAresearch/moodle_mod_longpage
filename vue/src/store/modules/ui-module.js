@@ -41,11 +41,13 @@ export default {
     },
   },
   actions: {
-    [ACT.UPDATE_READING_PROGRESS]({ commit, getters }, scrollTop) {
-      return 0;
+    // Records that `section` (a DOM element id) was genuinely READ, not just
+    // scrolled past — callers (see ReadingBehaviorTracker.vue) only dispatch
+    // this for data points classified as read/study/regression, never for
+    // scan/preview, so a fast scroll-through no longer inflates the
+    // per-section "read count" shown by ReadingPositionIndicator.vue.
+    [ACT.UPDATE_READING_PROGRESS]({ commit, getters }, { scrollTop, section, sectionhash }) {
       const oldScrollTop = getters[GET.SCROLL_TOP];
-      console.log("update");
-      console.log(getters[GET.LONGPAGE_CONTEXT].courseId);
       commit(MUTATE.RESET_SCROLL_TOP, scrollTop);
       ajax.call([
         {
@@ -54,8 +56,8 @@ export default {
             longpageid: getters[GET.LONGPAGE_CONTEXT].longpageid,
             scrolltop: scrollTop,
             courseid: getters[GET.LONGPAGE_CONTEXT].courseId,
-            section: "",
-            sectionhash: 0,
+            section,
+            sectionhash,
           },
           fail: (e) => {
             console.error(

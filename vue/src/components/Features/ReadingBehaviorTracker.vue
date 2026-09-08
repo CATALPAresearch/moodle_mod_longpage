@@ -6,9 +6,23 @@
 import ajax from "core/ajax";
 import {
   ReadingBehaviorTracker as Tracker,
+  DATA_POINT_LABELS,
   cleanTextPreview,
 } from "@/lib/readingBehavior/reading-behavior-tracker";
 import { prepareContentElements } from "@/lib/longpageContent/prepare-content-elements";
+import { ACT } from "@/store/types";
+
+// Which data-point labels count as "this section was genuinely read", for
+// the legacy per-section read-count shown by ReadingPositionIndicator.vue
+// (longpage_reading_positions). SCAN and PREVIEW are deliberately excluded —
+// a fast pass-through should not inflate that count; REGRESSION (re-reading)
+// counts, since going back to re-read something is exactly the opposite of
+// "just scrolling past".
+var COUNTS_AS_READ = {
+  [DATA_POINT_LABELS.READ]: true,
+  [DATA_POINT_LABELS.STUDY]: true,
+  [DATA_POINT_LABELS.REGRESSION]: true,
+};
 
 /**
  * Classifies HOW an individual user is reading right now — scan / read /
@@ -190,6 +204,9 @@ export default {
             }
 
             _this.persistReadingBehaviorEvent(dataPoint);
+            if (COUNTS_AS_READ[dataPoint.label]) {
+              _this.recordReadingPosition(dataPoint);
+            }
           },
         });
 
@@ -259,8 +276,36 @@ export default {
         },
       ]);
     },
+
+    /**
+     * Records dataPoint's section as genuinely read (see COUNTS_AS_READ) —
+     * feeds longpage_reading_positions, i.e. the "resume last position"
+     * feature (view.php) and the per-section read-count badge
+     * (ReadingPositionIndicator.vue). Only called for read/study/regression
+     * data points, never for scan/preview.
+     */
+    recordReadingPosition: function (dataPoint) {
+      var container = document.querySelector("#longpage-main");
+      var scrollFraction =
+        container && container.scrollHeight
+          ? container.scrollTop / container.scrollHeight
+          : 0;
+      this.$store.dispatch(ACT.UPDATE_READING_PROGRESS, {
+        scrollTop: scrollFraction,
+        section: dataPoint.id,
+        sectionhash: hashSection(dataPoint.id),
+      });
+    },
   },
 };
+
+/** Same simple string hash the old (now removed) ReadingProgress.vue used. */
+function hashSection(id) {
+  return id.split("").reduce(function (hash, ch) {
+    hash = (hash << 5) - hash + ch.charCodeAt(0);
+    return hash & hash;
+  }, 0);
+}
 </script>
 
 <style></style>

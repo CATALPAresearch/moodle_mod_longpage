@@ -62,11 +62,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 import { ACT, GET } from "./store/types";
-import {
-  AnnotationType,
-  LONGPAGE_CONTENT_ID,
-  LONGPAGE_MAIN_ID,
-} from "@/util/constants";
+import { AnnotationType, LONGPAGE_CONTENT_ID } from "@/util/constants";
 import AnnotationToolbarController from "@/components/LongpageContent/Annotations/AnnotationToolbarController";
 import { EventBus } from "@/lib/core/event-bus";
 import { getHighlightsAnchoredAt } from "@/lib/annotation/highlight-selection-listening";
@@ -75,7 +71,6 @@ import LongpageSidebar from "@/components/LongpageSidebar";
 import { mapActions, mapGetters } from "vuex";
 import AnnotationIndicatorSidebar from "@/components/LongpageContent/Annotations/AnnotationIndicatorSidebar";
 //import { ReadingTimeEstimator } from "@/lib/reading-time-estimator";
-import throttle from "lodash/throttle";
 import { toIdSelector } from "@/util/dom/style";
 import Utils from "./util/utils";
 
@@ -129,21 +124,13 @@ export default {
     },
   },
   mounted() {
-    // Setup scroll listener immediately (no waiting for page-ready)
+    // Restore the last reading position immediately (no waiting for
+    // page-ready). Recording a NEW position is no longer done on every
+    // scroll tick here — see ReadingBehaviorTracker.vue, which calls
+    // UPDATE_READING_PROGRESS only for data points classified as genuine
+    // reading (read/study/regression), not for a fast scroll-through.
     this.$nextTick(() => {
       this.$refs.mainRef.scrollTop = this.scrollTop; // * this.$refs.mainRef.scrollHeight;
-      document.getElementById(LONGPAGE_MAIN_ID).addEventListener(
-        "scroll",
-        throttle(
-          ($event) => {
-            this[ACT.UPDATE_READING_PROGRESS](
-              $event.target.scrollTop / $event.target.scrollHeight,
-            );
-          },
-          1000,
-          { leading: false },
-        ),
-      );
     });
 
     var _this = this;
@@ -224,7 +211,6 @@ export default {
     ...mapActions([
       ACT.FETCH_ENROLLED_USERS,
       ACT.FETCH_USER_ROLES,
-      ACT.UPDATE_READING_PROGRESS,
       ACT.USER_CAN_MOD_ANNOTATION,
     ]),
     ...mapActions("annotation", [ACT.FETCH_ANNOTATIONS]),
