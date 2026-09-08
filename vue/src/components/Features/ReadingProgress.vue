@@ -181,6 +181,7 @@ export default {
                 "  ➜  " + dataPoint.label.toUpperCase() +
                 "\n    dwell=" + dataPoint.dwellSeconds.toFixed(1) + "s" +
                 "  peak=" + Math.round(dataPoint.peakRatio * 100) + "%" +
+                "  coverage=" + Math.round(dataPoint.coverageRatio * 100) + "%" +
                 "  words=" + dataPoint.words +
                 "\n    session=" + tracker.getSessionLabel() +
                 "  profile=" + tracker.getUserProfileLabel() +
@@ -190,6 +191,14 @@ export default {
 
             _this.persistReadingBehaviorEvent(dataPoint);
           },
+        });
+
+        // Without this, the LAST element on the page (nothing further to
+        // scroll/transition to) would never get its dwell finalized if the
+        // tab is closed before the tracker's own heartbeat timeout fires —
+        // see flushCurrentBaseline() in reading-behavior-tracker.js.
+        window.addEventListener("beforeunload", function () {
+          tracker.flushCurrentBaseline();
         });
 
         var observer = new IntersectionObserver(
@@ -316,6 +325,7 @@ export default {
             wordcount: dataPoint.words,
             dwellseconds: dataPoint.dwellSeconds,
             peakratio: dataPoint.peakRatio,
+            coverageratio: dataPoint.coverageRatio,
             minreadingtime: dataPoint.estimate.skimmingTime,
             avgreadingtime: dataPoint.estimate.readingTime,
             maxreadingtime: dataPoint.estimate.memorizingTime,

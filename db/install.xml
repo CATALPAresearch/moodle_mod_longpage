@@ -345,6 +345,7 @@
         <FIELD NAME="wordcount" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="dwellseconds" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
         <FIELD NAME="peakratio" TYPE="float" LENGTH="5" NOTNULL="true" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="coverageratio" TYPE="float" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="4" COMMENT="0-1: how much of the element's own height was ever inside the viewport during this dwell"/>
         <FIELD NAME="minreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
         <FIELD NAME="avgreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
         <FIELD NAME="maxreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>

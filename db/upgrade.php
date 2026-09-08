@@ -320,5 +320,29 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2026090802;
+    if ($oldversion < $newversion) {
+        // Add coverageratio to longpage_reading_behavior_events (how much
+        // of a long element's own height was actually scrolled through,
+        // vs. just peakRatio which is geometrically capped for elements
+        // taller than the viewport).
+        $table = new xmldb_table('longpage_reading_behavior_events');
+        $field = new xmldb_field(
+            'coverageratio',
+            XMLDB_TYPE_FLOAT,
+            '5, 4',
+            null,
+            XMLDB_NOTNULL,
+            null,
+            0,
+            'peakratio'
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }

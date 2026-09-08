@@ -64,6 +64,7 @@ class reading_behavior_services extends base_external {
      * @param int $wordcount
      * @param float $dwellseconds
      * @param float $peakratio
+     * @param float $coverageratio
      * @param float $minreadingtime
      * @param float $avgreadingtime
      * @param float $maxreadingtime
@@ -79,6 +80,7 @@ class reading_behavior_services extends base_external {
         $wordcount,
         $dwellseconds,
         $peakratio,
+        $coverageratio,
         $minreadingtime,
         $avgreadingtime,
         $maxreadingtime,
@@ -98,6 +100,7 @@ class reading_behavior_services extends base_external {
                 'wordcount' => $wordcount,
                 'dwellseconds' => $dwellseconds,
                 'peakratio' => $peakratio,
+                'coverageratio' => $coverageratio,
                 'minreadingtime' => $minreadingtime,
                 'avgreadingtime' => $avgreadingtime,
                 'maxreadingtime' => $maxreadingtime,
@@ -121,6 +124,7 @@ class reading_behavior_services extends base_external {
                 'wordcount' => $params['wordcount'],
                 'dwellseconds' => $params['dwellseconds'],
                 'peakratio' => $params['peakratio'],
+                'coverageratio' => $params['coverageratio'],
                 'minreadingtime' => $params['minreadingtime'],
                 'avgreadingtime' => $params['avgreadingtime'],
                 'maxreadingtime' => $params['maxreadingtime'],
@@ -146,10 +150,11 @@ class reading_behavior_services extends base_external {
             'courseid' => new external_value(PARAM_INT, 'Course id'),
             'sessionid' => new external_value(PARAM_ALPHANUMEXT, 'Client-generated reading-session UUID'),
             'targetid' => new external_value(PARAM_TEXT, 'DOM id of the observed element'),
-            'targettag' => new external_value(PARAM_ALPHA, 'Tag name of the observed element'),
+            'targettag' => new external_value(PARAM_ALPHANUM, 'Tag name of the observed element (e.g. p, h2-h5, table)'),
             'wordcount' => new external_value(PARAM_INT, 'Word count (0 for images/tables)'),
             'dwellseconds' => new external_value(PARAM_FLOAT, 'How long the element held the viewport baseline'),
             'peakratio' => new external_value(PARAM_FLOAT, 'Highest intersectionRatio reached, 0-1'),
+            'coverageratio' => new external_value(PARAM_FLOAT, '0-1: share of the element\'s own height ever visible during this dwell'),
             'minreadingtime' => new external_value(PARAM_FLOAT, 'Expected "scan/skim" duration, seconds'),
             'avgreadingtime' => new external_value(PARAM_FLOAT, 'Expected normal-reading duration, seconds'),
             'maxreadingtime' => new external_value(PARAM_FLOAT, 'Expected "study" (memorizing) duration, seconds'),

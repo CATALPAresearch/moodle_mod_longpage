@@ -112,11 +112,22 @@ export const READING_BEHAVIOR_CONFIG = {
   NON_TEXT_FAST_FACTOR: 0.4, // "scan" boundary = avg * this
   NON_TEXT_SLOW_FACTOR: 3, // "study" reaches up to avg * this
 
-  // An element only counts as genuinely "seen" (read/study) if it reached at
-  // least this peak intersection ratio while passing through the viewport;
-  // below it, the data point is forced to "scan" regardless of dwell time,
-  // since a low peak means only a sliver of the element was ever visible.
+  // intersectionRatio = visible area / total element area, so for an
+  // element TALLER than the viewport it can never reach anywhere near 1.0 —
+  // its geometric maximum is capped at (viewportHeight / elementHeight),
+  // reached only while the viewport sits entirely inside the element. A raw
+  // ratio threshold would therefore misclassify a fully, attentively read
+  // long paragraph as barely-glimpsed. So this is checked against
+  // peakRatio normalized by that element-specific achievable maximum (see
+  // _achievableMaxRatio), not against the raw ratio.
   MIN_PEAK_RATIO_FOR_READ: 0.5,
+
+  // Coverage = how much of the element's OWN height has, cumulatively, ever
+  // been inside the viewport during this dwell (see _updateCoverage) —
+  // catches "read the first quarter of a long paragraph, then left" even
+  // when peakRatio alone would look fine, and vice versa. Below this share,
+  // the data point is forced to "scan" regardless of dwell time or peak.
+  MIN_COVERAGE_FOR_READ: 0.6,
 
   // Regression (re-reading): net scroll movement during one baseline-dwell
   // interval that is upward by at least this many pixels marks the data
@@ -132,14 +143,37 @@ export const READING_BEHAVIOR_CONFIG = {
   PREVIEW_MAX_PEAK_RATIO: 0.4, // average peak ratio across the window
   PREVIEW_MAX_WINDOW_SECONDS: 8, // the whole burst must be this quick
 
-  // Disengagement / session boundaries. A gap since the previous data point
-  // longer than (element's own "memorizing" time * multiplier) — clamped
-  // between a floor (so a two-word heading doesn't trigger a false session
-  // break) and an absolute cap — starts a new session (fresh UUID) instead
-  // of being counted as one very long "study" data point.
+  // Disengagement / session boundaries — models the GAP *between* two
+  // elements: by the time a NEW element becomes the baseline, the previous
+  // one has already finished, so a hard cap here is fine (a long-enough gap
+  // really does mean "was away"). If the gap since the previous data point
+  // is longer than (that new element's own "memorizing" time * multiplier)
+  // — clamped between a floor (so a two-word heading doesn't trigger a
+  // false session break) and an absolute cap — a new session starts.
   DISENGAGEMENT_MULTIPLIER: 3,
   DISENGAGEMENT_MIN_SECONDS: 5,
   DISENGAGEMENT_MAX_SECONDS: 60,
+
+  // "Still reading" cutoff — deliberately SEPARATE from DISENGAGEMENT_*
+  // above, and used instead by the heartbeat (see HEARTBEAT_INTERVAL_MS).
+  // This answers a different question: how long can dwelling on ONE
+  // element continue before we checkpoint it, without assuming the person
+  // left? A hard 60s-style cap would be wrong here — a long, dense
+  // passage can legitimately take much longer than that to actually read,
+  // so this scales with the element's own "memorizing" estimate too, but
+  // with a much more generous cap (and no session break — see
+  // _checkHeartbeat, this only checkpoints, it never ends the session).
+  STILL_READING_MULTIPLIER: 2,
+  STILL_READING_MIN_SECONDS: 10,
+  STILL_READING_MAX_SECONDS: 300,
+
+  // A data point is normally finalized when the baseline moves to the NEXT
+  // element — which never happens for the last element on the page (there
+  // is nothing further to scroll to), or while someone lingers a long time
+  // on one (possibly long) element. This heartbeat periodically checks the
+  // STILL_READING_* cutoff above and, if crossed, checkpoints the ongoing
+  // dwell instead of waiting forever for a transition that may never come.
+  HEARTBEAT_INTERVAL_MS: 3000,
 
   // Aggregation thresholds: a label needs at least this share of the
   // underlying data points / sessions to become the dominant label;
@@ -327,6 +361,54 @@ export class ReadingBehaviorTracker {
     // tried and reverted as unreliable, so it is not reproduced here.
 
     this.startNewSession("initial");
+
+    // See HEARTBEAT_INTERVAL_MS above: without this, dwelling on the LAST
+    // element on the page (nothing to transition to) or simply going idle
+    // without triggering a new intersection entry would never finalize a
+    // data point at all.
+    this._heartbeatInterval = setInterval(() => {
+      this._checkHeartbeat();
+    }, this.config.HEARTBEAT_INTERVAL_MS);
+  }
+
+  _checkHeartbeat() {
+    if (!this.currentBaselineId || !this.baselineEnteredAt) {
+      return;
+    }
+    const state = this.elements.get(this.currentBaselineId);
+    if (!state) {
+      return;
+    }
+    const dwellSoFar = (Date.now() - this.baselineEnteredAt) / 1000;
+    if (dwellSoFar > this._stillReadingCutoffSeconds(state.estimate)) {
+      // Checkpoint only — NOT a new session. Genuine "went away" is caught
+      // separately by _isDisengagementGap once a genuinely new element
+      // becomes the baseline (see DISENGAGEMENT_* vs STILL_READING_*
+      // comments above); this just stops one dwell from growing forever.
+      this.flushCurrentBaseline();
+    }
+  }
+
+  /**
+   * Finalize whatever is currently being dwelled on right now, without
+   * waiting for a baseline transition — used by the heartbeat above and by
+   * a page-unload handler (see ReadingProgress.vue), so the LAST interval of
+   * a reading session is never silently dropped. Dwell tracking on the same
+   * element then restarts from now, in case reading continues afterwards.
+   *
+   * Callers don't need to pass anything — the resulting data point flows
+   * through the normal onDataPoint callback like any other, already visible
+   * via the debug console log wired up in ReadingProgress.vue without this
+   * method needing its own logging. This never itself starts a new session
+   * (see _checkHeartbeat) — it only checkpoints an ongoing dwell.
+   */
+  flushCurrentBaseline() {
+    if (!this.currentBaselineId) {
+      return;
+    }
+    this._finalizeCurrentBaseline();
+    this.baselineEnteredAt = Date.now();
+    this.baselineScrollTopAtEnter = this._getScrollTop();
   }
 
   /** Call once with the current element registered for observation. */
@@ -338,8 +420,40 @@ export class ReadingBehaviorTracker {
       rect: el.getBoundingClientRect(),
       ratio: 0,
       peakRatio: 0,
+      // Coverage tracking (see _updateCoverage/MIN_COVERAGE_FOR_READ): the
+      // range of the element's OWN height (0 = its top, height = its
+      // bottom) that has been inside the viewport at any point during the
+      // CURRENT dwell. Reset after each finalize, so it reflects "this
+      // visit", not the element's whole lifetime on the page.
+      minVisibleLocal: Infinity,
+      maxVisibleLocal: -Infinity,
       estimate: estimateReadingTime(el, this.language, this.config),
     });
+  }
+
+  /**
+   * Widen [minVisibleLocal, maxVisibleLocal] with the slice of the element
+   * (in the element's own coordinates, 0 = top) that is visible right now.
+   */
+  _updateCoverage(state, rect) {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const localTop = Math.max(0, -rect.top);
+    const localBottom = Math.min(rect.height, viewportHeight - rect.top);
+    if (localBottom <= localTop) {
+      return;
+    }
+    state.minVisibleLocal = Math.min(state.minVisibleLocal, localTop);
+    state.maxVisibleLocal = Math.max(state.maxVisibleLocal, localBottom);
+  }
+
+  /**
+   * How visible an element could EVER get, given its own height vs. the
+   * viewport — intersectionRatio is capped at this for anything taller
+   * than the viewport (see MIN_PEAK_RATIO_FOR_READ above).
+   */
+  _achievableMaxRatio(elementHeight) {
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    return elementHeight > 0 ? Math.min(1, viewportHeight / elementHeight) : 1;
   }
 
   /** Feed one IntersectionObserver callback's entries into the tracker. */
@@ -358,6 +472,9 @@ export class ReadingBehaviorTracker {
       // it is still the current baseline (_finalizeCurrentBaseline reads it).
       state.ratio = entry.intersectionRatio;
       state.peakRatio = Math.max(state.peakRatio, entry.intersectionRatio);
+      if (entry.intersectionRatio > 0) {
+        this._updateCoverage(state, entry.boundingClientRect);
+      }
 
       // Raw, unopinionated telemetry — one point per threshold crossing,
       // independent of the baseline/session/label pipeline below.
@@ -453,12 +570,24 @@ export class ReadingBehaviorTracker {
 
     const netScrollPx = this._getScrollTop() - this.baselineScrollTopAtEnter;
 
+    const elementHeight = state.rect.height || 1;
+    const coverageRatio =
+      state.maxVisibleLocal > state.minVisibleLocal
+        ? Math.min(1, (state.maxVisibleLocal - state.minVisibleLocal) / elementHeight)
+        : 0;
+    // Coverage is "this visit", not the element's whole lifetime — reset so
+    // a later re-visit (e.g. after a regression) starts fresh.
+    state.minVisibleLocal = Infinity;
+    state.maxVisibleLocal = -Infinity;
+
     const dataPoint = {
       id: this.currentBaselineId,
       tag: state.tag,
       words: state.estimate.words,
       dwellSeconds,
       peakRatio: state.peakRatio,
+      achievableMaxRatio: this._achievableMaxRatio(elementHeight),
+      coverageRatio,
       estimate: state.estimate,
       enteredAt: this.baselineEnteredAt,
       finalizedAt: now,
@@ -478,18 +607,28 @@ export class ReadingBehaviorTracker {
     this.onDataPoint(dataPoint);
   }
 
-  _isDisengagementGap(gapSeconds, estimate) {
-    if (gapSeconds <= 0) {
-      return false;
-    }
-    const cutoff = Math.min(
+  _disengagementCutoffSeconds(estimate) {
+    return Math.min(
       this.config.DISENGAGEMENT_MAX_SECONDS,
       Math.max(
         estimate.memorizingTime * this.config.DISENGAGEMENT_MULTIPLIER,
         this.config.DISENGAGEMENT_MIN_SECONDS,
       ),
     );
-    return gapSeconds > cutoff;
+  }
+
+  _isDisengagementGap(gapSeconds, estimate) {
+    return gapSeconds > 0 && gapSeconds > this._disengagementCutoffSeconds(estimate);
+  }
+
+  _stillReadingCutoffSeconds(estimate) {
+    return Math.min(
+      this.config.STILL_READING_MAX_SECONDS,
+      Math.max(
+        estimate.memorizingTime * this.config.STILL_READING_MULTIPLIER,
+        this.config.STILL_READING_MIN_SECONDS,
+      ),
+    );
   }
 
   _classifyDataPoint(dataPoint, netScrollPx) {
@@ -499,7 +638,18 @@ export class ReadingBehaviorTracker {
     if (this._isPreviewBurst(dataPoint)) {
       return DATA_POINT_LABELS.PREVIEW;
     }
-    if (dataPoint.peakRatio < this.config.MIN_PEAK_RATIO_FOR_READ) {
+    // Normalize peakRatio against what was even geometrically achievable
+    // for this element's height (see _achievableMaxRatio) — otherwise a
+    // long paragraph could never pass this gate at all. Coverage catches
+    // the complementary case: high peak, but only a fraction of a long
+    // element was ever scrolled through (e.g. abandoned before the last
+    // quarter) before this dwell ended.
+    const normalizedPeak =
+      dataPoint.achievableMaxRatio > 0 ? dataPoint.peakRatio / dataPoint.achievableMaxRatio : 0;
+    if (
+      normalizedPeak < this.config.MIN_PEAK_RATIO_FOR_READ ||
+      dataPoint.coverageRatio < this.config.MIN_COVERAGE_FOR_READ
+    ) {
       return DATA_POINT_LABELS.SCAN;
     }
     return classifyDwell(dataPoint.dwellSeconds, dataPoint.estimate);
@@ -586,6 +736,7 @@ export class ReadingBehaviorTracker {
 
   destroy() {
     window.removeEventListener("focus", this._boundOnFocus);
+    clearInterval(this._heartbeatInterval);
   }
 }
 
