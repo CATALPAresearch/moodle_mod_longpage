@@ -60,14 +60,14 @@ class mod_longpage_mod_form extends moodleform_mod {
             // IMMEDIATE standards mode enforcement
             if (!document.doctype || document.compatMode !== "CSS1Compat") {
                 console.warn("Longpage: Document not in standards mode, applying emergency fix");
-                
+
                 // Override TinyMCE compatibility check
                 if (typeof window.tinymce !== "undefined") {
                     window.tinymce.Env = window.tinymce.Env || {};
                     window.tinymce.Env.quirks = false;
                     window.tinymce.Env.webkit = false;
                 }
-                
+
                 // Override document.compatMode if needed
                 if (document.compatMode !== "CSS1Compat") {
                     try {
@@ -81,7 +81,7 @@ class mod_longpage_mod_form extends moodleform_mod {
                     }
                 }
             }
-            
+
             requirejs.undef("mod_longpage/app-lazy");
             window.EDITING_LONGPAGE_MODULE = true;
             console.log("Longpage: Editing context established, standards mode enforced");

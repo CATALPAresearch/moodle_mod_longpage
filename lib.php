@@ -250,6 +250,15 @@ function longpage_add_instance($data, $mform = null) {
     $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
     $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
 
+    // "Grade to pass" is legitimately left blank by default — core's
+    // moodleform_mod::data_postprocessing() then sets $data->gradepass to
+    // null (via unformat_float('')) — but longpage.gradepass is a NOT NULL
+    // column, so inserting that raw null throws a dml_write_exception.
+    // longpage_grade_item_update() below already treats a missing/null
+    // gradepass as 0, so this matches its existing behaviour.
+    $data->gradepass = $data->gradepass ?? 0;
+    $data->grade = $data->grade ?? 100;
+
     if (!$data->id = $DB->insert_record('longpage', $data)) {
         throw new moodle_exception('errorinsertingrecord', 'mod_longpage');
     }
@@ -326,6 +335,12 @@ function longpage_update_instance($data, $mform) {
     $data->showbookmarks = !empty($data->showbookmarks) ? 1 : 0;
     $data->showeditquestionsnoai = !empty($data->showeditquestionsnoai) ? 1 : 0;
     $data->showeditquestionsai = !empty($data->showeditquestionsai) ? 1 : 0;
+
+    // See the matching comment in longpage_add_instance(): gradepass can
+    // legitimately arrive as null when "Grade to pass" is left blank, but
+    // the column is NOT NULL.
+    $data->gradepass = $data->gradepass ?? 0;
+    $data->grade = $data->grade ?? 100;
 
     $DB->update_record('longpage', $data);
 
