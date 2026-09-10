@@ -335,6 +335,14 @@ $functions = [
         'capabilities' => 'mod/longpage:modannotations',
         'ajax' => true,
     ],
+    'mod_longpage_get_course_longpages' => [
+        'classname' => 'mod_longpage\\external\\analytics_services',
+        'methodname' => 'get_course_longpages',
+        'description' => 'List longpage instances in a course for the dashboard multiselect',
+        'type' => 'read',
+        'capabilities' => 'mod/longpage:modannotations',
+        'ajax' => true,
+    ],
     'mod_longpage_update_readingskill' => [
         'classname' => 'mod_longpage\\external\\elo_services',
         'methodname' => 'update_readingskill',

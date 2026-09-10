@@ -351,6 +351,7 @@
         <FIELD NAME="maxreadingtime" TYPE="float" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="3"/>
         <FIELD NAME="datapointlabel" TYPE="char" LENGTH="16" NOTNULL="true" SEQUENCE="false" COMMENT="scan|read|study|regression|preview"/>
         <FIELD NAME="language" TYPE="char" LENGTH="8" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="scrolltop" TYPE="float" LENGTH="5" NOTNULL="false" SEQUENCE="false" DECIMALS="4" COMMENT="0-1: #longpage-main scrollTop/scrollHeight when this data point was finalized; null for rows logged before this field existed"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

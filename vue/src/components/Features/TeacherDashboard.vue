@@ -43,6 +43,38 @@
           </div>
         </div>
 
+        <div
+          v-if="courseLongpages.length > 1"
+          class="dashboard-instance-selector"
+        >
+          <label class="instance-selector-label mb-0 mr-2">
+            {{
+              $t("features.teacherDashboard.instancesLabel") ||
+              "Longpage instances"
+            }}
+          </label>
+          <select
+            v-model="selectedLongpageIds"
+            multiple
+            class="form-control form-control-sm instance-multiselect"
+            @change="loadAnalytics"
+          >
+            <option v-for="lp in courseLongpages" :key="lp.id" :value="lp.id">
+              {{ lp.name }}
+            </option>
+          </select>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary ml-2"
+            @click="selectAllLongpages"
+          >
+            {{
+              $t("features.teacherDashboard.selectAllInstances") ||
+              "Select all"
+            }}
+          </button>
+        </div>
+
         <div v-if="isLoading" class="dashboard-loading">
           <i class="fa fa-spinner fa-spin fa-2x" aria-hidden="true" />
           <p>
@@ -54,6 +86,16 @@
 
         <div v-else-if="error" class="dashboard-error alert alert-danger">
           {{ error }}
+        </div>
+
+        <div
+          v-else-if="selectedLongpageIds.length === 0"
+          class="dashboard-error alert alert-warning"
+        >
+          {{
+            $t("features.teacherDashboard.noInstanceSelected") ||
+            "Select at least one longpage instance to see analytics."
+          }}
         </div>
 
         <div v-else class="dashboard-content">
@@ -89,6 +131,85 @@
             </h4>
             <canvas ref="readingDistributionChart"></canvas>
           </div>
+
+          <!-- Chart 4: Reading Behavior Over the Semester -->
+          <div class="chart-container">
+            <h4>
+              {{
+                $t("features.teacherDashboard.readingBehaviorTrendTitle") ||
+                "Reading Behavior Over the Semester"
+              }}
+            </h4>
+            <canvas ref="readingBehaviorTrendChart"></canvas>
+          </div>
+
+          <!-- Per-student reading behavior table -->
+          <div class="chart-container">
+            <h4>
+              {{
+                $t("features.teacherDashboard.readingBehaviorByStudentTitle") ||
+                "Reading Behavior by Student"
+              }}
+            </h4>
+            <table
+              v-if="
+                analyticsData.readingbehaviorbystudent &&
+                analyticsData.readingbehaviorbystudent.length
+              "
+              class="table table-sm table-hover reading-behavior-table"
+            >
+              <thead>
+                <tr>
+                  <th
+                    v-for="col in studentTableColumns"
+                    :key="col.key"
+                    role="button"
+                    tabindex="0"
+                    :title="col.help"
+                    @click="sortStudentsBy(col.key)"
+                    @keydown.enter="sortStudentsBy(col.key)"
+                  >
+                    {{ col.label
+                    }}<i
+                      v-if="col.help"
+                      class="fa fa-info-circle ml-1 text-muted"
+                      aria-hidden="true"
+                    /><i
+                      v-if="studentSortKey === col.key"
+                      class="fa ml-1"
+                      :class="studentSortAsc ? 'fa-caret-up' : 'fa-caret-down'"
+                      aria-hidden="true"
+                    />
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="student in sortedStudentBehavior"
+                  :key="student.userid"
+                >
+                  <td>{{ student.fullname }}</td>
+                  <td>{{ student.scan }}%</td>
+                  <td>{{ student.read }}%</td>
+                  <td>{{ student.study }}%</td>
+                  <td>{{ student.regression }}%</td>
+                  <td>{{ student.preview }}%</td>
+                  <td>{{ student.avgcoverage }}%</td>
+                  <td>{{ student.highlights }}</td>
+                  <td>{{ student.bookmarks }}</td>
+                  <td>{{ student.notes }}</td>
+                  <td>{{ student.comments }}</td>
+                  <td>{{ formatLastActive(student.lastactive) }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p v-else class="text-muted mb-0">
+              {{
+                $t("features.teacherDashboard.noReadingBehaviorData") ||
+                "No reading-behavior data yet for this semester."
+              }}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -104,6 +225,48 @@ import { Chart, registerables } from "chart.js";
 // Register all Chart.js components
 Chart.register(...registerables);
 
+// Draws a vertical reference line (+ small label) at week indices where a
+// calendar year or a semester begins — there's no bundled Chart.js
+// annotation plugin in this project, and a couple of dozen lines of canvas
+// drawing is simpler than adding chartjs-plugin-annotation as a dependency
+// for this one feature.
+const boundaryLinePlugin = {
+  id: "boundaryLines",
+  afterDraw(chart, _args, opts) {
+    const boundaries = opts && opts.boundaries;
+    if (!boundaries || !boundaries.length) return;
+
+    const { ctx, chartArea, scales } = chart;
+    const xScale = scales.x;
+    if (!xScale || !chartArea) return;
+
+    // Uniform category width, used to place the line at the LEFT edge of
+    // the boundary's bar/tick rather than through its center.
+    const categoryWidth = xScale.getPixelForValue(1) - xScale.getPixelForValue(0);
+
+    ctx.save();
+    boundaries.forEach(({ index, label, type }) => {
+      const x = xScale.getPixelForValue(index) - categoryWidth / 2;
+      ctx.beginPath();
+      ctx.lineWidth = type === "year" ? 1.5 : 1;
+      ctx.strokeStyle = type === "year" ? "#495057" : "#adb5bd";
+      ctx.setLineDash(type === "year" ? [] : [4, 3]);
+      ctx.moveTo(x, chartArea.top);
+      ctx.lineTo(x, chartArea.bottom);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.fillStyle = type === "year" ? "#495057" : "#868e96";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText(label, x + 3, chartArea.top + 2);
+    });
+    ctx.restore();
+  },
+};
+Chart.register(boundaryLinePlugin);
+
 export default {
   name: "TeacherDashboard",
   props: {
@@ -116,18 +279,101 @@ export default {
       error: null,
       semesters: [],
       selectedSemester: null,
+      courseLongpages: [],
+      selectedLongpageIds: [],
       analyticsData: null,
       charts: {
         weeklyActivity: null,
         userEngagement: null,
         readingDistribution: null,
+        readingBehaviorTrend: null,
       },
+      studentSortKey: "fullname",
+      studentSortAsc: true,
     };
   },
   computed: {
     ...mapGetters({ context: GET.LONGPAGE_CONTEXT }),
     canViewDashboard() {
       return this.context?.isAdmin || this.context?.canModAnnotations;
+    },
+    // A computed property (not static data()) so column labels/explanations
+    // go through $t() — same dotted-path -> underscore lang-string
+    // convention as everywhere else in this component.
+    studentTableColumns() {
+      const label = (key, fallback) =>
+        this.$t(`features.teacherDashboard.chartLabels.${key}`) || fallback;
+      const help = (key, fallback) =>
+        this.$t(`features.teacherDashboard.columnHelp.${key}`) || fallback;
+      return [
+        { key: "fullname", label: label("student", "Student"), help: null },
+        {
+          key: "scan",
+          label: label("scan", "Scan"),
+          help: help("scan", "Share of dwell time spent briefly scanning past this content."),
+        },
+        {
+          key: "read",
+          label: label("read", "Read"),
+          help: help("read", "Share spent reading at a normal pace."),
+        },
+        {
+          key: "study",
+          label: label("study", "Study"),
+          help: help("study", "Share spent studying closely, well above normal reading pace."),
+        },
+        {
+          key: "regression",
+          label: label("regression", "Regression"),
+          help: help("regression", "Share spent scrolling back up to re-read — often a sign of confusion or double-checking."),
+        },
+        {
+          key: "preview",
+          label: label("preview", "Preview"),
+          help: help("preview", "Share classified as a brief preview glance, not sustained reading."),
+        },
+        {
+          key: "avgcoverage",
+          label: label("avgCoverage", "Ø Coverage"),
+          help: help("avgCoverage", "On average, how much of each element's own height was actually scrolled into view."),
+        },
+        {
+          key: "highlights",
+          label: label("highlights", "Highlights"),
+          help: help("highlights", "Number of text passages the student highlighted."),
+        },
+        {
+          key: "bookmarks",
+          label: label("bookmarks", "Bookmarks"),
+          help: help("bookmarks", "Number of page-location bookmarks the student set."),
+        },
+        {
+          key: "notes",
+          label: label("notes", "Notes"),
+          help: help("notes", "Number of personal, non-public notes the student wrote."),
+        },
+        {
+          key: "comments",
+          label: label("comments", "Comments"),
+          help: help("comments", "Number of public comments the student posted."),
+        },
+        {
+          key: "lastactive",
+          label: label("lastActive", "Last active"),
+          help: help("lastActive", "Date of the student's most recent classified reading activity."),
+        },
+      ];
+    },
+    sortedStudentBehavior() {
+      const rows = this.analyticsData?.readingbehaviorbystudent || [];
+      const key = this.studentSortKey;
+      const dir = this.studentSortAsc ? 1 : -1;
+      return [...rows].sort((a, b) => {
+        if (typeof a[key] === "string") {
+          return a[key].localeCompare(b[key]) * dir;
+        }
+        return (a[key] - b[key]) * dir;
+      });
     },
   },
   methods: {
@@ -140,7 +386,7 @@ export default {
       this.error = null;
 
       try {
-        await this.loadSemesters();
+        await Promise.all([this.loadSemesters(), this.loadCourseLongpages()]);
         if (this.semesters.length > 0) {
           this.selectedSemester = this.semesters[this.semesters.length - 1];
           await this.loadAnalytics();
@@ -167,8 +413,25 @@ export default {
       };
       this.semesters = await moodleAjax.call([request])[0];
     },
+    // Populates the multiselect at the top of the dashboard with every
+    // longpage instance in the current course; defaults to just the
+    // instance the teacher opened the dashboard from.
+    async loadCourseLongpages() {
+      const request = {
+        methodname: "mod_longpage_get_course_longpages",
+        args: {
+          courseid: this.context.courseId,
+        },
+      };
+      this.courseLongpages = await moodleAjax.call([request])[0];
+      this.selectedLongpageIds = [this.context.longpageid];
+    },
+    selectAllLongpages() {
+      this.selectedLongpageIds = this.courseLongpages.map((lp) => lp.id);
+      this.loadAnalytics();
+    },
     async loadAnalytics() {
-      if (!this.selectedSemester) {
+      if (!this.selectedSemester || this.selectedLongpageIds.length === 0) {
         return;
       }
 
@@ -179,7 +442,7 @@ export default {
         const request = {
           methodname: "mod_longpage_get_dashboard_analytics",
           args: {
-            longpageid: this.context.longpageid,
+            longpageids: this.selectedLongpageIds,
             semesterstart: this.selectedSemester.start,
             semesterend: this.selectedSemester.end,
           },
@@ -210,7 +473,69 @@ export default {
         weeklyActivity: null,
         userEngagement: null,
         readingDistribution: null,
+        readingBehaviorTrend: null,
       };
+    },
+    sortStudentsBy(key) {
+      if (this.studentSortKey === key) {
+        this.studentSortAsc = !this.studentSortAsc;
+      } else {
+        this.studentSortKey = key;
+        this.studentSortAsc = true;
+      }
+    },
+    formatLastActive(timestamp) {
+      if (!timestamp) return "-";
+      return new Date(timestamp * 1000).toLocaleDateString();
+    },
+    // Backend week keys are "YYYY-WW" (ISO week). Just the week number is
+    // shown on the tick — year/semester context is carried by the vertical
+    // boundary lines (see boundaryLinePlugin) instead of repeating the year
+    // as text on every single tick.
+    formatWeekLabels(data) {
+      return data.map((d) => {
+        const [, week] = String(d.week || "").split("-");
+        const weeknum = parseInt(week, 10);
+        return Number.isNaN(weeknum) ? week : String(weeknum);
+      });
+    },
+    // For each week (after the first), detect whether it starts a new
+    // calendar year and/or a new semester (Apr 1 / Oct 1) compared to the
+    // previous week — used to draw boundaryLinePlugin's reference lines. A
+    // simultaneous year+semester change (e.g. New Year's Day inside a
+    // winter semester) only draws the year line, since that's the bigger
+    // boundary and showing both would just duplicate the marker.
+    computeTimeBoundaries(data) {
+      const semesterOf = (date) => {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+        if (month >= 10) {
+          return { key: `WS${year}`, label: `WS ${year}/${year + 1}` };
+        }
+        if (month >= 4) {
+          return { key: `SS${year}`, label: `SS ${year}` };
+        }
+        return { key: `WS${year - 1}`, label: `WS ${year - 1}/${year}` };
+      };
+
+      const boundaries = [];
+      let prevYear = null;
+      let prevSemesterKey = null;
+      data.forEach((d, index) => {
+        const date = new Date(d.weekstart * 1000);
+        const year = date.getFullYear();
+        const semester = semesterOf(date);
+        if (index > 0) {
+          if (year !== prevYear) {
+            boundaries.push({ index, label: String(year), type: "year" });
+          } else if (semester.key !== prevSemesterKey) {
+            boundaries.push({ index, label: semester.label, type: "semester" });
+          }
+        }
+        prevYear = year;
+        prevSemesterKey = semester.key;
+      });
+      return boundaries;
     },
     renderCharts() {
       this.destroyCharts();
@@ -233,16 +558,17 @@ export default {
       this.renderWeeklyActivityChart();
       this.renderUserEngagementChart();
       this.renderReadingDistributionChart();
+      this.renderReadingBehaviorTrendChart();
     },
     renderWeeklyActivityChart() {
       const ctx = this.$refs.weeklyActivityChart;
       if (!ctx) return;
 
       const data = this.analyticsData.weeklyactivity;
-      const labels = data.map((d) => d.week);
+      const labels = this.formatWeekLabels(data);
 
       this.charts.weeklyActivity = new Chart(ctx, {
-        type: "line",
+        type: "bar",
         data: {
           labels,
           datasets: [
@@ -251,73 +577,74 @@ export default {
                 this.$t("features.teacherDashboard.chartLabels.views") ||
                 "Page Views",
               data: data.map((d) => d.views),
-              borderColor: "#007bff",
-              backgroundColor: "rgba(0, 123, 255, 0.1)",
-              fill: true,
+              backgroundColor: "#007bff",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.searches") ||
                 "Searches",
               data: data.map((d) => d.searches),
-              borderColor: "#28a745",
-              backgroundColor: "rgba(40, 167, 69, 0.1)",
-              fill: true,
+              backgroundColor: "#28a745",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.tocuses") ||
                 "TOC Uses",
               data: data.map((d) => d.tocuses),
-              borderColor: "#ffc107",
-              backgroundColor: "rgba(255, 193, 7, 0.1)",
-              fill: true,
+              backgroundColor: "#ffc107",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.quizattempts") ||
                 "Quiz Attempts",
               data: data.map((d) => d.quizattempts),
-              borderColor: "#dc3545",
-              backgroundColor: "rgba(220, 53, 69, 0.1)",
-              fill: true,
+              backgroundColor: "#dc3545",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.highlights") ||
                 "Highlights",
               data: data.map((d) => d.highlights),
-              borderColor: "#ffe47c",
-              backgroundColor: "rgba(255, 228, 124, 0.3)",
-              fill: false,
+              backgroundColor: "#e8c840",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.posts") ||
                 "Posts",
               data: data.map((d) => d.posts),
-              borderColor: "#17a2b8",
-              backgroundColor: "rgba(23, 162, 184, 0.1)",
-              fill: false,
+              backgroundColor: "#17a2b8",
             },
             {
               label:
                 this.$t("features.teacherDashboard.chartLabels.bookmarks") ||
                 "Bookmarks",
               data: data.map((d) => d.bookmarks),
-              borderColor: "#6f42c1",
-              backgroundColor: "rgba(111, 66, 193, 0.1)",
-              fill: false,
+              backgroundColor: "#6f42c1",
             },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
           scales: {
+            x: {
+              stacked: true,
+              ticks: { maxRotation: 0, minRotation: 0 },
+              title: {
+                display: true,
+                text:
+                  this.$t("features.teacherDashboard.chartLabels.calendarWeek") ||
+                  "Calendar Week",
+              },
+            },
             y: {
+              stacked: true,
               beginAtZero: true,
             },
+          },
+          plugins: {
+            boundaryLines: { boundaries: this.computeTimeBoundaries(data) },
           },
         },
       });
@@ -327,7 +654,7 @@ export default {
       if (!ctx) return;
 
       const data = this.analyticsData.userengagement;
-      const labels = data.map((d) => d.week);
+      const labels = this.formatWeekLabels(data);
 
       this.charts.userEngagement = new Chart(ctx, {
         type: "bar",
@@ -357,11 +684,27 @@ export default {
           responsive: true,
           maintainAspectRatio: false,
           scales: {
+            x: {
+              ticks: { maxRotation: 0, minRotation: 0 },
+              title: {
+                display: true,
+                text:
+                  this.$t("features.teacherDashboard.chartLabels.calendarWeek") ||
+                  "Calendar Week",
+              },
+            },
             y: {
               type: "linear",
               display: true,
               position: "left",
               beginAtZero: true,
+              // Users is always a whole number — without this, Chart.js's
+              // auto tick step for a small max (e.g. a single user) divides
+              // the axis into fractions (0.2, 0.5, ...), which is nonsense
+              // for a count of people.
+              ticks: {
+                precision: 0,
+              },
               title: {
                 display: true,
                 text:
@@ -385,6 +728,9 @@ export default {
               },
             },
           },
+          plugins: {
+            boundaryLines: { boundaries: this.computeTimeBoundaries(data) },
+          },
         },
       });
     },
@@ -395,28 +741,35 @@ export default {
       const data = this.analyticsData.readingdistribution;
       const labels = data.map((d) => d.position);
 
+      // Same fixed behavior-category colors as the "Reading Behavior Over
+      // the Semester" chart, so the same category reads the same color in
+      // both charts.
+      const series = [
+        { key: "scan", solid: "#6c757d" },
+        { key: "read", solid: "#28a745" },
+        { key: "study", solid: "#17a2b8" },
+        { key: "regression", solid: "#ffc107" },
+        { key: "preview", solid: "#6f42c1" },
+      ];
+
       this.charts.readingDistribution = new Chart(ctx, {
         type: "bar",
         data: {
           labels,
-          datasets: [
-            {
-              label:
-                this.$t(
-                  "features.teacherDashboard.chartLabels.readingEvents",
-                ) || "Reading Events",
-              data: data.map((d) => d.count),
-              backgroundColor: "rgba(23, 162, 184, 0.6)",
-              borderColor: "rgba(23, 162, 184, 1)",
-              borderWidth: 1,
-            },
-          ],
+          datasets: series.map(({ key, solid }) => ({
+            label:
+              this.$t(`features.teacherDashboard.chartLabels.${key}`) || key,
+            data: data.map((d) => d[key]),
+            backgroundColor: solid,
+          })),
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
           scales: {
             x: {
+              stacked: true,
               title: {
                 display: true,
                 text:
@@ -426,12 +779,122 @@ export default {
               },
             },
             y: {
+              stacked: true,
               beginAtZero: true,
+              ticks: {
+                precision: 0,
+              },
               title: {
                 display: true,
                 text:
                   this.$t("features.teacherDashboard.chartLabels.eventCount") ||
                   "Event Count",
+              },
+            },
+          },
+        },
+      });
+    },
+    renderReadingBehaviorTrendChart() {
+      const ctx = this.$refs.readingBehaviorTrendChart;
+      if (!ctx) return;
+
+      const data = this.analyticsData.readingbehaviortrend;
+      const labels = this.formatWeekLabels(data);
+
+      // Fixed, non-cycled colors, one per behavior category — scan/read/study
+      // (Carver's reading-depth gears) get adjacent hues already used
+      // elsewhere in this dashboard for consistency; regression/preview are
+      // a different axis (not "more/less engaged") and get visually distinct
+      // hues.
+      const series = [
+        { key: "scan", solid: "#6c757d" },
+        { key: "read", solid: "#28a745" },
+        { key: "study", solid: "#17a2b8" },
+        { key: "regression", solid: "#ffc107" },
+        { key: "preview", solid: "#6f42c1" },
+      ];
+
+      // The backend returns each category's share of ALL classified events
+      // that week — kept here, untouched, so a legend toggle can renormalize
+      // the still-visible categories back to 100% and be undone without
+      // drift. (share_i / total original % of currently-visible categories,
+      // algebraically equal to count_i / count_of_visible_categories * 100.)
+      const originalShares = series.map(({ key }) => data.map((d) => d[key]));
+
+      const recomputeVisibleShares = (chart) => {
+        data.forEach((_d, weekIndex) => {
+          const visibleTotal = series.reduce((sum, _s, i) => {
+            const isVisible = !chart.getDatasetMeta(i).hidden;
+            return sum + (isVisible ? originalShares[i][weekIndex] : 0);
+          }, 0);
+          series.forEach((_s, i) => {
+            const isVisible = !chart.getDatasetMeta(i).hidden;
+            const share = originalShares[i][weekIndex];
+            chart.data.datasets[i].data[weekIndex] =
+              isVisible && visibleTotal > 0
+                ? Math.round((share / visibleTotal) * 1000) / 10
+                : 0;
+          });
+        });
+      };
+
+      this.charts.readingBehaviorTrend = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: series.map(({ key, solid }, index) => ({
+            label:
+              this.$t(`features.teacherDashboard.chartLabels.${key}`) || key,
+            data: [...originalShares[index]],
+            backgroundColor: solid,
+          })),
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          scales: {
+            x: {
+              stacked: true,
+              ticks: { maxRotation: 0, minRotation: 0 },
+              title: {
+                display: true,
+                text:
+                  this.$t("features.teacherDashboard.chartLabels.calendarWeek") ||
+                  "Calendar Week",
+              },
+            },
+            y: {
+              stacked: true,
+              min: 0,
+              max: 100,
+              title: {
+                display: true,
+                text:
+                  this.$t("features.teacherDashboard.chartLabels.sharePercent") ||
+                  "Share of classified reading events (%)",
+              },
+            },
+          },
+          plugins: {
+            boundaryLines: { boundaries: this.computeTimeBoundaries(data) },
+            legend: {
+              onClick: (_evt, legendItem, legend) => {
+                const chart = legend.chart;
+                const index = legendItem.datasetIndex;
+                const meta = chart.getDatasetMeta(index);
+                // Toggle: if visible now, hide it; if hidden, show it again —
+                // the standard Chart.js idiom for a custom stacked-chart
+                // legend click (default onClick doesn't renormalize).
+                meta.hidden = chart.isDatasetVisible(index);
+                recomputeVisibleShares(chart);
+                chart.update();
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: (item) => `${item.dataset.label}: ${item.formattedValue}%`,
               },
             },
           },
@@ -500,6 +963,28 @@ export default {
   min-width: 150px;
 }
 
+.dashboard-instance-selector {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #eee;
+  background: #f8f9fa;
+}
+
+.instance-selector-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.instance-multiselect {
+  min-width: 220px;
+  max-width: 420px;
+  height: auto;
+  min-height: 32px;
+}
+
 .dashboard-loading,
 .dashboard-error {
   padding: 40px;
@@ -531,5 +1016,11 @@ export default {
 .chart-container canvas {
   width: 100% !important;
   height: 300px !important;
+}
+
+.reading-behavior-table th[role="button"] {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
 }
 </style>

@@ -404,5 +404,32 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2026091000;
+    if ($oldversion < $newversion) {
+        // Add scrolltop to longpage_reading_behavior_events so the Teacher
+        // Dashboard's "Reading Position Distribution" chart can bucket
+        // classified behavior events (scan/read/study/regression/preview)
+        // by where in the document they happened, not just count them.
+        // Nullable: rows logged before this field existed have no position
+        // and are excluded from that chart rather than defaulting to 0
+        // (which would fake a spike at the very start of the document).
+        $table = new xmldb_table('longpage_reading_behavior_events');
+        $field = new xmldb_field(
+            'scrolltop',
+            XMLDB_TYPE_FLOAT,
+            '5, 4',
+            null,
+            null,
+            null,
+            null,
+            'language'
+        );
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }

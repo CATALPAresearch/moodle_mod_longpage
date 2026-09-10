@@ -246,6 +246,14 @@ export default {
       }
     },
 
+    /** 0-1 fraction of how far down #longpage-main is currently scrolled. */
+    getScrollFraction: function () {
+      var container = document.querySelector("#longpage-main");
+      return container && container.scrollHeight
+        ? container.scrollTop / container.scrollHeight
+        : 0;
+    },
+
     /** Send one finalized reading-behavior data point to the server. */
     persistReadingBehaviorEvent: function (dataPoint) {
       ajax.call([
@@ -266,6 +274,7 @@ export default {
             maxreadingtime: dataPoint.estimate.memorizingTime,
             datapointlabel: dataPoint.label,
             language: dataPoint.language,
+            scrolltop: this.getScrollFraction(),
           },
           done: function () {
             // No-op: fire-and-forget logging.
@@ -285,13 +294,8 @@ export default {
      * data points, never for scan/preview.
      */
     recordReadingPosition: function (dataPoint) {
-      var container = document.querySelector("#longpage-main");
-      var scrollFraction =
-        container && container.scrollHeight
-          ? container.scrollTop / container.scrollHeight
-          : 0;
       this.$store.dispatch(ACT.UPDATE_READING_PROGRESS, {
-        scrollTop: scrollFraction,
+        scrollTop: this.getScrollFraction(),
         section: dataPoint.id,
         sectionhash: hashSection(dataPoint.id),
       });

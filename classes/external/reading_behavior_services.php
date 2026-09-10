@@ -70,6 +70,7 @@ class reading_behavior_services extends base_external {
      * @param float $maxreadingtime
      * @param string $datapointlabel
      * @param string $language
+     * @param float $scrolltop
      */
     public static function log_reading_behavior_event(
         $longpageid,
@@ -85,7 +86,8 @@ class reading_behavior_services extends base_external {
         $avgreadingtime,
         $maxreadingtime,
         $datapointlabel,
-        $language
+        $language,
+        $scrolltop = null
     ) {
         global $DB, $USER;
 
@@ -106,6 +108,7 @@ class reading_behavior_services extends base_external {
                 'maxreadingtime' => $maxreadingtime,
                 'datapointlabel' => $datapointlabel,
                 'language' => $language,
+                'scrolltop' => $scrolltop,
             ]
         );
 
@@ -130,6 +133,7 @@ class reading_behavior_services extends base_external {
                 'maxreadingtime' => $params['maxreadingtime'],
                 'datapointlabel' => $params['datapointlabel'],
                 'language' => $params['language'],
+                'scrolltop' => $params['scrolltop'],
                 'timecreated' => time(),
             ]);
             $transaction->allow_commit();
@@ -160,6 +164,12 @@ class reading_behavior_services extends base_external {
             'maxreadingtime' => new external_value(PARAM_FLOAT, 'Expected "study" (memorizing) duration, seconds'),
             'datapointlabel' => new external_value(PARAM_ALPHA, 'scan|read|study|regression|preview'),
             'language' => new external_value(PARAM_ALPHA, 'Language used for the reading-speed estimate'),
+            'scrolltop' => new external_value(
+                PARAM_FLOAT,
+                '0-1: #longpage-main scrollTop/scrollHeight when this data point was finalized',
+                VALUE_DEFAULT,
+                null
+            ),
         ]);
     }
 

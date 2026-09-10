@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026090901;       // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2026091001;       // The current module version (Date: YYYYMMDDXX).
 // v3.1.0 was the LAST release supporting Moodle < 4.4. AI-based question
 // generation now goes through Moodle's core_ai AI Provider subsystem (see
 // the separate aiprovider_longpage plugin) instead of a direct curl call to
