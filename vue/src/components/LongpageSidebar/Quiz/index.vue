@@ -1485,11 +1485,15 @@ export default {
 
       function embedIframeCode(iframecode, btn, openEditMode = false) {
         if (iframecode == "error") {
-          alert(
-            "xxx Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
-          );
+          alert("Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.");
           return;
         }
+
+        // The question is embedded into #question, a sidebar tab that isn't
+        // necessarily open yet — without this, a newly created question
+        // (AI-generated or blank) renders successfully but stays invisible
+        // until the user happens to open the quiz tab themselves.
+        _this[MUTATE.RESET_SIDEBAR_TAB_OPENED_KEY](SidebarTabKeys.QUIZ);
 
         iframecode = $(iframecode);
         $(iframecode)
