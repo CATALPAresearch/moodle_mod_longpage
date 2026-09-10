@@ -146,13 +146,22 @@ mklink mod\longpage\amd\src\app-lazy.min.js mod\longpage\amd\build\app-lazy.min.
 
 ## Testing
 
-Run PHPUnit tests from the Moodle root directory:
+**PHPUnit** (`tests/`, e.g. `tests/external/*_test.php`, `tests/lib_test.php`). Requires Moodle's PHPUnit environment to be initialized once ([docs](https://docs.moodle.org/dev/PHPUnit#Running_PHPUnit_tests)):
 
 ```shell
+php admin/tool/phpunit/cli/init.php   # one-time setup, from the Moodle root
 vendor/bin/phpunit --testsuite "mod_longpage_testsuite"
 ```
 
-tba. Vue.js testing
+**Behat** (`tests/behat/*.feature`), Moodle's browser-based acceptance tests. Requires Behat to be initialized once ([docs](https://docs.moodle.org/dev/Running_Behat_tests)), then run from the Moodle root, filtered to this plugin's tag:
+
+```shell
+NOT WORKING
+php admin/tool/behat/cli/init.php     # one-time setup, from the Moodle root
+php admin/tool/behat/cli/run.php --tags="@mod_longpage"
+```
+
+**Vue.js**: no automated test suite yet (`vue/` has no test runner configured) — changes are currently verified manually in the browser.
 
 Run code style checks from the Moodle root directory (uses Moodle's phpcs with the moodle coding standard):
 
