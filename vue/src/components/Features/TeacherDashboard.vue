@@ -53,16 +53,79 @@
               "Longpage instances"
             }}
           </label>
-          <select
-            v-model="selectedLongpageIds"
-            multiple
-            class="form-control form-control-sm instance-multiselect"
-            @change="loadAnalytics"
-          >
-            <option v-for="lp in courseLongpages" :key="lp.id" :value="lp.id">
+
+          <div ref="instanceDropdown" class="dropdown instance-dropdown">
+            <input
+              v-model="instanceSearchQuery"
+              type="text"
+              class="form-control form-control-sm"
+              :placeholder="
+                $t('features.teacherDashboard.instancesPlaceholder') ||
+                'Type to search instances…'
+              "
+              @focus="instanceDropdownOpen = true"
+            />
+            <div
+              class="dropdown-menu instance-dropdown-menu"
+              :class="{ show: instanceDropdownOpen }"
+            >
+              <div
+                v-if="filteredLongpages.length"
+                role="listbox"
+                :aria-label="
+                  $t('features.teacherDashboard.instancesLabel') ||
+                  'Longpage instances'
+                "
+              >
+                <div
+                  v-for="lp in filteredLongpages"
+                  :key="lp.id"
+                  class="form-check px-3 py-1 mb-0"
+                >
+                  <input
+                    :id="'instance-option-' + lp.id"
+                    type="checkbox"
+                    class="form-check-input"
+                    :checked="selectedLongpageIds.includes(lp.id)"
+                    @change="toggleLongpageSelection(lp.id)"
+                  />
+                  <label
+                    class="form-check-label"
+                    :for="'instance-option-' + lp.id"
+                  >
+                    {{ lp.name }}
+                  </label>
+                </div>
+              </div>
+              <p v-else class="px-3 py-1 mb-0 text-muted">
+                {{
+                  $t("features.teacherDashboard.instancesNotFound") ||
+                  "No matching instance"
+                }}
+              </p>
+            </div>
+          </div>
+
+          <div class="instance-pills">
+            <span
+              v-for="lp in selectedLongpageObjects"
+              :key="lp.id"
+              class="badge badge-pill instance-pill"
+            >
               {{ lp.name }}
-            </option>
-          </select>
+              <button
+                type="button"
+                class="instance-pill-remove"
+                :aria-label="
+                  $t('features.teacherDashboard.removeInstance') || 'Remove'
+                "
+                @click="toggleLongpageSelection(lp.id)"
+              >
+                &times;
+              </button>
+            </span>
+          </div>
+
           <button
             type="button"
             class="btn btn-sm btn-outline-secondary ml-2"
@@ -281,6 +344,8 @@ export default {
       selectedSemester: null,
       courseLongpages: [],
       selectedLongpageIds: [],
+      instanceSearchQuery: "",
+      instanceDropdownOpen: false,
       analyticsData: null,
       charts: {
         weeklyActivity: null,
@@ -296,6 +361,20 @@ export default {
     ...mapGetters({ context: GET.LONGPAGE_CONTEXT }),
     canViewDashboard() {
       return this.context?.isAdmin || this.context?.canModAnnotations;
+    },
+    filteredLongpages() {
+      const query = this.instanceSearchQuery.trim().toLowerCase();
+      if (!query) return this.courseLongpages;
+      return this.courseLongpages.filter((lp) =>
+        lp.name.toLowerCase().includes(query),
+      );
+    },
+    // Always resolved from courseLongpages, never from a raw id, so a
+    // selected instance's pill can only ever show its name.
+    selectedLongpageObjects() {
+      return this.courseLongpages.filter((lp) =>
+        this.selectedLongpageIds.includes(lp.id),
+      );
     },
     // A computed property (not static data()) so column labels/explanations
     // go through $t() — same dotted-path -> underscore lang-string
@@ -429,6 +508,21 @@ export default {
     selectAllLongpages() {
       this.selectedLongpageIds = this.courseLongpages.map((lp) => lp.id);
       this.loadAnalytics();
+    },
+    toggleLongpageSelection(id) {
+      this.selectedLongpageIds = this.selectedLongpageIds.includes(id)
+        ? this.selectedLongpageIds.filter((existing) => existing !== id)
+        : [...this.selectedLongpageIds, id];
+      this.loadAnalytics();
+    },
+    closeInstanceDropdown() {
+      this.instanceDropdownOpen = false;
+    },
+    handleInstanceDropdownOutsideClick(event) {
+      const container = this.$refs.instanceDropdown;
+      if (container && !container.contains(event.target)) {
+        this.closeInstanceDropdown();
+      }
     },
     async loadAnalytics() {
       if (!this.selectedSemester || this.selectedLongpageIds.length === 0) {
@@ -902,7 +996,14 @@ export default {
       });
     },
   },
+  mounted() {
+    document.addEventListener("click", this.handleInstanceDropdownOutsideClick);
+  },
   beforeUnmount() {
+    document.removeEventListener(
+      "click",
+      this.handleInstanceDropdownOutsideClick,
+    );
     this.destroyCharts();
   },
 };
@@ -965,7 +1066,9 @@ export default {
 
 .dashboard-instance-selector {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
   padding: 10px 20px;
   border-bottom: 1px solid #eee;
   background: #f8f9fa;
@@ -976,13 +1079,53 @@ export default {
   font-weight: 600;
   color: #495057;
   white-space: nowrap;
+  padding-top: 6px;
 }
 
-.instance-multiselect {
-  min-width: 220px;
-  max-width: 420px;
-  height: auto;
+.instance-dropdown {
+  position: relative;
+  width: 220px;
+  flex: 0 0 auto;
+}
+
+.instance-dropdown-menu {
+  max-height: 260px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.instance-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 auto;
   min-height: 32px;
+}
+
+.instance-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: #e9ecef;
+  color: #212529;
+  font-size: 0.8rem;
+  font-weight: normal;
+  border-radius: 999px;
+}
+
+.instance-pill-remove {
+  border: none;
+  background: transparent;
+  padding: 0;
+  line-height: 1;
+  color: #6c757d;
+  cursor: pointer;
+}
+
+.instance-pill-remove:hover {
+  color: #212529;
 }
 
 .dashboard-loading,
