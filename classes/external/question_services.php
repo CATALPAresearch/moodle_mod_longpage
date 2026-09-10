@@ -489,82 +489,59 @@ class question_services extends base_external {
     }
 
     /**
-     * Request a chat response for AI question generation.
+     * Request a chat response for AI question generation, via Moodle's
+     * core_ai AI Provider subsystem (see aiprovider_longpage) instead of a
+     * direct curl call to one hard-wired Ollama server. Keeps the original
+     * ->message->content return shape so every existing caller works
+     * unchanged.
      *
-     * @param string $systemcontent
-     * @param string $usercontent
+     * @param string $systemcontent Passage text (previously sent as the "system" message).
+     * @param string $usercontent Instruction text (previously sent as the "user" message).
+     * @param int $contextid Context the request is made in (for the AI action's audit trail).
      * @return object
      */
-    protected static function chat($systemcontent, $usercontent) {
-        // Check if AI is enabled
+    protected static function chat($systemcontent, $usercontent, int $contextid) {
+        global $USER;
+
+        // Check if AI is enabled for this activity module.
         $aienabled = get_config('longpage', 'enableai');
         if (!$aienabled) {
             throw new Exception('AI question generation is disabled. Please enable it in plugin settings.');
         }
 
-        // Get configuration from plugin settings
-        $url = get_config('longpage', 'aiurl');
-        $backupurl = get_config('longpage', 'aiurlbackup');
-        $model = get_config('longpage', 'aimodel');
-        $token = get_config('longpage', 'aitoken');
-        $timeout = (int)get_config('longpage', 'aitimeout') ?: 180;
-
-        // Set defaults if settings are empty
-        if (empty($url)) {
-            $url = 'http://catalpa-llm.fernuni-hagen.de:11434/api/chat';
-        }
-        if (empty($backupurl)) {
-            $backupurl = $url;
-        }
-        if (empty($model)) {
-            $model = 'llama3.1:latest';
+        if (!\core_ai\manager::get_user_policy_status((int) $USER->id)) {
+            // A specific errorcode (not a plain Exception, which the AJAX
+            // layer would report as the generic "generalexceptionmessage")
+            // so the client can detect this exact case and offer a link to
+            // accept the policy, instead of just showing an error toast.
+            throw new \moodle_exception('aipolicynotaccepted', 'longpage');
         }
 
-        $authorization = !empty($token) ? 'Authorization: Bearer ' . $token : '';
+        // generate_text only carries a single prompt string (no separate
+        // system/user roles) — combine both parts into one, which also
+        // matches how KI:connect/Ollama tend to behave more reliably with a
+        // single user-role message (see aiprovider_longpage).
+        $prompttext = $systemcontent . "\n\n" . $usercontent;
 
-        $systemcontent = str_replace("\n", '', $systemcontent);
-        $systemcontent = str_replace("\r", '', $systemcontent);
+        $aiaction = new \core_ai\aiactions\generate_text(
+            contextid: $contextid,
+            userid: (int) $USER->id,
+            prompttext: $prompttext,
+        );
 
-        $escapers = ["\\", "/", "\"", "\n", "\r", "\t", "\x08", "\x0c"];
-        $replacements = ["\\\\", "\\/", "\\\"", "\\n", "\\r", "\\t", "\\f", "\\b"];
-        $systemcontent = str_replace($escapers, $replacements, $systemcontent);
-        $usercontent = str_replace($escapers, $replacements, $usercontent);
-        $systemcontent = str_replace("'", "\\\"", $systemcontent);
-        $usercontent = str_replace("'", "\\\"", $usercontent);
+        $manager = \core\di::get(\core_ai\manager::class);
+        $response = $manager->process_action($aiaction);
 
-        $data = '{
-            "model": "' . $model . '",
-            "messages": [
-            {"role": "system", "content": "' . $systemcontent . '"},
-            {"role": "user", "content": "' . $usercontent . '"}
-            ],
-            "stream": false
-        }';
-
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', $authorization]);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $timeout);
-        $res = curl_exec($ch);
-        if (curl_errno($ch)) {
-            curl_setopt($ch, CURLOPT_URL, $backupurl);
-            $res = curl_exec($ch);
-            if (curl_errno($ch)) {
-                throw new Exception(curl_error($ch));
-            }
-        }
-        $result = json_decode($res);
-        curl_close($ch);
-
-        if (!isset($result->message->content)) {
-            throw new Exception("Problem with AI model: '" . $res . "'");
+        if (!$response->get_success()) {
+            throw new Exception("Problem with AI model: '" . $response->get_errormessage() . "'");
         }
 
-        $result->message->content = str_replace(["'", '"'], '', $result->message->content);
+        $content = $response->get_response_data()['generatedcontent'] ?? '';
+        $content = str_replace(["'", '"'], '', $content);
+
+        $result = new \stdClass();
+        $result->message = new \stdClass();
+        $result->message->content = $content;
         return $result;
     }
 
@@ -773,7 +750,7 @@ class question_services extends base_external {
 
             for ($i = 0; $i < $maxtries; $i++) {
                 try {
-                    $result = self::chat($textcontent, $explanation);
+                    $result = self::chat($textcontent, $explanation, $context->id);
 
                     if ($qtype === 'multiresponse') {
                         $qtype = 'multichoice';
@@ -1079,7 +1056,8 @@ class question_services extends base_external {
                     "Please write a new distractor in German language for the following question to the given "
                         . "text. Question: '" . $question->questiontext['text'] . "' The distractor should be "
                         . "different from the following answers: " . $answers . ". Give only the distractor text "
-                        . "without any additional information."
+                        . "without any additional information.",
+                    $context->id
                 );
                 $answertext = $result->message->content;
             } else {
@@ -1099,7 +1077,8 @@ class question_services extends base_external {
                         . "given text. Question: '" . $question->questiontext['text'] . "' Answer to rephrase: '"
                         . $question->answer[$order[$optionnumber]]['text'] . "' The rephrased answer should be "
                         . "different from the following answers: " . $answers . '. Give only the rephrased answer '
-                        . 'text without any additional information. Keep it short.'
+                        . 'text without any additional information. Keep it short.',
+                    $context->id
                 );
                 $question->answer[$order[$optionnumber]] = ['text' => $result->message->content, 'format' => 1];
             } else {
@@ -1108,7 +1087,8 @@ class question_services extends base_external {
                     "Please rephrase the following question in German language for the given text with the "
                         . "following given answers. Question to rephrase: '" . $question->questiontext['text']
                         . "' Given answers: " . $answers . '. Give only the rephrased question text without any '
-                        . 'additional information. Keep it short.'
+                        . 'additional information. Keep it short.',
+                    $context->id
                 );
                 $question->questiontext = ['text' => $result->message->content, 'format' => 1];
             }

@@ -1706,6 +1706,29 @@ export default {
         $(toast).appendTo("#sidebar-tab-quiz").toast("show");
       }
 
+      /**
+       * Show an AJAX failure as a toast. If it's the AI-policy-not-accepted
+       * error (see question_services::chat()), add a link to
+       * mod_longpage/ai_policy.php — Moodle's core_ai policy consent only
+       * ships as a modal embedded in specific placements, with no
+       * standalone URL to open in a new tab, so this plugin provides one.
+       */
+      function showAiErrorToast(e) {
+        if (e.errorcode === "aipolicynotaccepted") {
+          var policyurl = M.cfg.wwwroot + "/mod/longpage/ai_policy.php";
+          addToast(
+            e.message +
+              ' <a href="' + policyurl + '" target="_blank" rel="noopener" ' +
+              'class="text-white" style="text-decoration: underline;">' +
+              "KI-Nutzungsrichtlinie akzeptieren</a>",
+            15000,
+            true,
+          );
+        } else {
+          addToast(e.message, 10000, true);
+        }
+      }
+
       $("#longpage-main").on("mousemove", ".wrapper", function (e) {
         if (!_this.$store.state.UserModule.userCanMod) return;
 
@@ -1808,11 +1831,11 @@ export default {
                 isAdmin: _this.context.isAdmin,
               });
               removeModalWait(__this);
-              if (_this.context.isAdmin) {
-                addToast(e.message, 10000, true);
+              if (e.errorcode === "aipolicynotaccepted" || _this.context.isAdmin) {
+                showAiErrorToast(e);
               } else {
                 addToast(
-                  "yyy Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.",
+                  "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es mit einer anderen Auswahl erneut.",
                   5000,
                   true,
                 );
@@ -2263,7 +2286,7 @@ export default {
                   reloadAllIframesInQuiz();
                 },
                 fail: function (e) {
-                  alert(e.message);
+                  showAiErrorToast(e);
                   removeModalWait(editElements);
                 },
               },
@@ -2323,7 +2346,7 @@ export default {
                 reloadAllIframesInQuiz();
               },
               fail: function (e) {
-                alert(e.message);
+                showAiErrorToast(e);
                 removeModalWait(editElements);
               },
             },

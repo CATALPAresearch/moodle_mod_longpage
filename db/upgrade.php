@@ -362,5 +362,47 @@ function xmldb_longpage_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
     }
 
+    $newversion = 2026090901;
+    if ($oldversion < $newversion) {
+        // AI question generation now goes through Moodle's core_ai AI
+        // Provider subsystem (aiprovider_longpage) instead of these
+        // longpage-specific settings — carry over an existing working
+        // configuration so admins don't silently lose it, then remove the
+        // old settings. set_config()/get_config() work independently of
+        // whether aiprovider_longpage happens to be installed yet.
+        // Note: this step runs exactly once (guarded by $oldversion below,
+        // not by checking the new setting), because aiprovider_longpage's
+        // own admin_setting defaults (e.g. action_generate_text_model =
+        // 'llama3.1:latest') are already applied by the time this runs if
+        // that plugin installs first in the same upgrade run — checking
+        // "is the new setting still empty" would then wrongly skip a real
+        // old value.
+        $oldurl = get_config('longpage', 'aiurl');
+        if (!empty($oldurl)) {
+            // Old setting stored the full chat endpoint
+            // (.../api/chat or .../v1/chat/completions) - aiprovider_longpage
+            // wants just the base URL, auto-detecting native vs
+            // OpenAI-compatible from it.
+            $baseurl = preg_replace('#/(api/chat|v1/chat/completions)/?$#', '', $oldurl);
+            set_config('endpoint', $baseurl, 'aiprovider_longpage');
+        }
+
+        $oldtoken = get_config('longpage', 'aitoken');
+        if (!empty($oldtoken)) {
+            set_config('apikey', $oldtoken, 'aiprovider_longpage');
+        }
+
+        $oldmodel = get_config('longpage', 'aimodel');
+        if (!empty($oldmodel)) {
+            set_config('action_generate_text_model', $oldmodel, 'aiprovider_longpage');
+        }
+
+        foreach (['aiurl', 'aiurlbackup', 'aimodel', 'aitoken', 'aitimeout', 'availablemodels'] as $oldsetting) {
+            unset_config($oldsetting, 'longpage');
+        }
+
+        upgrade_plugin_savepoint(true, $newversion, 'mod', 'longpage');
+    }
+
     return true;
 }
